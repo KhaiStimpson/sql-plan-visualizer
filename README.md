@@ -1,5 +1,7 @@
 # SQL Plan Visualizer
 
+[![Proudly Vibe Coded - Molten Ember](https://vibecoded.fyi/badges/flat/main/proudly-vibe-coded-molten-ember.svg)](https://vibecoded.fyi/)
+
 SQL Plan Visualizer is a native Windows application for understanding SQL Server execution plans. It turns Showplan XML into an interactive tree, ranks the most important performance findings, and explains what the plan is doing in practical terms.
 
 ![SQL Plan Visualizer showing a query plan and ranked diagnostic findings](docs/app-overview.png)
