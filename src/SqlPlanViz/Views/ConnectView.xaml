@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="SqlPlanViz.Views.ConnectView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel Width="620" Spacing="12">
+
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                x:Name="ServerBox"
+                Header="Server"
+                PlaceholderText="localhost\SQLEXPRESS" />
+            <TextBox
+                x:Name="DatabaseBox"
+                Grid.Column="1"
+                Header="Database"
+                PlaceholderText="(default)" />
+        </Grid>
+
+        <ComboBox
+            x:Name="AuthBox"
+            HorizontalAlignment="Stretch"
+            Header="Authentication"
+            SelectionChanged="OnAuthChanged">
+            <ComboBoxItem Content="Windows Authentication" />
+            <ComboBoxItem Content="SQL Server Authentication" />
+        </ComboBox>
+
+        <Grid
+            x:Name="SqlAuthPanel"
+            ColumnSpacing="12"
+            Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="UserBox" Header="Login" />
+            <PasswordBox
+                x:Name="PasswordBox"
+                Grid.Column="1"
+                Header="Password" />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Spacing="16">
+            <CheckBox x:Name="EncryptBox" Content="Encrypt connection" IsChecked="True" />
+            <CheckBox
+                x:Name="TrustCertBox"
+                Content="Trust server certificate"
+                IsChecked="True"
+                ToolTipService.ToolTip="Needed for a dev instance using a self-signed certificate." />
+        </StackPanel>
+
+        <TextBox
+            x:Name="QueryBox"
+            AcceptsReturn="True"
+            FontFamily="Cascadia Mono, Consolas"
+            FontSize="12"
+            Header="Query"
+            Height="180"
+            PlaceholderText="SELECT * FROM dbo.Orders WHERE CustomerId = 42;"
+            TextWrapping="NoWrap" />
+
+        <RadioButtons x:Name="ModeButtons" SelectedIndex="0">
+            <x:String>Actual plan — runs the query (SET STATISTICS XML ON)</x:String>
+            <x:String>Estimated plan only — compiles without running it (SET SHOWPLAN_XML ON)</x:String>
+        </RadioButtons>
+
+        <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button x:Name="TestButton" Click="OnTestConnection" Content="Test connection" />
+            <TextBlock
+                x:Name="TestResult"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap" />
+        </StackPanel>
+
+        <InfoBar
+            IsClosable="False"
+            IsOpen="True"
+            Message="Credentials are used for this connection only and are never written to disk."
+            Severity="Informational" />
+    </StackPanel>
+</UserControl>

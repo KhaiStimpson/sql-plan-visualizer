@@ -1,0 +1,45 @@
+# Build and publish output
+[Bb]in/
+[Oo]bj/
+[Dd]ist/
+[Pp]ublish/
+artifacts/
+
+# Visual Studio, VS Code, and JetBrains machine-local files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test and coverage output
+[Tt]est[Rr]esults/
+coverage/
+coverage.*
+*.trx
+
+# Local logs, caches, and databases
+*.log
+*.cache
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Tool-local state
+.claude/

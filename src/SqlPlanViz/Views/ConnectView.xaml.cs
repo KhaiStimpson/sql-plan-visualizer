@@ -1,0 +1,75 @@
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using SqlPlanViz.Capture;
+
+namespace SqlPlanViz.Views;
+
+/// <summary>
+/// Connection + query entry for live capture (TDD §6B). Nothing here is persisted —
+/// §10 assumes credentials are re-entered per session.
+/// </summary>
+public sealed partial class ConnectView : UserControl
+{
+    private readonly ConnectionSettings _settings;
+    private readonly PlanCaptureService _capture = new();
+
+    public ConnectView(ConnectionSettings settings)
+    {
+        InitializeComponent();
+        _settings = settings;
+
+        ServerBox.Text = settings.Server;
+        DatabaseBox.Text = settings.Database;
+        UserBox.Text = settings.UserId;
+        EncryptBox.IsChecked = settings.Encrypt;
+        TrustCertBox.IsChecked = settings.TrustServerCertificate;
+        AuthBox.SelectedIndex = settings.Auth == AuthMode.SqlLogin ? 1 : 0;
+    }
+
+    public string Query => QueryBox.Text;
+
+    public CaptureMode Mode =>
+        ModeButtons.SelectedIndex == 1 ? CaptureMode.EstimatedOnly : CaptureMode.Actual;
+
+    private void OnAuthChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SqlAuthPanel is null)
+        {
+            return;
+        }
+
+        SqlAuthPanel.Visibility = AuthBox.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Pushes the form back into the shared settings object.</summary>
+    public void Commit()
+    {
+        _settings.Server = ServerBox.Text.Trim();
+        _settings.Database = DatabaseBox.Text.Trim();
+        _settings.Auth = AuthBox.SelectedIndex == 1 ? AuthMode.SqlLogin : AuthMode.Windows;
+        _settings.UserId = UserBox.Text.Trim();
+        _settings.Password = PasswordBox.Password;
+        _settings.Encrypt = EncryptBox.IsChecked == true;
+        _settings.TrustServerCertificate = TrustCertBox.IsChecked == true;
+    }
+
+    private async void OnTestConnection(object sender, RoutedEventArgs e)
+    {
+        Commit();
+        TestButton.IsEnabled = false;
+        TestResult.Text = "Connecting…";
+
+        try
+        {
+            TestResult.Text = await _capture.TestConnectionAsync(_settings);
+        }
+        catch (PlanCaptureException ex)
+        {
+            TestResult.Text = ex.Message;
+        }
+        finally
+        {
+            TestButton.IsEnabled = true;
+        }
+    }
+}
