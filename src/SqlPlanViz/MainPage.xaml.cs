@@ -5,6 +5,7 @@ using SqlPlanViz.Capture;
 using SqlPlanViz.Controls;
 using SqlPlanViz.Diagnostics;
 using SqlPlanViz.Model;
+using SqlPlanViz.Sql;
 using SqlPlanViz.ViewModels;
 using SqlPlanViz.Views;
 using Windows.ApplicationModel.DataTransfer;
@@ -98,17 +99,27 @@ public sealed partial class MainPage : Page
             ViewModel.SelectedStatement?.Summary.StatementText,
             formatted: SqlFormatToggle.IsChecked == true);
 
-        // The mapper works on what is on screen, not on the raw statement, so formatting the
-        // text also improves the mapping: a clause that had its own line is what gets highlighted.
-        if (ViewModel.SelectedNode is not { } node || SqlNodeMapper.Map(SqlView.Text, node) is not { } span)
+        if (ViewModel.SelectedNode is not { } node)
         {
             SqlView.ClearHighlight();
             SqlMappingLabel.Text = "SQL · select an operator to highlight its likely clause";
             return;
         }
 
+        // The mapper reads what is on screen, so its offsets line up whether or not the
+        // statement has been reformatted.
+        if (SqlNodeMapper.Map(SqlView.Text, node) is not { } span)
+        {
+            // Exchanges and spools move rows around; no part of the statement is theirs.
+            SqlView.ClearHighlight();
+            SqlMappingLabel.Text = $"SQL · no clause maps to node {node.NodeId} ({node.PhysicalOp})";
+            return;
+        }
+
         SqlView.HighlightSpan(span.Start, span.Length);
-        SqlMappingLabel.Text = $"SQL · likely {span.Clause} clause for node {node.NodeId}";
+        SqlMappingLabel.Text = span.Clause == SqlClauseSplitter.StatementKind
+            ? $"SQL · likely source of node {node.NodeId}"
+            : $"SQL · likely {span.Clause} clause for node {node.NodeId}";
     }
 
     private void OnToggleSqlFormat(object sender, RoutedEventArgs e) => UpdateSqlMapping();

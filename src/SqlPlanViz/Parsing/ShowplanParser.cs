@@ -134,6 +134,7 @@ public static class ShowplanParser
 
         var runtime = ParseRuntime(relOp);
         var subtreeCost = relOp.Dbl("EstimatedTotalSubtreeCost");
+        var objectParts = opElement is null ? default : ParseObjectParts(opElement);
 
         return new PlanNode
         {
@@ -151,7 +152,9 @@ public static class ShowplanParser
             ActualElapsedMs = runtime.ElapsedMs,
             ActualCpuMs = runtime.CpuMs,
             ActualExecutions = runtime.Executions,
-            ObjectName = opElement is null ? null : ParseObjectName(opElement),
+            ObjectName = FormatObjectName(objectParts),
+            ObjectTable = objectParts.Table,
+            ObjectAlias = objectParts.Alias,
             Predicate = opElement is null ? null : ParsePredicate(opElement, "Predicate")
                                                    ?? ParsePredicate(opElement, "Where"),
             SeekPredicate = opElement is null ? null : ParsePredicate(opElement, "SeekPredicates"),
@@ -263,20 +266,32 @@ public static class ShowplanParser
             threads.Sum(t => t.Int("ActualExecutions")));
     }
 
-    private static string? ParseObjectName(XElement opElement)
+    /// <summary>
+    /// The object's parts, unbracketed. <see cref="FormatObjectName"/> flattens these into one
+    /// display string; anything that needs to match the object against SQL text (the operator →
+    /// SQL mapping) needs the table and alias on their own, since the alias is what the query
+    /// actually says.
+    /// </summary>
+    private static ObjectParts ParseObjectParts(XElement opElement)
     {
         var obj = opElement.Name.LocalName == "Object"
             ? opElement
             : opElement.FirstWithinOperator("Object");
-        if (obj is null)
-        {
-            return null;
-        }
 
-        var schema = obj.Attr("Schema").Unbracket();
-        var table = obj.Attr("Table").Unbracket();
-        var index = obj.Attr("Index").Unbracket();
-        var alias = obj.Attr("Alias").Unbracket();
+        return obj is null
+            ? default
+            : new ObjectParts(
+                obj.Attr("Schema").Unbracket(),
+                obj.Attr("Table").Unbracket(),
+                obj.Attr("Index").Unbracket(),
+                obj.Attr("Alias").Unbracket());
+    }
+
+    private readonly record struct ObjectParts(string? Schema, string? Table, string? Index, string? Alias);
+
+    private static string? FormatObjectName(ObjectParts parts)
+    {
+        var (schema, table, index, alias) = parts;
 
         if (string.IsNullOrEmpty(table))
         {

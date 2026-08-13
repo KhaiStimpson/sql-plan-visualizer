@@ -128,7 +128,7 @@ public sealed class KeyLookupStormRule : IPlanRule
     }
 
     /// <summary>
-    /// Reverses the format built by ShowplanParser.ParseObjectName: "schema.table[ AS
+    /// Reverses the format built by ShowplanParser.FormatObjectName: "schema.table[ AS
     /// alias][.index]". Best-effort — used only to label the generated DDL.
     /// </summary>
     private static (string Schema, string Table) ParseSchemaTable(string? objectName)
