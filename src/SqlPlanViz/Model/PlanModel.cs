@@ -99,6 +99,12 @@ public sealed class PlanNode
     /// <summary>Table/index touched, if any.</summary>
     public string? ObjectName { get; init; }
 
+    /// <summary>Just the table, unbracketed — <see cref="ObjectName"/> also carries schema and index.</summary>
+    public string? ObjectTable { get; init; }
+
+    /// <summary>The alias the query gave this table, if it gave one. This is what the SQL text says.</summary>
+    public string? ObjectAlias { get; init; }
+
     public string? Predicate { get; init; }
 
     public string? SeekPredicate { get; init; }
