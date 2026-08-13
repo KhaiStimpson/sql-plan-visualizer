@@ -16,7 +16,7 @@ Execution plans contain a lot of useful evidence, but finding the part that dese
 - See findings ranked by impact and confidence, with explanations and suggested next steps.
 - Inspect estimated versus actual rows, cost, timing, predicates, output columns, and operator warnings.
 - Review missing-index suggestions and avoid presenting unchecked DDL when no live database connection is available.
-- Map a selected operator back to the SQL clause it most likely represents.
+- Map a selected operator back to the SQL clause it most likely represents, highlighted and scrolled into view in a syntax-coloured SQL pane that can be reformatted and resized.
 - Search, zoom, pan, collapse subtrees, focus the hot path, and replay operators in execution order.
 - Compare captured plans and save regression baselines for later checks.
 
