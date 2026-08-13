@@ -81,8 +81,87 @@ public static partial class SqlNodeMapper
         var end = sql.IndexOf('\n', Math.Min(position, sql.Length));
         if (end < 0) end = sql.Length;
         while (start < end && char.IsWhiteSpace(sql[start]) && sql[start] != '\n') start++;
-        return new SqlTextSpan(start, Math.Max(1, end - start), clause);
+        start = ExtendBackToClause(sql, start);
+        return new SqlTextSpan(start, Math.Max(1, ExtendThroughContinuations(sql, end) - start), clause);
     }
+
+    /// <summary>
+    /// Landing on an <c>ON</c> or <c>AND</c> line means the operator matched the predicate, not
+    /// the clause that owns it — walk up so the highlight starts at the JOIN or WHERE itself.
+    /// </summary>
+    private static int ExtendBackToClause(string sql, int start)
+    {
+        for (var guard = 0; guard < 8 && start > 0 && StartsContinuation(sql, start); guard++)
+        {
+            var lineStart = sql.LastIndexOf('\n', start - 1) + 1;
+            if (lineStart == 0)
+            {
+                break;
+            }
+
+            var previousStart = lineStart >= 2 ? sql.LastIndexOf('\n', lineStart - 2) + 1 : 0;
+            var text = previousStart;
+            while (text < lineStart && sql[text] is ' ' or '\t') text++;
+
+            // A blank line above means this predicate has no clause line to fold into.
+            if (text >= lineStart - 1)
+            {
+                break;
+            }
+
+            start = text;
+        }
+
+        return start;
+    }
+
+    /// <summary>
+    /// A join or a filter is rarely one line: <c>ON</c>, <c>AND</c> and <c>OR</c> continue it on
+    /// the following indented lines. Highlighting only the first line would cut the predicate in
+    /// half, which is exactly the part worth reading.
+    /// </summary>
+    private static int ExtendThroughContinuations(string sql, int end)
+    {
+        while (end < sql.Length && sql[end] == '\n')
+        {
+            var lineStart = end + 1;
+            var text = lineStart;
+            while (text < sql.Length && sql[text] is ' ' or '\t') text++;
+
+            // An unindented line is the next clause, not a continuation of this one.
+            if (text == lineStart || !StartsContinuation(sql, text))
+            {
+                break;
+            }
+
+            var lineEnd = sql.IndexOf('\n', text);
+            end = lineEnd < 0 ? sql.Length : lineEnd;
+        }
+
+        return end;
+    }
+
+    private static bool StartsContinuation(string sql, int position)
+    {
+        foreach (var word in Continuations)
+        {
+            if (position + word.Length > sql.Length
+                || !sql.AsSpan(position, word.Length).Equals(word, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var after = position + word.Length;
+            if (after >= sql.Length || char.IsWhiteSpace(sql[after]) || sql[after] == '(')
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static readonly string[] Continuations = ["ON", "AND", "OR"];
 
     private static SqlTextSpan ClauseSpan(string sql, int start, string clause)
     {

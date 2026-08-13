@@ -256,7 +256,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0">
+            <Grid x:Name="LeftContent" Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -506,33 +506,89 @@
                     </StackPanel>
                 </Grid>
 
+                <!--  SQL pane: syntax-highlighted, resizable, and scrolled to the mapped clause  -->
                 <Border
                     Grid.Row="1"
-                    MaxHeight="190"
-                    Padding="12,8"
+                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                     BorderThickness="0,1,0,0"
                     Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <Grid RowSpacing="5">
+                    <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock
-                            x:Name="SqlMappingLabel"
-                            FontSize="11"
-                            FontWeight="SemiBold"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="SQL · select an operator to highlight its likely clause" />
-                        <TextBox
-                            x:Name="SqlTextBox"
+
+                        <controls:PaneResizer
+                            x:Name="SqlResizer"
+                            Height="9"
+                            Background="Transparent"
+                            ToolTipService.ToolTip="Drag to resize the SQL pane">
+                            <Border
+                                Width="34"
+                                Height="3"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                CornerRadius="2" />
+                        </controls:PaneResizer>
+
+                        <Grid
                             Grid.Row="1"
-                            AcceptsReturn="True"
-                            FontFamily="Cascadia Mono, Consolas"
-                            FontSize="12"
-                            IsReadOnly="True"
-                            IsSpellCheckEnabled="False"
-                            TextWrapping="NoWrap" />
+                            Margin="12,0,8,4"
+                            ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                x:Name="SqlMappingLabel"
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="SQL · select an operator to highlight its likely clause"
+                                TextTrimming="CharacterEllipsis" />
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="4">
+                                <ToggleButton
+                                    x:Name="SqlFormatToggle"
+                                    Padding="10,2"
+                                    Click="OnToggleSqlFormat"
+                                    Content="Format"
+                                    FontSize="11"
+                                    IsChecked="True"
+                                    ToolTipService.ToolTip="Re-lay out the statement, one clause per line" />
+                                <Button
+                                    Padding="10,4"
+                                    Click="OnCopySql"
+                                    ToolTipService.ToolTip="Copy the statement">
+                                    <FontIcon
+                                        FontFamily="Segoe Fluent Icons"
+                                        FontSize="12"
+                                        Glyph="&#xE8C8;" />
+                                </Button>
+                                <Button
+                                    x:Name="SqlExpandButton"
+                                    Padding="10,4"
+                                    Click="OnToggleSqlHeight"
+                                    ToolTipService.ToolTip="Expand the SQL pane">
+                                    <FontIcon
+                                        x:Name="SqlExpandIcon"
+                                        FontFamily="Segoe Fluent Icons"
+                                        FontSize="12"
+                                        Glyph="&#xE70E;" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <controls:SqlCodeView
+                            x:Name="SqlView"
+                            Grid.Row="2"
+                            Height="180" />
                     </Grid>
                 </Border>
             </Grid>

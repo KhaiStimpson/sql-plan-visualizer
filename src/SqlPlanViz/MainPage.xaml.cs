@@ -15,6 +15,14 @@ namespace SqlPlanViz;
 
 public sealed partial class MainPage : Page
 {
+    private const double SqlPaneCompactHeight = 180;
+    private const double SqlPaneMinHeight = 64;
+
+    /// <summary>Leaves the plan tree at least this tall however far the SQL pane is dragged.</summary>
+    private const double CanvasReservedHeight = 180;
+
+    private double _sqlViewHeight = SqlPaneCompactHeight;
+
     public MainPage()
     {
         // x:Bind expressions are initialized while InitializeComponent builds the page.
@@ -26,6 +34,10 @@ public sealed partial class MainPage : Page
         Canvas.PlaybackChanged += OnPlaybackChanged;
         Canvas.FocusChanged += OnFocusChanged;
         Canvas.SearchRequested += OnSearchRequested;
+        SqlResizer.Dragged += OnSqlResizerDragged;
+
+        // Shrinking the window must not leave the SQL pane taller than the window.
+        SizeChanged += (_, _) => SetSqlViewHeight(_sqlViewHeight);
 
         UpdateMetricAvailability();
     }
@@ -82,21 +94,63 @@ public sealed partial class MainPage : Page
 
     private void UpdateSqlMapping()
     {
-        var sql = ViewModel.SelectedStatement?.Summary.StatementText ?? string.Empty;
-        if (SqlTextBox.Text != sql)
-        {
-            SqlTextBox.Text = sql;
-        }
+        SqlView.SetSource(
+            ViewModel.SelectedStatement?.Summary.StatementText,
+            formatted: SqlFormatToggle.IsChecked == true);
 
-        if (ViewModel.SelectedNode is not { } node || SqlNodeMapper.Map(sql, node) is not { } span)
+        // The mapper works on what is on screen, not on the raw statement, so formatting the
+        // text also improves the mapping: a clause that had its own line is what gets highlighted.
+        if (ViewModel.SelectedNode is not { } node || SqlNodeMapper.Map(SqlView.Text, node) is not { } span)
         {
-            SqlTextBox.Select(0, 0);
+            SqlView.ClearHighlight();
             SqlMappingLabel.Text = "SQL · select an operator to highlight its likely clause";
             return;
         }
 
-        SqlTextBox.Select(span.Start, span.Length);
+        SqlView.HighlightSpan(span.Start, span.Length);
         SqlMappingLabel.Text = $"SQL · likely {span.Clause} clause for node {node.NodeId}";
+    }
+
+    private void OnToggleSqlFormat(object sender, RoutedEventArgs e) => UpdateSqlMapping();
+
+    private void OnCopySql(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(SqlView.Text))
+        {
+            return;
+        }
+
+        var package = new DataPackage();
+        package.SetText(SqlView.Text);
+        Clipboard.SetContent(package);
+    }
+
+    private void OnSqlResizerDragged(object? sender, double delta) => SetSqlViewHeight(_sqlViewHeight - delta);
+
+    private void OnToggleSqlHeight(object sender, RoutedEventArgs e) =>
+        SetSqlViewHeight(IsSqlPaneExpanded ? SqlPaneCompactHeight : MaxSqlViewHeight);
+
+    private bool IsSqlPaneExpanded => _sqlViewHeight >= MaxSqlViewHeight - 1;
+
+    private double MaxSqlViewHeight
+    {
+        get
+        {
+            var available = LeftContent.ActualHeight;
+            return available > 0
+                ? Math.Max(SqlPaneMinHeight, available - CanvasReservedHeight)
+                : SqlPaneCompactHeight * 2;
+        }
+    }
+
+    private void SetSqlViewHeight(double height)
+    {
+        _sqlViewHeight = Math.Clamp(height, SqlPaneMinHeight, Math.Max(SqlPaneMinHeight, MaxSqlViewHeight));
+        SqlView.Height = _sqlViewHeight;
+
+        var expanded = IsSqlPaneExpanded;
+        SqlExpandIcon.Glyph = expanded ? "\uE70D" : "\uE70E";
+        ToolTipService.SetToolTip(SqlExpandButton, expanded ? "Shrink the SQL pane" : "Expand the SQL pane");
     }
 
     /// <summary>An estimated plan has no actual rows or timings, so those metrics are off.</summary>
