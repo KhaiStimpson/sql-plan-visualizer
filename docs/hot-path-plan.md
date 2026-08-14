@@ -123,16 +123,16 @@ optimizer's cost model disagrees with the clock.
 
 ### Model
 
-- [ ] Add `Model/TimeAttribution.cs` — flattens a `PlanStatement` into ordered frames
+- [x] Add `Model/TimeAttribution.cs` — flattens a `PlanStatement` into ordered frames
       (`NodeId`, `Depth`, `Offset`, `Width`, `Basis`).
-- [ ] Implement three width bases: `Elapsed`, `Cpu`, `RowsRead`.
-- [ ] **Handle parallelism correctly.** `ActualElapsedMs` is the max across threads, not the
+- [x] Implement three width bases: `Elapsed`, `Cpu`, `RowsRead`.
+- [x] **Handle parallelism correctly.** `ActualElapsedMs` is the max across threads, not the
       sum, so elapsed does not add up across a parallel branch. Use CPU time as the additive
       basis beneath a parallel operator, and mark frames whose width is approximate.
-- [ ] Add `PlanNode.CpuSelfMs` alongside the existing `SelfTimeMs` if not already derivable.
-- [ ] Clamp negative self-times (child elapsed exceeding parent) to zero and count them; a
+- [x] Add `PlanNode.CpuSelfMs` alongside the existing `SelfTimeMs` if not already derivable.
+- [x] Clamp negative self-times (child elapsed exceeding parent) to zero and count them; a
       non-zero count means the basis is unreliable and the view must say so.
-- [ ] Unit tests: a serial plan sums to statement elapsed within tolerance; a parallel plan
+- [x] Unit tests: a serial plan sums to statement elapsed within tolerance; a parallel plan
       does not silently over-count.
 
 ### View

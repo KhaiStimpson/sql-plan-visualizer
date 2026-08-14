@@ -194,6 +194,28 @@ public sealed class PlanNode
         }
     }
 
+    /// <summary>
+    /// This operator's own CPU time — <see cref="ActualCpuMs"/> minus the slowest child's CPU
+    /// time. Like <see cref="SelfTimeMs"/>, Showplan's per-operator CPU counters are cumulative
+    /// from the leaves up, not exclusive, so the same subtraction applies. Unlike elapsed time,
+    /// CPU-milliseconds are conserved regardless of parallelism — they're the additive basis
+    /// <c>Diagnostics/TimeAttribution</c> uses beneath a parallel operator (hot-path-plan.md
+    /// Phase 2). Null on estimated-only plans.
+    /// </summary>
+    public double? CpuSelfMs
+    {
+        get
+        {
+            if (ActualCpuMs is not double cpu)
+            {
+                return null;
+            }
+
+            var maxChildCpu = Children.Count == 0 ? 0 : Children.Max(c => c.ActualCpuMs ?? 0);
+            return Math.Max(0, cpu - maxChildCpu);
+        }
+    }
+
     public WarningSeverity? WorstWarning =>
         Warnings.Count == 0 ? null : Warnings.Max(w => w.Severity);
 
