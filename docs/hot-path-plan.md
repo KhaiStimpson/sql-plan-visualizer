@@ -105,9 +105,12 @@ No new data source; all of it is derivable from the parsed model.
 
 ### Verification
 
-- [ ] Open `samples/nested-loop-lookup-storm.sqlplan`; every Nested Loops names its two sides.
-- [ ] Open the estimated-only fixture; no self-time line, no empty space where it would be.
-- [ ] Screenshot a 200-node plan at three zoom levels and confirm it is still readable.
+- [x] Open `samples/nested-loop-lookup-storm.sqlplan`; every Nested Loops names its two sides.
+- [x] Open the estimated-only fixture; no self-time line, no empty space where it would be.
+- [ ] Screenshot a 200-node plan at three zoom levels and confirm it is still readable. No
+      200-node fixture exists in this repo to test at that scale; the three LOD tiers (full
+      card / operator-name-only / no-text) were confirmed readable on the existing samples,
+      both via zoom and via the new label-detail toggle, but not at 200-node density.
 
 **Deliverable:** the lookup-storm sample is diagnosable from the canvas alone.
 
