@@ -1,15 +1,18 @@
-using SqlPlanViz.Model;
+using SqlPlanViz.Parsing;
 using Xunit;
 
 namespace SqlPlanViz.Tests;
 
 public class ProjectReferenceSmokeTests
 {
-    [Fact]
-    public void CanReferenceAppModelTypes()
+    [Theory]
+    [InlineData(SampleLoader.OrdersActual)]
+    [InlineData(SampleLoader.NestedLoopLookupStorm)]
+    public void SampleLoaderLoadsAndParsesEmbeddedFixture(string sampleFileName)
     {
-        var plan = new ExecutionPlan();
+        var xml = SampleLoader.Load(sampleFileName);
+        var plan = ShowplanParser.Parse(xml, sampleFileName);
 
-        Assert.NotNull(plan);
+        Assert.NotEmpty(plan.Statements);
     }
 }

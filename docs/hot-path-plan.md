@@ -53,7 +53,7 @@ empty `Samples/` directory and no project file, so today nothing below is verifi
       `src/SqlPlanViz`.
 - [x] Add a solution file at the repo root so `dotnet build` and `dotnet test` cover app,
       baseline tool, and tests in one command.
-- [ ] Copy `samples/orders-actual.sqlplan` and `samples/nested-loop-lookup-storm.sqlplan` into
+- [x] Copy `samples/orders-actual.sqlplan` and `samples/nested-loop-lookup-storm.sqlplan` into
       `tests/SqlPlanViz.Tests/Samples/` as embedded resources, with a `SampleLoader` helper.
 - [ ] Add a characterisation test per existing rule: parse a sample, assert the current
       finding set. These lock in today's behaviour before anything below changes it.

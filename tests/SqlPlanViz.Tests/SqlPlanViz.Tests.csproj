@@ -28,4 +28,8 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Samples\*.sqlplan" />
+  </ItemGroup>
+
 </Project>
