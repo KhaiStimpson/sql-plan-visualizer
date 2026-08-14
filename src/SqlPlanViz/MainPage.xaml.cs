@@ -494,6 +494,22 @@ public sealed partial class MainPage : Page
             : "Terse";
     }
 
+    private void OnToggleLabelDetail(object sender, RoutedEventArgs e)
+    {
+        Canvas.LabelDetail = Canvas.LabelDetail switch
+        {
+            LabelDetail.Full => LabelDetail.Standard,
+            LabelDetail.Standard => LabelDetail.Minimal,
+            _ => LabelDetail.Full,
+        };
+        LabelDetailButton.Content = Canvas.LabelDetail switch
+        {
+            LabelDetail.Full => "Detail: Full",
+            LabelDetail.Standard => "Detail: Standard",
+            _ => "Detail: Minimal",
+        };
+    }
+
     private void OnCollapseAll(object sender, RoutedEventArgs e)
     {
         Canvas.CollapseAll();

@@ -88,19 +88,19 @@ No new data source; all of it is derivable from the parsed model.
 
 ### Canvas
 
-- [ ] Extend the subtitle line in `Controls/PlanCanvas.cs` (~line 1287) to use
+- [x] Extend the subtitle line in `Controls/PlanCanvas.cs` (~line 1287) to use
       `NodeLabeller` output in place of `ObjectName ?? LogicalOp`.
-- [ ] Add a **verdict line**: the highest-severity `PlanFinding` touching the node, as a single
+- [x] Add a **verdict line**: the highest-severity `PlanFinding` touching the node, as a single
       clause, in the severity accent colour, separated by a hairline rule.
-- [ ] Add a **self-time share line** — `SelfTimeMs` as a percentage of statement elapsed —
+- [x] Add a **self-time share line** — `SelfTimeMs` as a percentage of statement elapsed —
       shown in place of estimated cost when `RuntimeMetricsAvailable`.
-- [ ] Increase node height to fit the extra lines; verify `Layout/PlanLayoutEngine.cs` spacing
+- [x] Increase node height to fit the extra lines; verify `Layout/PlanLayoutEngine.cs` spacing
       and edge routing still hold at the new size.
-- [ ] Add a zoom-density threshold: below it, drop to operator name plus heat only. Reuse the
+- [x] Add a zoom-density threshold: below it, drop to operator name plus heat only. Reuse the
       canvas's existing zoom state.
-- [ ] Add a **label detail** toggle (minimal / standard / full) to the command strip, persisted
+- [x] Add a **label detail** toggle (minimal / standard / full) to the command strip, persisted
       per session.
-- [ ] Extend the search predicate (`PlanCanvas.cs:1165`) to match derived source names, so
+- [x] Extend the search predicate (`PlanCanvas.cs:1165`) to match derived source names, so
       searching `Customers` finds the join, not just the seek.
 
 ### Verification

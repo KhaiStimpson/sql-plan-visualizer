@@ -154,6 +154,13 @@
                         Content="Detailed"
                         ToolTipService.ToolTip="Toggle terse or expansive explanations" />
 
+                    <Button
+                        x:Name="LabelDetailButton"
+                        VerticalAlignment="Center"
+                        Click="OnToggleLabelDetail"
+                        Content="Detail: Full"
+                        ToolTipService.ToolTip="Cycle how much text each node card shows: full, standard, or operator name only" />
+
                     <AutoSuggestBox
                         x:Name="SearchBox"
                         Width="220"
