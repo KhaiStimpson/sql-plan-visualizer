@@ -23,6 +23,7 @@ public static class AntiPatternLibrary
         new("wait-dominated", "Wrong Battlefield", "Most elapsed time is outside plan execution work.", "Lock, I/O, or external waits need concurrency or infrastructure investigation. Rewriting operators will not remove time spent waiting elsewhere."),
         new("wide-update", "Index Write Fan-out", "One data change maintains many secondary indexes.", "Every extra index taxes inserts, updates, deletes, logging, and locking. Consolidate only after checking read dependencies."),
         new("missing-index-merge", "Index Suggestion Pile-up", "Overlapping missing-index hints describe one broader need.", "Merge compatible suggestions, compare them with existing indexes, and judge table size and write rate before creating anything."),
+        new("cost-model-divergence", "Cost/Clock Gap", "The optimizer's cost estimate and the measured elapsed time disagree sharply for this operator.", "A large gap usually traces back to a bad cardinality estimate, stale statistics, or a cost-model blind spot (TVFs, CLR, wide parallel skew). Check EstimateErrorFactor and warnings on the flagged operator first."),
     ];
 
     private static readonly IReadOnlyDictionary<string, AntiPatternInfo> ByRule =

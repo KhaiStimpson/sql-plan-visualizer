@@ -150,12 +150,12 @@ optimizer's cost model disagrees with the clock.
 
 ### Divergence
 
-- [ ] Add `Diagnostics/Rules/CostModelDivergenceRule.cs` — flags operators where
+- [x] Add `Diagnostics/Rules/CostModelDivergenceRule.cs` — flags operators where
       `|estimated cost share − actual time share|` exceeds a threshold, ranked by the gap.
-- [ ] Register it in `RuleEngine` and add it to the rule-toggle list.
-- [ ] Add a divergence column to the existing ranked-operator list: est %, actual %, delta,
+- [x] Register it in `RuleEngine` and add it to the rule-toggle list.
+- [x] Add a divergence column to the existing ranked-operator list: est %, actual %, delta,
       sorted by absolute delta.
-- [ ] Characterisation test on `orders-actual.sqlplan` asserting the expected divergence
+- [x] Characterisation test on `orders-actual.sqlplan` asserting the expected divergence
       ranking.
 
 **Deliverable:** the widest bar is the problem, and the cost/clock gap is a named finding.

@@ -4,6 +4,7 @@ using SqlPlanViz.Capture;
 using SqlPlanViz.Common;
 using SqlPlanViz.Controls;
 using SqlPlanViz.Diagnostics;
+using SqlPlanViz.Diagnostics.Rules;
 using SqlPlanViz.Model;
 using SqlPlanViz.Parsing;
 
@@ -44,6 +45,9 @@ public sealed partial class MainViewModel : ObservableObject
     private ExplanationVerbosity _explanationVerbosity = ExplanationVerbosity.Expansive;
 
     [ObservableProperty]
+    private bool _rankOperatorsByDivergence;
+
+    [ObservableProperty]
     private string? _busyMessage;
 
     [ObservableProperty]
@@ -73,6 +77,10 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<FindingItem> Findings { get; } = [];
 
     public ObservableCollection<OperatorRankItem> RankedOperators { get; } = [];
+
+    public string RankedOperatorsTitle => RankOperatorsByDivergence
+        ? "Operators ranked by cost-model divergence"
+        : "Operators ranked by self time";
 
     public ObservableCollection<SessionPlanItem> SessionPlans { get; } = [];
 
@@ -373,7 +381,7 @@ public sealed partial class MainViewModel : ObservableObject
         MissingIndexes.Clear();
         Warnings.Clear();
         Findings.Clear();
-        RankedOperators.Clear();
+        RebuildRankedOperators(value);
 
         if (value is not null)
         {
@@ -390,13 +398,6 @@ public sealed partial class MainViewModel : ObservableObject
             foreach (var finding in value.Findings)
             {
                 Findings.Add(CreateFindingItem(finding, value, ExplanationVerbosity));
-            }
-
-            var rank = 1;
-            foreach (var node in value.AllNodes
-                         .OrderByDescending(n => n.SelfTimeMs ?? n.EstimatedOperatorCost))
-            {
-                RankedOperators.Add(new OperatorRankItem { Rank = rank++, Node = node });
             }
 
             _ = VerifyIndexSuggestionsAsync();
@@ -421,6 +422,37 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(FindingCount));
         OnPropertyChanged(nameof(HasFindings));
         OnPropertyChanged(nameof(Narrative));
+    }
+
+    /// <summary>
+    /// Ranks by self time (or estimated operator cost on an estimated plan) by default; by
+    /// absolute cost-model divergence when <see cref="RankOperatorsByDivergence"/> is set
+    /// (hot-path-plan.md Phase 2) — the "sorted by absolute delta" view onto the same list.
+    /// </summary>
+    private void RebuildRankedOperators(PlanStatement? statement)
+    {
+        RankedOperators.Clear();
+        if (statement is null)
+        {
+            return;
+        }
+
+        var orderedNodes = RankOperatorsByDivergence
+            ? statement.AllNodes.OrderByDescending(n =>
+                CostModelDivergenceRule.ComputeShares(n, statement)?.Delta ?? -1)
+            : statement.AllNodes.OrderByDescending(n => n.SelfTimeMs ?? n.EstimatedOperatorCost);
+
+        var rank = 1;
+        foreach (var node in orderedNodes)
+        {
+            RankedOperators.Add(new OperatorRankItem { Rank = rank++, Node = node, Statement = statement });
+        }
+    }
+
+    partial void OnRankOperatorsByDivergenceChanged(bool value)
+    {
+        RebuildRankedOperators(SelectedStatement);
+        OnPropertyChanged(nameof(RankedOperatorsTitle));
     }
 
     partial void OnSelectedNodeChanged(PlanNode? value)
