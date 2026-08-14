@@ -9,6 +9,7 @@ public static class SampleLoader
 {
     public const string OrdersActual = "orders-actual.sqlplan";
     public const string NestedLoopLookupStorm = "nested-loop-lookup-storm.sqlplan";
+    public const string OrdersEstimated = "orders-estimated.sqlplan";
 
     public static string Load(string sampleFileName)
     {

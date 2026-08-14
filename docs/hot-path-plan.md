@@ -57,7 +57,7 @@ empty `Samples/` directory and no project file, so today nothing below is verifi
       `tests/SqlPlanViz.Tests/Samples/` as embedded resources, with a `SampleLoader` helper.
 - [x] Add a characterisation test per existing rule: parse a sample, assert the current
       finding set. These lock in today's behaviour before anything below changes it.
-- [ ] Add an estimated-only sample (no runtime stats) as a fixture — every phase below has a
+- [x] Add an estimated-only sample (no runtime stats) as a fixture — every phase below has a
       degradation path that only this fixture exercises.
 
 **Deliverable:** `dotnet test` runs green and fails loudly if a rule's output changes.
