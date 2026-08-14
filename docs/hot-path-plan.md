@@ -137,15 +137,15 @@ optimizer's cost model disagrees with the clock.
 
 ### View
 
-- [ ] Add `Views/FlameView.xaml` + `.cs` as a peer view to the canvas, with a view switcher in
+- [x] Add `Views/FlameView.xaml` + `.cs` as a peer view to the canvas, with a view switcher in
       the command strip.
-- [ ] Draw frames with width proportional to the basis, coloured by the existing
+- [x] Draw frames with width proportional to the basis, coloured by the existing
       `PlanPalette` heat ramp, labelled `Operator · object · time · ×executions`.
-- [ ] Hover shows the full label when truncated; click selects the node.
-- [ ] Two-way selection sync with `PlanCanvas` — selecting in either highlights in both.
-- [ ] Basis selector (elapsed / CPU / rows read) with the approximate-width warning surfaced
+- [x] Hover shows the full label when truncated; click selects the node.
+- [x] Two-way selection sync with `PlanCanvas` — selecting in either highlights in both.
+- [x] Basis selector (elapsed / CPU / rows read) with the approximate-width warning surfaced
       when parallelism is present.
-- [ ] Disable the view with an explanation when `RuntimeMetricsAvailable` is false, rather than
+- [x] Disable the view with an explanation when `RuntimeMetricsAvailable` is false, rather than
       rendering an empty frame.
 
 ### Divergence

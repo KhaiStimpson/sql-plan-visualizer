@@ -382,6 +382,13 @@ public sealed partial class MainPage : Page
         Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
     }
 
+    private void OnToggleFlameView(object sender, RoutedEventArgs e)
+    {
+        var show = Flame.Visibility != Visibility.Visible;
+        Flame.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+    }
+
     private void OnJumpToRankedOperator(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: PlanNode node })

@@ -10,6 +10,7 @@
     xmlns:diag="using:SqlPlanViz.Diagnostics"
     xmlns:model="using:SqlPlanViz.Model"
     xmlns:vm="using:SqlPlanViz.ViewModels"
+    xmlns:views="using:SqlPlanViz.Views"
     mc:Ignorable="d">
 
     <Grid AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop">
@@ -194,6 +195,15 @@
                             Glyph="&#xEA37;" />
                     </Button>
                     <Button
+                        x:Name="FlameViewButton"
+                        Click="OnToggleFlameView"
+                        ToolTipService.ToolTip="Toggle the time-attribution flame view">
+                        <FontIcon
+                            FontFamily="Segoe Fluent Icons"
+                            FontSize="14"
+                            Glyph="&#xE9D9;" />
+                    </Button>
+                    <Button
                         x:Name="CompareButton"
                         Click="OnCompareLatest"
                         Content="Compare"
@@ -275,6 +285,13 @@
                     ExplanationVerbosity="{x:Bind ViewModel.ExplanationVerbosity, Mode=OneWay}"
                     LayoutChanged="OnCanvasLayoutChanged"
                     Metric="{x:Bind ViewModel.Metric, Mode=OneWay}"
+                    SelectedNode="{x:Bind ViewModel.SelectedNode, Mode=TwoWay}"
+                    Statement="{x:Bind ViewModel.SelectedStatement, Mode=OneWay}" />
+
+                <views:FlameView
+                    x:Name="Flame"
+                    Grid.Row="0"
+                    Visibility="Collapsed"
                     SelectedNode="{x:Bind ViewModel.SelectedNode, Mode=TwoWay}"
                     Statement="{x:Bind ViewModel.SelectedStatement, Mode=OneWay}" />
 
