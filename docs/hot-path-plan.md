@@ -71,19 +71,19 @@ No new data source; all of it is derivable from the parsed model.
 
 ### Derivation
 
-- [ ] Add `Diagnostics/NodeLabeller.cs` — pure functions over `PlanNode`, no UI references.
-- [ ] `DescribeSources(PlanNode)` — for a node with no `ObjectName`, walk each input subtree to
+- [x] Add `Diagnostics/NodeLabeller.cs` — pure functions over `PlanNode`, no UI references.
+- [x] `DescribeSources(PlanNode)` — for a node with no `ObjectName`, walk each input subtree to
       the nearest object-bearing descendants and return them ordered by input.
-- [ ] Render two sources as `Orders ⋈ Customers`; three or more as `3 sources`; zero as null
+- [x] Render two sources as `Orders ⋈ Customers`; three or more as `3 sources`; zero as null
       (fall back to `LogicalOp`).
-- [ ] Handle the ambiguous shapes explicitly — Spool, Exchange/Parallelism, Concatenation,
+- [x] Handle the ambiguous shapes explicitly — Spool, Exchange/Parallelism, Concatenation,
       Compute Scalar — by passing through to the child rather than naming the operator.
-- [ ] `DescribeJoinKeys(PlanNode)` — extract the column pair from `Predicate` /
+- [x] `DescribeJoinKeys(PlanNode)` — extract the column pair from `Predicate` /
       `OuterReferences`, emit the short form (`on CustomerId`). Return null rather than
       guessing when the predicate does not parse.
-- [ ] Truncate long object names from the left (`…Orders.PK_Orders`), so the distinguishing
+- [x] Truncate long object names from the left (`…Orders.PK_Orders`), so the distinguishing
       part survives.
-- [ ] Unit tests for each of the above against both samples, plus a synthetic ambiguous-shape
+- [x] Unit tests for each of the above against both samples, plus a synthetic ambiguous-shape
       fixture.
 
 ### Canvas

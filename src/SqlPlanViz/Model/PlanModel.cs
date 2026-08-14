@@ -105,6 +105,7 @@ public sealed class PlanNode
     /// <summary>The alias the query gave this table, if it gave one. This is what the SQL text says.</summary>
     public string? ObjectAlias { get; init; }
 
+
     public string? Predicate { get; init; }
 
     public string? SeekPredicate { get; init; }
