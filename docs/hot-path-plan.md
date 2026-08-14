@@ -55,7 +55,7 @@ empty `Samples/` directory and no project file, so today nothing below is verifi
       baseline tool, and tests in one command.
 - [x] Copy `samples/orders-actual.sqlplan` and `samples/nested-loop-lookup-storm.sqlplan` into
       `tests/SqlPlanViz.Tests/Samples/` as embedded resources, with a `SampleLoader` helper.
-- [ ] Add a characterisation test per existing rule: parse a sample, assert the current
+- [x] Add a characterisation test per existing rule: parse a sample, assert the current
       finding set. These lock in today's behaviour before anything below changes it.
 - [ ] Add an estimated-only sample (no runtime stats) as a fixture — every phase below has a
       degradation path that only this fixture exercises.
