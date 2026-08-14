@@ -51,7 +51,7 @@ empty `Samples/` directory and no project file, so today nothing below is verifi
 
 - [x] Create `tests/SqlPlanViz.Tests/SqlPlanViz.Tests.csproj` (xunit, net8.0) referencing
       `src/SqlPlanViz`.
-- [ ] Add a solution file at the repo root so `dotnet build` and `dotnet test` cover app,
+- [x] Add a solution file at the repo root so `dotnet build` and `dotnet test` cover app,
       baseline tool, and tests in one command.
 - [ ] Copy `samples/orders-actual.sqlplan` and `samples/nested-loop-lookup-storm.sqlplan` into
       `tests/SqlPlanViz.Tests/Samples/` as embedded resources, with a `SampleLoader` helper.
