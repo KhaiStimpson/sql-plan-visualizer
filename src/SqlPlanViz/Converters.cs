@@ -42,6 +42,21 @@ public sealed partial class StringToVisibilityConverter : IValueConverter
         throw new NotSupportedException();
 }
 
+/// <summary>
+/// Bridges <c>NumberBox.Value</c> (double) and <see cref="SqlPlanViz.ViewModels.ParameterBindingItem.Value"/>
+/// (string), which stays a string all the way to <c>SqlLiteral.Format</c>. An unparsable or empty
+/// string becomes <see cref="double.NaN"/>, which <c>NumberBox</c> renders as an empty box rather
+/// than a forced 0.
+/// </summary>
+public sealed partial class StringToDoubleConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is string { Length: > 0 } text && double.TryParse(text, out var number) ? number : double.NaN;
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        value is double number && !double.IsNaN(number) ? number.ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
+}
+
 /// <summary>Colours a warning's icon by severity, using the Fluent system palette.</summary>
 public sealed partial class SeverityToBrushConverter : IValueConverter
 {

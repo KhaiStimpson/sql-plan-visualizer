@@ -131,6 +131,66 @@
                             </Grid>
                         </DataTemplate>
                     </local:ParameterEditorTemplateSelector.DefaultTemplate>
+
+                    <local:ParameterEditorTemplateSelector.NumericTemplate>
+                        <DataTemplate x:DataType="vm:ParameterBindingItem">
+                            <Grid Margin="0,0,0,6" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    Text="{x:Bind Name}"
+                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
+
+                                <TextBox
+                                    Grid.Column="1"
+                                    FontSize="12"
+                                    IsSpellCheckEnabled="False"
+                                    PlaceholderText="type"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <NumberBox
+                                    Grid.Column="2"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                    PlaceholderText="value"
+                                    SpinButtonPlacementMode="Compact"
+                                    Value="{x:Bind Value, Mode=TwoWay, Converter={StaticResource StringToDouble}}"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
+
+                                <CheckBox
+                                    Grid.Column="3"
+                                    MinWidth="0"
+                                    Content="NULL"
+                                    FontSize="11"
+                                    IsChecked="{x:Bind IsNull, Mode=TwoWay}"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
+
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="3"
+                                    Margin="2,2,0,0"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ParameterEditorTemplateSelector.NumericTemplate>
                 </local:ParameterEditorTemplateSelector>
             </ItemsControl.ItemTemplateSelector>
         </ItemsControl>

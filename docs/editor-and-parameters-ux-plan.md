@@ -43,7 +43,7 @@ time so each step stays reviewable.
       `ParameterStrip.xaml:67-131` in place of the single flat `DataTemplate`. Move the existing
       `TextBox` markup into the selector's default template (covers Text, Guid, Binary) so this
       step is a refactor with no behavior change.
-- [ ] Add the Numeric template: a `NumberBox` bound to `Value`, with a converter between
+- [x] Add the Numeric template: a `NumberBox` bound to `Value`, with a converter between
       `NumberBox.Value` (double) and the string `Value` property, since `ParameterBindingItem.Value`
       stays a string all the way to `SqlLiteral.Format` (`ParameterBindingItem.cs:225`).
 - [ ] Add the Bit template: a `ToggleSwitch` bound to `Value` through a bool↔string converter

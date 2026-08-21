@@ -15,6 +15,7 @@
             <local:SeverityToBrushConverter x:Key="SeverityToBrush" />
             <local:InverseBoolConverter x:Key="InverseBool" />
             <local:StringToVisibilityConverter x:Key="StringToVisibility" />
+            <local:StringToDoubleConverter x:Key="StringToDouble" />
 
             <!-- Card surface used by the detail panel sections. -->
             <Style x:Key="CardBorder" TargetType="Border">
