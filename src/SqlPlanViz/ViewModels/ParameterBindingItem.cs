@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SqlPlanViz.Editing;
 
@@ -137,6 +138,37 @@ public sealed partial class ParameterBindingItem : ObservableObject
         }
     }
 
+    /// <summary>
+    /// The date portion of a DateTime value's text, composed with <see cref="TimeText"/> into
+    /// <see cref="Value"/> — the string <c>SqlLiteral.Format</c> parses all the way through.
+    /// </summary>
+    public DateTimeOffset? DateValue
+    {
+        get => DateTimeOffset.TryParse(Value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+            ? parsed
+            : null;
+        set
+        {
+            var time = TimeText;
+            Value = value is { } date ? $"{date:yyyy-MM-dd} {time}" : string.Empty;
+            OnPropertyChanged(nameof(TimeText));
+        }
+    }
+
+    /// <summary>The time-of-day portion of a DateTime value's text, composed with <see cref="DateValue"/>.</summary>
+    public string TimeText
+    {
+        get => DateTimeOffset.TryParse(Value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+            ? parsed.ToString("HH:mm:ss", CultureInfo.InvariantCulture)
+            : string.Empty;
+        set
+        {
+            var date = DateValue ?? DateTimeOffset.Now;
+            Value = $"{date:yyyy-MM-dd} {value}";
+            OnPropertyChanged(nameof(DateValue));
+        }
+    }
+
     /// <summary>Replaces the grid's shape, keeping any rows that still fit (Phase 6 fills this from sys.table_types).</summary>
     public void SetTableColumns(IEnumerable<TvpColumn> columns)
     {
@@ -230,7 +262,12 @@ public sealed partial class ParameterBindingItem : ObservableObject
     private static bool HasPlanEntry(RequiredParameter parameter) =>
         parameter.TypeSource == ParameterTypeSource.Plan;
 
-    partial void OnValueChanged(string value) => Validate();
+    partial void OnValueChanged(string value)
+    {
+        OnPropertyChanged(nameof(DateValue));
+        OnPropertyChanged(nameof(TimeText));
+        Validate();
+    }
 
     partial void OnIsNullChanged(bool value) => Validate();
 

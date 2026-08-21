@@ -253,6 +253,81 @@
                             </Grid>
                         </DataTemplate>
                     </local:ParameterEditorTemplateSelector.BitTemplate>
+
+                    <local:ParameterEditorTemplateSelector.DateTimeTemplate>
+                        <DataTemplate x:DataType="vm:ParameterBindingItem">
+                            <Grid Margin="0,0,0,6" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    Text="{x:Bind Name}"
+                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
+
+                                <TextBox
+                                    Grid.Column="1"
+                                    FontSize="12"
+                                    IsSpellCheckEnabled="False"
+                                    PlaceholderText="type"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <Grid
+                                    Grid.Column="2"
+                                    ColumnSpacing="4"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="90" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <CalendarDatePicker
+                                        FontSize="12"
+                                        Date="{x:Bind DateValue, Mode=TwoWay}"
+                                        IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                        PlaceholderText="date" />
+
+                                    <TextBox
+                                        Grid.Column="1"
+                                        FontFamily="Cascadia Mono, Consolas"
+                                        FontSize="12"
+                                        IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                        IsSpellCheckEnabled="False"
+                                        PlaceholderText="HH:mm:ss"
+                                        Text="{x:Bind TimeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+
+                                <CheckBox
+                                    Grid.Column="3"
+                                    MinWidth="0"
+                                    Content="NULL"
+                                    FontSize="11"
+                                    IsChecked="{x:Bind IsNull, Mode=TwoWay}"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
+
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="3"
+                                    Margin="2,2,0,0"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ParameterEditorTemplateSelector.DateTimeTemplate>
                 </local:ParameterEditorTemplateSelector>
             </ItemsControl.ItemTemplateSelector>
         </ItemsControl>
