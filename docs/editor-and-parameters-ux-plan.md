@@ -89,7 +89,7 @@ Ordered easiest-to-hardest; each later task can lean on the one before it.
 - [x] Add a `Ctrl+/` line-comment toggle, shaped like `IndentSelection`
       (`SqlEditorControl.Input.cs:693-712`): operate line-by-line over the selection, prefix/strip
       `-- `, one undo group.
-- [ ] Add bracket/paren match highlighting, driven by the existing `TSqlTokenizer` token stream
+- [x] Add bracket/paren match highlighting, driven by the existing `TSqlTokenizer` token stream
       that already powers syntax coloring — no new parsing, just a highlight rule evaluated at
       caret-move time and drawn in `OnDraw`.
 - [ ] Add a `Ctrl+F` find overlay: a small UI over the canvas, a search-in-`SqlDocument` helper,

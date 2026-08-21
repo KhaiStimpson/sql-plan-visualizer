@@ -76,6 +76,9 @@ public sealed partial class SqlEditorControl : UserControl
     private bool _caretVisible = true;
     private bool _hasFocus;
 
+    /// <summary>The bracket pair to highlight this frame, recomputed on caret move and on edit.</summary>
+    private (int Open, int Close)? _bracketMatch;
+
     public SqlEditorControl()
     {
         _tokenizer = new TSqlTokenizer(_document);
@@ -88,6 +91,7 @@ public sealed partial class SqlEditorControl : UserControl
         _canvas.CreateResources += OnCreateResources;
         _canvas.Draw += OnDraw;
         _canvas.SizeChanged += (_, _) => UpdateScrollRanges();
+        CaretMoved += (_, _) => UpdateBracketMatch();
 
         _verticalScroll.Scroll += (_, e) => SetScroll(_scrollX, e.NewValue);
         _horizontalScroll.Scroll += (_, e) => SetScroll(e.NewValue, _scrollY);
@@ -297,6 +301,7 @@ public sealed partial class SqlEditorControl : UserControl
         }
 
         UpdateScrollRanges();
+        UpdateBracketMatch();
         TextChanged?.Invoke(this, EventArgs.Empty);
         NotifyTextChangedToEditContext(e);
 
@@ -530,6 +535,7 @@ public sealed partial class SqlEditorControl : UserControl
             DrawInlineAnnotationForLine(ds, line, lineEnd - lineStart, y);
         }
 
+        DrawBracketMatch(ds, first, last);
         DrawGutter(ds, first, last, caretLine, height);
         DrawCaret(ds, caretLine);
     }
