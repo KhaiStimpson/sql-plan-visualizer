@@ -1,14 +1,18 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using SqlPlanViz.Capture;
 using SqlPlanViz.Controls;
 using SqlPlanViz.Diagnostics;
+using SqlPlanViz.Editing;
+using SqlPlanViz.Editing.Completion;
 using SqlPlanViz.Model;
 using SqlPlanViz.Sql;
 using SqlPlanViz.ViewModels;
 using SqlPlanViz.Views;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.System;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 
@@ -16,14 +20,6 @@ namespace SqlPlanViz;
 
 public sealed partial class MainPage : Page
 {
-    private const double SqlPaneCompactHeight = 180;
-    private const double SqlPaneMinHeight = 64;
-
-    /// <summary>Leaves the plan tree at least this tall however far the SQL pane is dragged.</summary>
-    private const double CanvasReservedHeight = 180;
-
-    private double _sqlViewHeight = SqlPaneCompactHeight;
-
     public MainPage()
     {
         // x:Bind expressions are initialized while InitializeComponent builds the page.
@@ -35,12 +31,180 @@ public sealed partial class MainPage : Page
         Canvas.PlaybackChanged += OnPlaybackChanged;
         Canvas.FocusChanged += OnFocusChanged;
         Canvas.SearchRequested += OnSearchRequested;
-        SqlResizer.Dragged += OnSqlResizerDragged;
-
-        // Shrinking the window must not leave the SQL pane taller than the window.
-        SizeChanged += (_, _) => SetSqlViewHeight(_sqlViewHeight);
-
+        SetUpEditor();
         UpdateMetricAvailability();
+    }
+
+    /// <summary>Completions come from here; Phase 6 registers the catalog and tuning providers on it.</summary>
+    private readonly CompletionEngine _completionEngine = new();
+
+    private readonly PlanObjectProvider _planObjectProvider = new();
+
+    /// <summary>Stops the editor and the view model from echoing each other's text updates.</summary>
+    private bool _syncingEditorText;
+
+    private void SetUpEditor()
+    {
+        _completionEngine.Register(new KeywordProvider());
+        _completionEngine.Register(_planObjectProvider);
+        SqlEditor.CompletionEngine = _completionEngine;
+
+        Parameters.Bind(ViewModel.Editor);
+        Parameters.BindingsChanged += (_, _) => UpdateEditorStatus();
+
+        _parameterRefresh.Tick += (_, _) =>
+        {
+            _parameterRefresh.Stop();
+            ViewModel.Editor.RefreshParameters();
+            UpdateEditorStatus();
+        };
+
+        ViewModel.Editor.PropertyChanged += OnEditorPropertyChanged;
+
+        SqlEditor.TextChanged += OnEditorTextChanged;
+        SqlEditor.CaretMoved += (_, _) => UpdateEditorStatus();
+        SqlEditor.GutterMarkClicked += OnGutterMarkClicked;
+
+        // The IME candidate window is positioned in screen coordinates; without this it can
+        // only anchor to the window rather than to the caret.
+        SqlEditor.ClientToScreen = ClientRectToScreen;
+
+        EditorSplitter.TargetRow = EditorPaneRow;
+        EditorSplitter.MinimumHeight = 0;
+        EditorSplitter.Resized += (_, height) => EditorPane.Visibility =
+            height < 8 ? Visibility.Collapsed : Visibility.Visible;
+
+        // Ctrl+Enter re-plans from anywhere in the page, matching the toolbar button.
+        var replan = new KeyboardAccelerator { Key = VirtualKey.Enter, Modifiers = VirtualKeyModifiers.Control };
+        replan.Invoked += (_, args) =>
+        {
+            args.Handled = true;
+            _ = ReplanAsync();
+        };
+        KeyboardAccelerators.Add(replan);
+
+        UpdateEditorStatus();
+    }
+
+    private void OnEditorTextChanged(object? sender, EventArgs e)
+    {
+        if (_syncingEditorText)
+        {
+            return;
+        }
+
+        _syncingEditorText = true;
+        try
+        {
+            ViewModel.Editor.Text = SqlEditor.Text;
+        }
+        finally
+        {
+            _syncingEditorText = false;
+        }
+
+        // Re-extraction is a parse, not a round trip, but it still does not need to run on
+        // every keystroke — one pass once typing pauses keeps the strip current for free.
+        _parameterRefresh.Stop();
+        _parameterRefresh.Start();
+        UpdateEditorStatus();
+    }
+
+    private readonly DispatcherTimer _parameterRefresh = new() { Interval = TimeSpan.FromMilliseconds(400) };
+
+    private void OnEditorPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SqlEditorViewModel.Text))
+        {
+            UpdateSqlMapping();
+        }
+
+        if (e.PropertyName is nameof(SqlEditorViewModel.Squiggles) or nameof(SqlEditorViewModel.ErrorMessage))
+        {
+            ApplyEditorDecorations();
+        }
+
+        UpdateEditorStatus();
+    }
+
+    private void OnReplan(object sender, RoutedEventArgs e) => _ = ReplanAsync();
+
+    private async Task ReplanAsync()
+    {
+        if (!ViewModel.Editor.CanReplan)
+        {
+            UpdateEditorStatus();
+            return;
+        }
+
+        // Extraction is debounced, so force it current before composing: pressing Ctrl+Enter
+        // within 400ms of typing a parameter must not send a batch missing its DECLARE.
+        _parameterRefresh.Stop();
+        ViewModel.Editor.RefreshParameters();
+
+        await ViewModel.ReplanAsync();
+        ApplyEditorDecorations();
+        UpdateEditorStatus();
+    }
+
+    private void OnCancelReplan(object sender, RoutedEventArgs e) => ViewModel.CancelReplan();
+
+    private void OnGutterMarkClicked(object? sender, GutterMark mark)
+    {
+        if (mark.NodeId is not int nodeId || ViewModel.SelectedStatement is not { } statement)
+        {
+            return;
+        }
+
+        ViewModel.SelectedNode = statement.AllNodes.FirstOrDefault(n => n.NodeId == nodeId);
+    }
+
+    private void ApplyEditorDecorations() =>
+        SqlEditor.SetDecorations(squiggles: ViewModel.Editor.Squiggles);
+
+    private void UpdateEditorStatus()
+    {
+        var editor = ViewModel.Editor;
+        SqlEditor.IsReadOnly = editor.IsBusy;
+        ReplanButton.IsEnabled = editor.CanReplan;
+
+        var (line, column) = SqlEditor.Document.PositionOf(SqlEditor.CaretOffset);
+        var parts = new List<string> { $"Ln {line + 1}, Col {column + 1}" };
+
+        if (editor.HasError)
+        {
+            parts.Add(editor.ErrorMessage!.Split(Environment.NewLine)[0]);
+        }
+        else if (!editor.AllParametersValid)
+        {
+            parts.Add("Some parameters need a valid value.");
+        }
+        else if (editor.IsStale)
+        {
+            parts.Add("Edited since the plan was captured — Ctrl+Enter to re-plan.");
+        }
+        else if (!string.IsNullOrEmpty(editor.StatusMessage))
+        {
+            parts.Add(editor.StatusMessage);
+        }
+
+        EditorStatusText.Text = string.Join("  ·  ", parts);
+    }
+
+    /// <summary>Best-effort client-to-screen mapping for the IME candidate window.</summary>
+    private Windows.Foundation.Rect ClientRectToScreen(Windows.Foundation.Rect rect)
+    {
+        try
+        {
+            var transform = SqlEditor.TransformToVisual(null);
+            var topLeft = transform.TransformPoint(new Windows.Foundation.Point(rect.X, rect.Y));
+            var scale = XamlRoot?.RasterizationScale ?? 1.0;
+            return new Windows.Foundation.Rect(topLeft.X * scale, topLeft.Y * scale, rect.Width * scale, rect.Height * scale);
+        }
+        catch (Exception)
+        {
+            return rect;
+        }
     }
 
     public MainViewModel ViewModel { get; }
@@ -95,73 +259,54 @@ public sealed partial class MainPage : Page
 
     private void UpdateSqlMapping()
     {
-        SqlView.SetSource(
-            ViewModel.SelectedStatement?.Summary.StatementText,
-            formatted: SqlFormatToggle.IsChecked == true);
+        if (!_syncingEditorText && SqlEditor.Text != ViewModel.Editor.Text)
+        {
+            _syncingEditorText = true;
+            try
+            {
+                SqlEditor.Text = ViewModel.Editor.Text;
+            }
+            finally
+            {
+                _syncingEditorText = false;
+            }
+        }
 
+        _planObjectProvider.Load(ViewModel.SelectedStatement);
+
+        // The mapper reads what is in the editor, so its offsets line up with what is on
+        // screen even after the batch has been edited.
+        var sql = SqlEditor.Text;
         if (ViewModel.SelectedNode is not { } node)
         {
-            SqlView.ClearHighlight();
             SqlMappingLabel.Text = "SQL · select an operator to highlight its likely clause";
             return;
         }
 
-        // The mapper reads what is on screen, so its offsets line up whether or not the
-        // statement has been reformatted.
-        if (SqlNodeMapper.Map(SqlView.Text, node) is not { } span)
+        if (SqlNodeMapper.Map(sql, node) is not { } span)
         {
             // Exchanges and spools move rows around; no part of the statement is theirs.
-            SqlView.ClearHighlight();
+            SqlEditor.SelectRange(0, 0);
             SqlMappingLabel.Text = $"SQL · no clause maps to node {node.NodeId} ({node.PhysicalOp})";
             return;
         }
 
-        SqlView.HighlightSpan(span.Start, span.Length);
+        SqlEditor.SelectRange(span.Start, span.Length);
         SqlMappingLabel.Text = span.Clause == SqlClauseSplitter.StatementKind
             ? $"SQL · likely source of node {node.NodeId}"
             : $"SQL · likely {span.Clause} clause for node {node.NodeId}";
     }
 
-    private void OnToggleSqlFormat(object sender, RoutedEventArgs e) => UpdateSqlMapping();
-
     private void OnCopySql(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(SqlView.Text))
+        if (string.IsNullOrEmpty(SqlEditor.Text))
         {
             return;
         }
 
         var package = new DataPackage();
-        package.SetText(SqlView.Text);
+        package.SetText(SqlEditor.Text);
         Clipboard.SetContent(package);
-    }
-
-    private void OnSqlResizerDragged(object? sender, double delta) => SetSqlViewHeight(_sqlViewHeight - delta);
-
-    private void OnToggleSqlHeight(object sender, RoutedEventArgs e) =>
-        SetSqlViewHeight(IsSqlPaneExpanded ? SqlPaneCompactHeight : MaxSqlViewHeight);
-
-    private bool IsSqlPaneExpanded => _sqlViewHeight >= MaxSqlViewHeight - 1;
-
-    private double MaxSqlViewHeight
-    {
-        get
-        {
-            var available = LeftContent.ActualHeight;
-            return available > 0
-                ? Math.Max(SqlPaneMinHeight, available - CanvasReservedHeight)
-                : SqlPaneCompactHeight * 2;
-        }
-    }
-
-    private void SetSqlViewHeight(double height)
-    {
-        _sqlViewHeight = Math.Clamp(height, SqlPaneMinHeight, Math.Max(SqlPaneMinHeight, MaxSqlViewHeight));
-        SqlView.Height = _sqlViewHeight;
-
-        var expanded = IsSqlPaneExpanded;
-        SqlExpandIcon.Glyph = expanded ? "\uE70D" : "\uE70E";
-        ToolTipService.SetToolTip(SqlExpandButton, expanded ? "Shrink the SQL pane" : "Expand the SQL pane");
     }
 
     /// <summary>An estimated plan has no actual rows or timings, so those metrics are off.</summary>

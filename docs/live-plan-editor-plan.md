@@ -163,16 +163,16 @@ two are where correctness bugs will hide. Tick checkboxes as they land.
 
 **Goal:** `Ctrl+Enter` produces a new plan on the canvas.
 
-- [ ] `ViewModels/SqlEditorViewModel.cs` — text, parameters, busy, error, staleness
-- [ ] `MainViewModel.ReplanAsync` — compose batch, capture estimated, parse, activate
-- [ ] Route each re-plan through the existing `SessionPlans` machinery so history is preserved
-- [ ] Surface SQL error line and column from `SqlException` instead of flattening to a message
-- [ ] Translate error positions through the Phase 3 offset map to editor lines
-- [ ] Render compile errors as inline squiggles in the editor, plus a message on the status bar
-- [ ] Keep the selected statement stable across re-plans by statement index plus fingerprint
-- [ ] Disable editing while a capture is in flight; keep the request cancellable
-- [ ] Stale tracking: mark the plan stale as soon as the text diverges from the captured batch
-- [ ] `Ctrl+Enter` accelerator, plus a toolbar button with the same command
+- [x] `ViewModels/SqlEditorViewModel.cs` — text, parameters, busy, error, staleness
+- [x] `MainViewModel.ReplanAsync` — compose batch, capture estimated, parse, activate
+- [x] Route each re-plan through the existing `SessionPlans` machinery so history is preserved
+- [x] Surface SQL error line and column from `SqlException` instead of flattening to a message
+- [x] Translate error positions through the Phase 3 offset map to editor lines
+- [x] Render compile errors as inline squiggles in the editor, plus a message on the status bar
+- [x] Keep the selected statement stable across re-plans by statement index plus fingerprint
+- [x] Disable editing while a capture is in flight; keep the request cancellable
+- [x] Stale tracking: mark the plan stale as soon as the text diverges from the captured batch
+- [x] `Ctrl+Enter` accelerator, plus a toolbar button with the same command
 
 **Deliverable:** edit the SQL, press `Ctrl+Enter`, and the canvas shows the plan for the edited query.
 

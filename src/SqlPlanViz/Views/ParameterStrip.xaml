@@ -68,7 +68,7 @@
             x:Name="ItemsHost"
             Grid.Row="1"
             Padding="10,0,10,8"
-            ItemsSource="{x:Bind ScalarParameters, Mode=OneWay}">
+            >
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:ParameterBindingItem">
                     <Grid Margin="0,0,0,6" ColumnSpacing="8">

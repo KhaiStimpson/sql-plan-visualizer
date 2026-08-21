@@ -21,6 +21,14 @@ public sealed partial class MainViewModel : ObservableObject
     private CancellationTokenSource? _objectContextCancellation;
     private string? _lastCapturedQuery;
     private CaptureMode _lastCaptureMode;
+    private CancellationTokenSource? _replanCancellation;
+
+    /// <summary>
+    /// False only while activating a plan the editor itself produced. Selecting a statement
+    /// normally loads its text into the editor; a re-plan must not, or it would clobber the
+    /// edit that caused it.
+    /// </summary>
+    private bool _syncEditorText = true;
 
     [ObservableProperty]
     private ExecutionPlan? _plan;
@@ -79,6 +87,9 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<PlanDeltaItem> DiffDeltas { get; } = [];
 
     public ObservableCollection<QueryStorePlanEntry> QueryStorePlans { get; } = [];
+
+    /// <summary>The editor pane's state (live-plan-editor-plan.md Phase 4).</summary>
+    public SqlEditorViewModel Editor { get; } = new();
 
     public ConnectionSettings Connection { get; } = new();
 
@@ -302,7 +313,15 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanCompare));
     }
 
-    public void ActivateSessionPlan(SessionPlanItem item)
+    public void ActivateSessionPlan(SessionPlanItem item) => ActivateSessionPlan(item, null, null);
+
+    /// <summary>
+    /// Activates a plan, optionally keeping the caret on the statement the user was looking
+    /// at. A re-plan of the same batch produces the same statements in the same order, so the
+    /// index is usually right; the fingerprint is checked first because an edit that adds a
+    /// statement would shift every index below it (Phase 4).
+    /// </summary>
+    public void ActivateSessionPlan(SessionPlanItem item, string? preferredFingerprint, int? preferredIndex)
     {
         CurrentDiff = null;
         var plan = item.Plan;
@@ -317,11 +336,7 @@ public sealed partial class MainViewModel : ObservableObject
             Statements.Add(s);
         }
 
-        // Open on the statement that actually costs something — in a batch of ten, nine
-        // are usually trivial and the tenth is why you opened the plan.
-        SelectedStatement = plan.Statements
-            .OrderByDescending(s => s.Summary.TotalSubtreeCost)
-            .First();
+        SelectedStatement = ChooseStatement(plan, preferredFingerprint, preferredIndex);
 
         OnPropertyChanged(nameof(HasPlan));
         OnPropertyChanged(nameof(HasNoPlan));
@@ -332,6 +347,129 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanUseRegressionBaseline));
         OnPropertyChanged(nameof(AnnotationHint));
     }
+
+    /// <summary>
+    /// Picks which statement to open on. Falling back to the costliest is the original rule:
+    /// in a batch of ten, nine are usually trivial and the tenth is why you opened the plan.
+    /// </summary>
+    private static PlanStatement ChooseStatement(ExecutionPlan plan, string? preferredFingerprint, int? preferredIndex)
+    {
+        if (preferredFingerprint is { Length: > 0 })
+        {
+            var match = plan.Statements.FirstOrDefault(s =>
+                string.Equals(s.Fingerprint, preferredFingerprint, StringComparison.Ordinal));
+            if (match is not null)
+            {
+                return match;
+            }
+        }
+
+        if (preferredIndex is int index && index >= 0 && index < plan.Statements.Count)
+        {
+            return plan.Statements[index];
+        }
+
+        return plan.Statements.OrderByDescending(s => s.Summary.TotalSubtreeCost).First();
+    }
+
+    /// <summary>
+    /// Compiles the edited batch and swaps in the plan it produces
+    /// (live-plan-editor-plan.md Phase 4).
+    ///
+    /// Estimated only: SET SHOWPLAN_XML compiles without executing, so an edited DELETE is
+    /// safe to press Ctrl+Enter on. The actual run is Phase 7 and is gated behind its own
+    /// confirmation.
+    /// </summary>
+    public async Task ReplanAsync(CancellationToken cancellationToken = default)
+    {
+        if (!Editor.CanReplan)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Connection.Server))
+        {
+            Editor.ApplyError("Connect to a server before re-planning. Highlighting, completions and parameters work offline; compiling does not.");
+            return;
+        }
+
+        var batch = Editor.Compose();
+        if (!batch.IsValid)
+        {
+            Editor.ApplyError(string.Join(Environment.NewLine, batch.Errors));
+            return;
+        }
+
+        // The statement the user is looking at, so the same one can be reselected afterwards.
+        var preferredFingerprint = SelectedStatement?.Fingerprint;
+        var preferredIndex = SelectedStatement is null ? null : (int?)Statements.IndexOf(SelectedStatement);
+
+        _replanCancellation?.Cancel();
+        _replanCancellation?.Dispose();
+        _replanCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var token = _replanCancellation.Token;
+
+        Editor.ClearError();
+        Editor.IsBusy = true;
+        Editor.StatusMessage = "Compiling the edited batch…";
+        ErrorMessage = null;
+        OnPropertyChanged(nameof(CanCancelReplan));
+
+        try
+        {
+            var plan = await _capture
+                .CaptureAsync(Connection, batch.Text, CaptureMode.EstimatedOnly, token)
+                .ConfigureAwait(true);
+
+            _lastCapturedQuery = batch.Text;
+            _lastCaptureMode = CaptureMode.EstimatedOnly;
+
+            // Straight through the session-plan machinery, so a re-plan is a first-class
+            // entry in history and stays inspectable and comparable like any other.
+            var sessionItem = new SessionPlanItem { Plan = plan, SourcePath = null };
+            SessionPlans.Add(sessionItem);
+
+            // The editor's text is the source of this plan, not a thing to be overwritten by
+            // it — activating normally would replace what the user just typed with the
+            // statement text SQL Server echoed back.
+            _syncEditorText = false;
+            try
+            {
+                ActivateSessionPlan(sessionItem, preferredFingerprint, preferredIndex);
+            }
+            finally
+            {
+                _syncEditorText = true;
+            }
+            OnPropertyChanged(nameof(HasSessionPlans));
+            OnPropertyChanged(nameof(CanCompare));
+
+            Editor.MarkCaptured(Editor.Text);
+        }
+        catch (PlanCaptureException ex)
+        {
+            Editor.ApplyCaptureError(ex, batch);
+        }
+        catch (ShowplanParseException ex)
+        {
+            Editor.ApplyError($"SQL Server returned a plan that could not be parsed: {ex.Message}");
+        }
+        catch (OperationCanceledException)
+        {
+            Editor.StatusMessage = "Re-plan cancelled.";
+        }
+        finally
+        {
+            Editor.IsBusy = false;
+            OnPropertyChanged(nameof(CanRerun));
+            OnPropertyChanged(nameof(CanCancelReplan));
+        }
+    }
+
+    public bool CanCancelReplan => Editor.IsBusy;
+
+    /// <summary>Cancels an in-flight re-plan. The plan explicitly requires captures to be cancellable.</summary>
+    public void CancelReplan() => _replanCancellation?.Cancel();
 
     public void CompareLatestPlans()
     {
@@ -369,6 +507,10 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnSelectedStatementChanged(PlanStatement? value)
     {
         SelectedNode = null;
+
+        // Parameter types and the plan-object completions always follow the selected
+        // statement; the text does so only when the plan did not come from the editor.
+        Editor.SetSourceStatement(value, replaceText: _syncEditorText);
 
         MissingIndexes.Clear();
         Warnings.Clear();

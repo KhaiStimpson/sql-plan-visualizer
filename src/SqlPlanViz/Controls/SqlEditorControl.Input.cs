@@ -297,9 +297,14 @@ public sealed partial class SqlEditorControl
                 HandleDelete(ctrl);
                 break;
 
-            case VirtualKey.Enter:
+            // Ctrl+Enter is the re-plan accelerator; the editor must not swallow it by
+            // inserting a newline before the page's accelerator sees it.
+            case VirtualKey.Enter when !ctrl:
                 InsertNewLine();
                 break;
+
+            case VirtualKey.Enter:
+                return;
 
             case VirtualKey.A when ctrl:
                 SelectAll();

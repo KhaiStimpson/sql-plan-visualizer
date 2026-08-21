@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -11,68 +10,40 @@ namespace SqlPlanViz.Views;
 /// <summary>
 /// The parameters strip under the editor (live-plan-editor-plan.md Phase 3).
 ///
-/// Scalars are templated in XAML; table-valued parameters are built here, because their
-/// shape is not known until a table type is chosen and there is no fixed template to write
-/// for a grid whose columns arrive at runtime.
+/// A view over <see cref="SqlEditorViewModel"/>, which owns the bindings — the composer needs
+/// them at capture time and the view model is what decides when the batch is sendable, so the
+/// strip holding its own copy would be a second source of truth.
+///
+/// Scalars are templated in XAML; table-valued parameters are built here, because their shape
+/// is not known until a table type is chosen and there is no fixed template to write for a
+/// grid whose columns arrive at runtime.
 /// </summary>
 public sealed partial class ParameterStrip : UserControl
 {
-    public ParameterStrip()
-    {
-        InitializeComponent();
-        Parameters.CollectionChanged += OnParametersChanged;
-        Refresh();
-    }
+    private SqlEditorViewModel? _viewModel;
 
-    /// <summary>Raised whenever a value, type or row changes, so the host can mark the plan stale.</summary>
+    public ParameterStrip() => InitializeComponent();
+
+    /// <summary>Raised when a row is added or removed, so the host can recompose and mark stale.</summary>
     public event EventHandler? BindingsChanged;
 
-    public ObservableCollection<ParameterBindingItem> Parameters { get; } = [];
-
-    public ObservableCollection<ParameterBindingItem> ScalarParameters { get; } = [];
-
-    public bool HasParameters => Parameters.Count > 0;
-
-    public bool AllValid => Parameters.All(p => p.IsValid);
-
-    /// <summary>Bindings for <see cref="SqlBatchComposer"/>, in the order the batch mentions them.</summary>
-    public IReadOnlyList<ParameterBinding> ToBindings() => [.. Parameters.Select(p => p.ToBinding())];
-
-    /// <summary>
-    /// Replaces the strip's contents from a fresh extraction, keeping any value the user has
-    /// already typed for a parameter of the same name — retyping a value because you added a
-    /// join is exactly the kind of thing that makes a tuning loop not worth using.
-    /// </summary>
-    public void SetParameters(IReadOnlyList<RequiredParameter> required)
+    public void Bind(SqlEditorViewModel viewModel)
     {
-        var existing = Parameters.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-
-        Parameters.CollectionChanged -= OnParametersChanged;
-        Parameters.Clear();
-
-        foreach (var parameter in required)
+        if (_viewModel is not null)
         {
-            if (existing.TryGetValue(parameter.Name, out var previous)
-                && previous.IsTableValued == parameter.IsTableValued)
-            {
-                Parameters.Add(previous);
-                continue;
-            }
-
-            var item = new ParameterBindingItem(parameter);
-            item.PropertyChanged += OnItemChanged;
-            Parameters.Add(item);
+            _viewModel.ParametersChanged -= OnParametersChanged;
         }
 
-        Parameters.CollectionChanged += OnParametersChanged;
+        _viewModel = viewModel;
+        _viewModel.ParametersChanged += OnParametersChanged;
+        ItemsHost.ItemsSource = viewModel.ScalarParameters;
         Refresh();
-        BindingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>Fills a table-valued parameter's grid shape. Phase 6 feeds this from sys.table_types.</summary>
     public void SetTableTypeColumns(string parameterName, string tableTypeName, IEnumerable<TvpColumn> columns)
     {
-        var item = Parameters.FirstOrDefault(p =>
+        var item = _viewModel?.Parameters.FirstOrDefault(p =>
             string.Equals(p.Name, parameterName, StringComparison.OrdinalIgnoreCase));
         if (item is null)
         {
@@ -84,55 +55,26 @@ public sealed partial class ParameterStrip : UserControl
         Refresh();
     }
 
-    public void ResetAllToPlanValues()
-    {
-        foreach (var parameter in Parameters)
-        {
-            parameter.ResetToPlanValue();
-        }
-
-        BindingsChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void OnParametersChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => Refresh();
-
-    private void OnItemChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(ParameterBindingItem.Value)
-            or nameof(ParameterBindingItem.DataType)
-            or nameof(ParameterBindingItem.IsNull)
-            or nameof(ParameterBindingItem.TableTypeName))
-        {
-            BindingsChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        if (e.PropertyName is nameof(ParameterBindingItem.DataType))
-        {
-            RebuildTables();
-        }
-    }
+    private void OnParametersChanged(object? sender, EventArgs e) => Refresh();
 
     private void Refresh()
     {
-        ScalarParameters.Clear();
-        foreach (var parameter in Parameters.Where(p => p.IsScalar))
-        {
-            ScalarParameters.Add(parameter);
-        }
+        var parameters = _viewModel?.Parameters;
+        var count = parameters?.Count ?? 0;
 
-        var count = Parameters.Count;
         HeaderText.Text = count == 0 ? "Parameters" : $"Parameters ({count})";
 
-        var invalid = Parameters.Count(p => !p.IsValid);
+        var invalid = parameters?.Count(p => !p.IsValid) ?? 0;
         HintText.Text = count == 0
             ? "This batch needs none."
             : invalid > 0
                 ? $"{invalid} need{(invalid == 1 ? "s" : string.Empty)} a valid value before the batch can be sent."
                 : "Values are written into a DECLARE prelude at capture time.";
 
-        ResetButton.IsEnabled = Parameters.Any(p => p.PlanCompiledValue is not null || p.PlanRuntimeValue is not null);
+        ResetButton.IsEnabled = parameters?.Any(p => p.PlanCompiledValue is not null || p.PlanRuntimeValue is not null) == true;
 
-        // Collapse to nothing when there is nothing to show, per the plan.
+        // Collapse to nothing when there is nothing to show, per the plan: an unparameterised
+        // query should cost no vertical space in a pane already competing with the plan for it.
         Root.Visibility = count == 0 ? Visibility.Collapsed : Visibility.Visible;
         ApplyExpanded();
         RebuildTables();
@@ -143,12 +85,18 @@ public sealed partial class ParameterStrip : UserControl
         var expanded = ExpandToggle.IsChecked == true;
         ItemsHost.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
         TableHost.Visibility = expanded && TableHost.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        ExpandGlyph.Glyph = expanded ? "" : "";
+
+        // ChevronDown / ChevronRight in Segoe Fluent Icons.
+        ExpandGlyph.Glyph = expanded ? "\uE70D" : "\uE76C";
     }
 
     private void OnToggleExpanded(object sender, RoutedEventArgs e) => ApplyExpanded();
 
-    private void OnResetAll(object sender, RoutedEventArgs e) => ResetAllToPlanValues();
+    private void OnResetAll(object sender, RoutedEventArgs e)
+    {
+        _viewModel?.ResetParametersToPlanValues();
+        BindingsChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     // ---- Table-valued parameter grids --------------------------------------
 
@@ -156,7 +104,7 @@ public sealed partial class ParameterStrip : UserControl
     {
         TableHost.Children.Clear();
 
-        foreach (var parameter in Parameters.Where(p => p.IsTableValued))
+        foreach (var parameter in _viewModel?.Parameters.Where(p => p.IsTableValued) ?? [])
         {
             TableHost.Children.Add(BuildTableCard(parameter));
         }
@@ -197,8 +145,8 @@ public sealed partial class ParameterStrip : UserControl
         {
             if (parameter.Columns.Count == 0)
             {
-                // With no known shape there is nothing to add a row to; one text column lets
-                // a single-column type (the common case: a list of ids) still be usable.
+                // With no known shape there is nothing to add a row to; one text column keeps
+                // the common case — a list of ids — usable with no catalog connected.
                 parameter.SetTableColumns([new TvpColumn { Name = "Value", DataType = "nvarchar(100)" }]);
             }
 
@@ -318,13 +266,7 @@ public sealed partial class ParameterStrip : UserControl
                 grid.Children.Add(cellPanel);
             }
 
-            var remove = new Button
-            {
-                Content = "✕",
-                FontSize = 11,
-                Padding = new Thickness(6, 2, 6, 2),
-            };
-
+            var remove = new Button { Content = "✕", FontSize = 11, Padding = new Thickness(6, 2, 6, 2) };
             var captured = row;
             remove.Click += (_, _) =>
             {
