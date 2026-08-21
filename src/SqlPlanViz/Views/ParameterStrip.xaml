@@ -93,12 +93,14 @@
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
-                                <TextBox
+                                <AutoSuggestBox
                                     Grid.Column="1"
                                     FontSize="12"
-                                    IsSpellCheckEnabled="False"
+                                    GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
-                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    SuggestionChosen="OnDataTypeSuggestionChosen"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextChanged="OnDataTypeTextChanged" />
 
                                 <TextBox
                                     Grid.Column="2"
@@ -153,12 +155,14 @@
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
-                                <TextBox
+                                <AutoSuggestBox
                                     Grid.Column="1"
                                     FontSize="12"
-                                    IsSpellCheckEnabled="False"
+                                    GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
-                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    SuggestionChosen="OnDataTypeSuggestionChosen"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextChanged="OnDataTypeTextChanged" />
 
                                 <NumberBox
                                     Grid.Column="2"
@@ -213,12 +217,14 @@
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
-                                <TextBox
+                                <AutoSuggestBox
                                     Grid.Column="1"
                                     FontSize="12"
-                                    IsSpellCheckEnabled="False"
+                                    GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
-                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    SuggestionChosen="OnDataTypeSuggestionChosen"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextChanged="OnDataTypeTextChanged" />
 
                                 <ToggleSwitch
                                     Grid.Column="2"
@@ -275,12 +281,14 @@
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
-                                <TextBox
+                                <AutoSuggestBox
                                     Grid.Column="1"
                                     FontSize="12"
-                                    IsSpellCheckEnabled="False"
+                                    GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
-                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    SuggestionChosen="OnDataTypeSuggestionChosen"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextChanged="OnDataTypeTextChanged" />
 
                                 <Grid
                                     Grid.Column="2"

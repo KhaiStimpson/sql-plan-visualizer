@@ -56,7 +56,7 @@ time so each step stays reviewable.
 `DataType` is a plain `TextBox` today (`ParameterStrip.xaml:93-98`), so a typo produces a
 validation error `Validate()` (`ParameterBindingItem.cs:214-228`) only catches after the fact.
 
-- [ ] Add a small static list of common T-SQL types (int, bigint, nvarchar(n), varchar(n),
+- [x] Add a small static list of common T-SQL types (int, bigint, nvarchar(n), varchar(n),
       datetime2, date, uniqueidentifier, bit, varbinary(n), decimal(p,s) …) and swap the `TextBox`
       at `ParameterStrip.xaml:93-98` for an editable `AutoSuggestBox`, still two-way bound to
       `DataType` so `OnDataTypeChanged` (`ParameterBindingItem.cs:239-243`) keeps recalculating

@@ -92,6 +92,35 @@ public sealed partial class ParameterStrip : UserControl
 
     private void OnToggleExpanded(object sender, RoutedEventArgs e) => ApplyExpanded();
 
+    private void OnDataTypeGotFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is AutoSuggestBox { ItemsSource: null } box)
+        {
+            box.ItemsSource = ParameterTypeCatalog.CommonTypes;
+        }
+    }
+
+    private void OnDataTypeTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            return;
+        }
+
+        var text = sender.Text;
+        sender.ItemsSource = string.IsNullOrEmpty(text)
+            ? ParameterTypeCatalog.CommonTypes
+            : ParameterTypeCatalog.CommonTypes.Where(t => t.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void OnDataTypeSuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        if (args.SelectedItem is string text)
+        {
+            sender.Text = text;
+        }
+    }
+
     private void OnResetAll(object sender, RoutedEventArgs e)
     {
         _viewModel?.ResetParametersToPlanValues();
