@@ -60,22 +60,22 @@ the riskiest component, so it ships standalone and gets judged before anything d
 Text input goes through `CoreTextEditContext` rather than raw key events, so IME composition, dead
 keys, and touch keyboards work correctly. That single detail separates a real editor from a toy.
 
-- [ ] `Editing/SqlDocument.cs` — text buffer, line index, change events
-- [ ] `SqlDocument` undo/redo stack, coalescing consecutive typing into one unit
-- [ ] Add `Microsoft.SqlServer.TransactSql.ScriptDom` 180.78.1 to `SqlPlanViz.csproj`
-- [ ] `Editing/TSqlTokenizer.cs` — wrap `TSql160Parser.GetTokenStream`, classified spans with offsets
-- [ ] Incremental re-tokenize: only the dirty line range on each edit, not the whole document
-- [ ] `Editing/SqlSyntaxTheme.cs` — token class → brush, theme-aware, shaped like `PlanPalette`
-- [ ] `Controls/SqlEditorControl.cs` — Win2D `CanvasControl` host, `CanvasTextLayout` line rendering
-- [ ] Viewport virtualization: draw only visible lines (the plan canvas already sets this precedent)
-- [ ] Caret rendering, blink, and keyboard navigation (arrows, Home/End, Ctrl+arrows, page keys)
-- [ ] Selection: mouse drag, shift+navigation, double-click word, triple-click line
-- [ ] Clipboard: cut / copy / paste, plain text only
-- [ ] `CoreTextEditContext` wiring for IME and composition input
-- [ ] Line-number column and an empty gutter column reserved for Phase 5 marks
-- [ ] Vertical and horizontal scrolling, mouse wheel, and scroll-to-caret
-- [ ] `AutomationPeer` exposing the text pattern, so screen readers see a text control
-- [ ] Tab / Shift+Tab indent and outdent on a selection
+- [x] `Editing/SqlDocument.cs` — text buffer, line index, change events
+- [x] `SqlDocument` undo/redo stack, coalescing consecutive typing into one unit
+- [x] Add `Microsoft.SqlServer.TransactSql.ScriptDom` 180.78.1 to `SqlPlanViz.csproj`
+- [x] `Editing/TSqlTokenizer.cs` — wrap `TSql160Parser.GetTokenStream`, classified spans with offsets
+- [x] Incremental re-tokenize: only the dirty line range on each edit, not the whole document
+- [x] `Editing/SqlSyntaxTheme.cs` — token class → brush, theme-aware, shaped like `PlanPalette`
+- [x] `Controls/SqlEditorControl.cs` — Win2D `CanvasControl` host, `CanvasTextLayout` line rendering
+- [x] Viewport virtualization: draw only visible lines (the plan canvas already sets this precedent)
+- [x] Caret rendering, blink, and keyboard navigation (arrows, Home/End, Ctrl+arrows, page keys)
+- [x] Selection: mouse drag, shift+navigation, double-click word, triple-click line
+- [x] Clipboard: cut / copy / paste, plain text only
+- [x] `CoreTextEditContext` wiring for IME and composition input
+- [x] Line-number column and an empty gutter column reserved for Phase 5 marks
+- [x] Vertical and horizontal scrolling, mouse wheel, and scroll-to-caret
+- [x] `AutomationPeer` exposing the text pattern, so screen readers see a text control
+- [x] Tab / Shift+Tab indent and outdent on a selection
 
 **Deliverable:** a control you can type T-SQL into, with correct highlighting and working undo,
 hosted in a scratch page. Not yet wired into `MainPage`.
