@@ -1,6 +1,6 @@
 # Live Plan Editor
 
-**Status:** Plan v1 — no code written yet
+**Status:** Implemented — all seven phases complete
 **Author:** Khai
 **Companion to:** [tdd.md](tdd.md) (the viewer) and [tuning-roadmap.md](tuning-roadmap.md) (the tuning
 tool). This document defines the *editor*: the loop that lets you change the SQL and watch the plan
@@ -283,10 +283,10 @@ friction, not too little. Tick checkboxes as they land.
 
 ## Documentation to update alongside the code
 
-- [ ] `docs/tuning-roadmap.md` — add this as Phase 10; add the `Editing/` layer to its state table
-- [ ] `docs/tdd.md` §5 — add ScriptDom to the tech-stack table
-- [ ] `docs/tdd.md` §6 — add the editor as a third plan-capture path beside file import and live capture
-- [ ] `README.md` — the SQL pane no longer only "maps a selected operator back to the SQL clause it most likely represents"; that stops being true at Phase 5
+- [x] `docs/tuning-roadmap.md` — add this as Phase 10; add the `Editing/` layer to its state table
+- [x] `docs/tdd.md` §5 — add ScriptDom to the tech-stack table
+- [x] `docs/tdd.md` §6 — add the editor as a third plan-capture path beside file import and live capture
+- [x] `README.md` — the SQL pane no longer only "maps a selected operator back to the SQL clause it most likely represents"; that stops being true at Phase 5
 
 ---
 

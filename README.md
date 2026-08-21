@@ -16,7 +16,9 @@ Execution plans contain a lot of useful evidence, but finding the part that dese
 - See findings ranked by impact and confidence, with explanations and suggested next steps.
 - Inspect estimated versus actual rows, cost, timing, predicates, output columns, and operator warnings.
 - Review missing-index suggestions and avoid presenting unchecked DDL when no live database connection is available.
-- Map a selected operator back to the SQL clause it most likely represents, highlighted and scrolled into view in a syntax-coloured SQL pane that can be reformatted and resized.
+- Map a selected operator back to the SQL clause it most likely represents, highlighted and scrolled into view — from the parse tree where the batch parses, and from clause scoring where it does not.
+- Edit the query in place and re-plan it against the live connection, with syntax highlighting, completions, and typed parameter fields.
+- See whether an edit helped: a cost delta bar against a pinned baseline, gutter marks and inline annotations on the lines that moved, and the plan canvas recoloured by delta.
 - Search, zoom, pan, collapse subtrees, focus the hot path, and replay operators in execution order.
 - Compare captured plans and save regression baselines for later checks.
 
@@ -41,8 +43,33 @@ The app accepts SQL Server `.sqlplan` files and Showplan XML in several ways:
 - Paste Showplan XML from the clipboard.
 - Pass a plan path on the command line.
 - Connect to SQL Server and capture an actual or estimated plan.
+- Edit the SQL in the editor pane and press `Ctrl+Enter` to compile the edited batch.
 
 Actual-plan capture uses `SET STATISTICS XML ON`. Estimated-plan capture uses `SET SHOWPLAN_XML ON`, so the query is compiled without being executed. Connection credentials are held only for the active connection and are not written to disk.
+
+## Edit the query and watch the plan move
+
+The SQL pane is a full T-SQL editor rather than a read-only view. It is drawn natively, with no
+embedded browser, and is backed by the same parser SSMS uses.
+
+- Syntax highlighting, undo that groups by word, multi-caret-free selection, and IME input.
+- Completions from four sources that degrade independently: T-SQL keywords, the objects named
+  by the loaded plan, the connected database's real schema, and the diagnostics layer — which
+  offers missing-index columns, a SARGable rewrite of a non-sargable predicate, and the
+  explicit column list that replaces `SELECT *`.
+- Parameters are worked out from the batch, typed from the plan's own `ParameterList`,
+  prefilled with the values the plan was captured for, and written into a `DECLARE` prelude at
+  capture time. Table-valued parameters get a row grid shaped by their table type.
+- `Ctrl+Enter` compiles the edited batch and swaps in the new plan. Compile errors are
+  reported on the editor line they belong to, not the line of the generated batch.
+- Every re-plan is diffed against a pinned baseline, so improvements accumulate across many
+  edits instead of being measured against the previous attempt.
+
+Highlighting, completions from the plan, and parameter prefill all work from a `.sqlplan` file
+with nothing connected. Only re-planning needs a server.
+
+Running the batch for real — the only way to get measured row counts and timings — is opt-in
+behind a confirmation that names the connected server and every modifying statement it found.
 
 ## Run locally
 
