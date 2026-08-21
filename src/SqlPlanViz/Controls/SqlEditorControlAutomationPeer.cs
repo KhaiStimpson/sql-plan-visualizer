@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Automation.Provider;
 using Microsoft.UI.Xaml.Automation.Text;
@@ -67,6 +68,10 @@ public sealed class SqlEditorAutomationPeer : FrameworkElementAutomationPeer, IT
 
     internal void RaiseSelectionChanged() =>
         RaiseAutomationEvent(AutomationEvents.TextPatternOnTextSelectionChanged);
+
+    // ProviderFromPeer is protected on AutomationPeer, so it can only be reached from inside a
+    // derived peer's own class body; this wrapper lets SqlEditorTextRange (a sibling class) get at it.
+    internal IRawElementProviderSimple GetRawElementProviderSimple() => ProviderFromPeer(this);
 }
 
 /// <summary>A span of the editor's text, in document offsets. Endpoints are always ordered.</summary>
@@ -166,7 +171,7 @@ internal sealed class SqlEditorTextRange : ITextRangeProvider
 
     public object? GetAttributeValue(int attributeId) => null;
 
-    public double[] GetBoundingRectangles() => [];
+    public void GetBoundingRectangles(out double[] rectangles) => rectangles = [];
 
     public IRawElementProviderSimple GetEnclosingElement() => _peer.GetRawElementProviderSimple();
 

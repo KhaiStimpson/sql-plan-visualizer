@@ -88,7 +88,7 @@ public sealed partial class MainPage : Page
 
         // Ctrl+Enter re-plans from anywhere in the page, matching the toolbar button.
         var replan = new KeyboardAccelerator { Key = VirtualKey.Enter, Modifiers = VirtualKeyModifiers.Control };
-        replan.Invoked += (_, args) =>
+        replan.Invoked += (sender, args) =>
         {
             args.Handled = true;
             _ = ReplanAsync();

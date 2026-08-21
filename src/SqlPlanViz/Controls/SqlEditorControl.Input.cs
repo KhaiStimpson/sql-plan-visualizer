@@ -833,7 +833,6 @@ public sealed partial class SqlEditorControl
         var start = Math.Clamp(request.Range.StartCaretPosition, 0, _document.Length);
         var end = Math.Clamp(request.Range.EndCaretPosition, start, _document.Length);
         request.Text = _document.GetText(start, end - start);
-        request.Range = new CoreTextRange { StartCaretPosition = start, EndCaretPosition = end };
     }
 
     private void OnSelectionRequested(CoreTextEditContext sender, CoreTextSelectionRequestedEventArgs args) =>
