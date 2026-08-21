@@ -95,6 +95,15 @@ public sealed partial class MainPage : Page
         };
         KeyboardAccelerators.Add(replan);
 
+        // Shift+Alt+F formats from anywhere in the page, matching the toolbar button.
+        var format = new KeyboardAccelerator { Key = VirtualKey.F, Modifiers = VirtualKeyModifiers.Shift | VirtualKeyModifiers.Menu };
+        format.Invoked += (_, args) =>
+        {
+            args.Handled = true;
+            FormatSql();
+        };
+        KeyboardAccelerators.Add(format);
+
         UpdateEditorStatus();
         UpdateTuningSurfaces();
     }
@@ -410,6 +419,27 @@ public sealed partial class MainPage : Page
         SqlMappingLabel.Text = span.Clause == SqlClauseSplitter.StatementKind
             ? $"SQL · likely source of node {node.NodeId}"
             : $"SQL · likely {span.Clause} clause for node {node.NodeId}";
+    }
+
+    private void OnFormatSql(object sender, RoutedEventArgs e) => FormatSql();
+
+    /// <summary>
+    /// Re-lays out the batch on demand. This is a text edit like any other, so it travels the
+    /// normal TextChanged path: the view model, the parameter strip and the staleness flag all
+    /// follow on their own, and one Ctrl+Z takes the whole reflow back.
+    /// </summary>
+    private void FormatSql()
+    {
+        if (string.IsNullOrWhiteSpace(SqlEditor.Text)
+            || !SqlEditor.ReplaceAll(SqlFormatter.Format(SqlEditor.Text)))
+        {
+            return;
+        }
+
+        // A reflow moves every offset in the batch at once, so marks placed against the old
+        // layout are now pointing at the wrong lines. Recomputing drops them until the next
+        // re-plan, which is the same thing editing the text does.
+        UpdateTuningSurfaces();
     }
 
     private void OnCopySql(object sender, RoutedEventArgs e)

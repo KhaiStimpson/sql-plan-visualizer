@@ -17,7 +17,7 @@ Execution plans contain a lot of useful evidence, but finding the part that dese
 - Inspect estimated versus actual rows, cost, timing, predicates, output columns, and operator warnings.
 - Review missing-index suggestions and avoid presenting unchecked DDL when no live database connection is available.
 - Map a selected operator back to the SQL clause it most likely represents, highlighted and scrolled into view — from the parse tree where the batch parses, and from clause scoring where it does not.
-- Edit the query in place and re-plan it against the live connection, with syntax highlighting, completions, and typed parameter fields.
+- Edit the query in place and re-plan it against the live connection, with syntax highlighting, completions, typed parameter fields, and on-demand reformatting that one undo takes back.
 - See whether an edit helped: a cost delta bar against a pinned baseline, gutter marks and inline annotations on the lines that moved, and the plan canvas recoloured by delta.
 - Search, zoom, pan, collapse subtrees, focus the hot path, and replay operators in execution order.
 - Compare captured plans and save regression baselines for later checks.

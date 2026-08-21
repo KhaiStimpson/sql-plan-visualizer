@@ -635,6 +635,13 @@
                                     IsActive="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay}"
                                     Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
                                 <Button
+                                    x:Name="SqlFormatButton"
+                                    Padding="10,2"
+                                    Click="OnFormatSql"
+                                    Content="Format"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Re-lay out the batch, one clause per line (Shift+Alt+F)" />
+                                <Button
                                     Padding="10,4"
                                     Click="OnCopySql"
                                     ToolTipService.ToolTip="Copy the statement">

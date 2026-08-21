@@ -469,6 +469,43 @@ public sealed partial class SqlEditorControl
 
     public void SelectAll() => SelectRange(0, _document.Length);
 
+    /// <summary>
+    /// Replaces the whole document as one undoable edit, so a reformat can be taken back with
+    /// a single Ctrl+Z. <see cref="Text"/> deliberately cannot do this: it is the load path,
+    /// and it clears the undo history along with the text.
+    /// </summary>
+    /// <returns>False when the editor is read-only or the text is already what was asked for.</returns>
+    public bool ReplaceAll(string? text)
+    {
+        text ??= string.Empty;
+        if (IsReadOnly || _document.Text == text)
+        {
+            return false;
+        }
+
+        // Whatever the caret sat inside has just moved. Holding the offset is the honest
+        // approximation — undo restores the real position, and the caller usually reselects.
+        var caret = _caret;
+
+        DismissCompletion(CompletionDismissReason.DocumentReplaced);
+        _document.EndUndoGroup();
+        _document.CaretHint = caret;
+        _document.Replace(0, _document.Length, text);
+
+        // Closing the unit on both sides keeps the reflow from coalescing with the typing
+        // that preceded it or the typing that follows.
+        _document.EndUndoGroup();
+
+        _caret = _anchor = Math.Clamp(caret, 0, _document.Length);
+        _document.CaretHint = _caret;
+        _desiredColumn = -1;
+        NotifySelectionChangedToEditContext();
+        ScrollToCaret();
+        CaretMoved?.Invoke(this, EventArgs.Empty);
+        Redraw();
+        return true;
+    }
+
     private void ApplyHistory(int? caret)
     {
         if (caret is int offset)
