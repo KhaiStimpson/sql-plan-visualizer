@@ -127,6 +127,8 @@ public sealed partial class SqlEditorControl
         }
 
         var column = offset - _document.GetLineStart(line);
-        ds.FillRectangle(ColumnX(column), LineTop(line), _charWidth, _lineHeight, _theme.BracketMatchFill);
+        var x0 = ColumnXExact(line, column);
+        var x1 = ColumnXExact(line, column + 1);
+        ds.FillRectangle(x0, LineTop(line), Math.Max(2f, x1 - x0), _lineHeight, _theme.BracketMatchFill);
     }
 }

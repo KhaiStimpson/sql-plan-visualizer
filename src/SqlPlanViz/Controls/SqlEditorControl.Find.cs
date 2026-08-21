@@ -273,7 +273,7 @@ public sealed partial class SqlEditorControl
     }
 
     /// <summary>Highlight-all-matches, clipped to one line at a time from <c>OnDraw</c>'s own loop.</summary>
-    private void DrawFindMatchesForLine(CanvasDrawingSession ds, int lineStart, int lineEnd, float y)
+    private void DrawFindMatchesForLine(CanvasDrawingSession ds, int line, int lineStart, int lineEnd, float y)
     {
         if (_findMatches.Count == 0)
         {
@@ -298,8 +298,8 @@ public sealed partial class SqlEditorControl
             var from = Math.Max(matchStart, lineStart) - lineStart;
             var to = Math.Min(matchEnd, lineEnd) - lineStart;
             var brush = i == _findMatchIndex ? _theme.FindMatchActiveFill : _theme.FindMatchFill;
-            var x0 = ColumnX(from);
-            var x1 = ColumnX(to);
+            var x0 = ColumnXExact(line, from);
+            var x1 = ColumnXExact(line, to);
             ds.FillRectangle(x0, y, Math.Max(2f, x1 - x0), _lineHeight, brush);
         }
     }

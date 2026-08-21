@@ -261,11 +261,21 @@ public sealed partial class SqlEditorControl : UserControl
     /// The font is monospaced, so one measured glyph gives the column width and the line
     /// height — which is what lets scroll extents and hit testing be arithmetic rather than
     /// a text layout per query.
+    ///
+    /// <see cref="CanvasTextLayout.LayoutBounds"/> is the tight ink box of the drawn glyphs,
+    /// not their advance width — it excludes side bearing, so dividing it by the probe length
+    /// understates <see cref="_charWidth"/> by a fraction of a pixel per character. That
+    /// shortfall compounds across every column to its right, which is why <c>ColumnX</c>-based
+    /// carets and highlights used to drift further from the real glyph position the further
+    /// right (or the further down a long document) they sat. <see cref="CanvasTextLayout.GetCaretPosition"/>
+    /// reports the actual advance metrics the layout used to place glyphs, so it stays exact.
     /// </summary>
     private void MeasureFont(ICanvasResourceCreator resourceCreator)
     {
-        using var probe = new CanvasTextLayout(resourceCreator, "0000000000", _textFormat, 0, 0);
-        _charWidth = (float)probe.LayoutBounds.Width / 10f;
+        const int probeChars = 32;
+        using var probe = new CanvasTextLayout(resourceCreator, new string('0', probeChars), _textFormat, 0, 0);
+        var caretRegion = probe.GetCaretPosition(probeChars - 1, trailingSideOfCharacter: true);
+        _charWidth = (float)caretRegion.X / probeChars;
         _lineHeight = (float)Math.Ceiling(probe.LayoutBounds.Height);
         if (_charWidth <= 0) _charWidth = 8f;
         if (_lineHeight <= 0) _lineHeight = 17f;
@@ -383,6 +393,40 @@ public sealed partial class SqlEditorControl : UserControl
 
     private float ColumnX(int column) => (float)(TextOriginX + (column * _charWidth) - _scrollX);
 
+    /// <summary>
+    /// Same job as <see cref="ColumnX"/>, but anchored to the real glyph advances of
+    /// <paramref name="line"/>'s own text layout instead of the uniform <see cref="_charWidth"/>.
+    /// DirectWrite pixel-snaps individual glyphs when it draws them, so a run of nominally
+    /// equal-width monospace characters can each land a fraction of a pixel differently —
+    /// enough, over a dozen-plus columns, for a uniform <c>column * _charWidth</c> estimate to
+    /// visibly drift from where the glyphs actually ended up. Highlights, selection and the
+    /// caret all need to match the drawn text exactly, so they go through this instead; only
+    /// scrollbar-range estimates and similar non-visual math still use the uniform width.
+    /// </summary>
+    private float ColumnXExact(int line, int column)
+    {
+        var text = _document.GetLineText(line);
+        var clamped = Math.Clamp(column, 0, text.Length);
+
+        var x = 0f;
+        if (clamped > 0)
+        {
+            var layout = GetLineLayout(_canvas, line);
+            var region = layout.GetCaretPosition(clamped - 1, trailingSideOfCharacter: true);
+            x = (float)region.X;
+        }
+
+        // Columns past the end of the line — the faux column used to paint a selected
+        // newline, or an inline annotation's left margin — have no glyph to anchor to, so
+        // fall back to the uniform column width for that overhang only.
+        if (column > text.Length)
+        {
+            x += (column - text.Length) * _charWidth;
+        }
+
+        return (float)(TextOriginX + x - _scrollX);
+    }
+
     /// <summary>Document offset under a canvas point, clamped into the document.</summary>
     private int OffsetAt(Point point)
     {
@@ -391,8 +435,17 @@ public sealed partial class SqlEditorControl : UserControl
             0,
             _document.LineCount - 1);
 
-        var column = (int)Math.Round((point.X - TextOriginX + _scrollX) / _charWidth);
-        return _document.OffsetOf(line, Math.Max(0, column));
+        var text = _document.GetLineText(line);
+        var localX = (float)(point.X - TextOriginX + _scrollX);
+        if (text.Length == 0 || localX <= 0)
+        {
+            return _document.OffsetOf(line, 0);
+        }
+
+        var layout = GetLineLayout(_canvas, line);
+        layout.HitTest(localX, 0f, out var hit, out var trailingSide);
+        var column = hit.CharacterIndex + (trailingSide ? 1 : 0);
+        return _document.OffsetOf(line, Math.Clamp(column, 0, text.Length));
     }
 
     private void UpdateScrollRanges()
@@ -480,7 +533,7 @@ public sealed partial class SqlEditorControl : UserControl
     public Rect CaretRect()
     {
         var (line, column) = _document.PositionOf(_caret);
-        return new Rect(ColumnX(column), LineTop(line), 1, _lineHeight);
+        return new Rect(ColumnXExact(line, column), LineTop(line), 1, _lineHeight);
     }
 
     // ---- Drawing -----------------------------------------------------------
@@ -524,12 +577,12 @@ public sealed partial class SqlEditorControl : UserControl
                 var from = Math.Max(selectionStart, lineStart) - lineStart;
                 var to = Math.Min(selectionEnd, lineEnd) - lineStart;
                 var trailingNewline = selectionEnd > lineEnd ? 1 : 0;
-                var x0 = ColumnX(from);
-                var x1 = ColumnX(to + trailingNewline);
+                var x0 = ColumnXExact(line, from);
+                var x1 = ColumnXExact(line, to + trailingNewline);
                 ds.FillRectangle(x0, y, Math.Max(2f, x1 - x0), _lineHeight, _theme.SelectionFill);
             }
 
-            DrawFindMatchesForLine(ds, lineStart, lineEnd, y);
+            DrawFindMatchesForLine(ds, line, lineStart, lineEnd, y);
 
             var layout = GetLineLayout(sender, line);
             ds.DrawTextLayout(layout, ColumnX(0), y, _theme.Foreground);
@@ -623,8 +676,8 @@ public sealed partial class SqlEditorControl : UserControl
 
             var from = Math.Max(start, lineStart) - lineStart;
             var to = Math.Max(from + 1, Math.Min(end, lineEnd) - lineStart);
-            var x0 = ColumnX(from);
-            var x1 = ColumnX(to);
+            var x0 = ColumnXExact(line, from);
+            var x1 = ColumnXExact(line, to);
             var baseline = y + _lineHeight - 2f;
 
             // Hand-drawn zig-zag: Win2D has no squiggle stroke style, and a flat underline
@@ -652,7 +705,7 @@ public sealed partial class SqlEditorControl : UserControl
                 continue;
             }
 
-            var x = ColumnX(lineLength + 3);
+            var x = ColumnXExact(line, lineLength + 3);
             ds.DrawText(annotation.Text, x, y, MarkColor(annotation.Kind), _annotationFormat);
         }
     }
