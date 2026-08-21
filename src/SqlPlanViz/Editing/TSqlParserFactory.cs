@@ -63,7 +63,13 @@ public static class TSqlParserFactory
         return Default;
     }
 
-    /// <summary>Parses a batch, returning null when it does not parse. Never throws for bad SQL.</summary>
+    /// <summary>
+    /// Parses a batch, returning null unless it parsed cleanly. ScriptDom hands back a partial
+    /// tree when there are errors, and a partial tree is worse than none for everything here:
+    /// a missing FROM clause would silently narrow completion scope, and a dropped
+    /// VariableReference would silently drop a parameter the batch needs. Callers that want
+    /// best-effort results from invalid SQL use the token stream instead.
+    /// </summary>
     public static TSqlFragment? TryParse(string sql, out IList<ParseError> errors, SqlParserVersion? version = null)
     {
         errors = [];
@@ -76,7 +82,7 @@ public static class TSqlParserFactory
         {
             using var reader = new StringReader(sql);
             var fragment = Create(version).Parse(reader, out errors);
-            return errors is { Count: > 0 } && fragment is null ? null : fragment;
+            return errors is { Count: > 0 } ? null : fragment;
         }
         catch (Exception)
         {

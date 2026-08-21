@@ -1,0 +1,144 @@
+<UserControl
+    x:Class="SqlPlanViz.Views.ParameterStrip"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:SqlPlanViz.ViewModels"
+    mc:Ignorable="d">
+
+    <!--
+        The strip under the editor (docs/live-plan-editor-plan.md Phase 3). Collapses itself
+        when the batch needs no parameters, so an unparameterised query costs no vertical
+        space in a pane that is already competing with the plan for it.
+    -->
+    <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Padding="10,4" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ToggleButton
+                x:Name="ExpandToggle"
+                Padding="6,2"
+                Background="Transparent"
+                BorderThickness="0"
+                Click="OnToggleExpanded"
+                IsChecked="True">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon
+                        x:Name="ExpandGlyph"
+                        FontFamily="Segoe Fluent Icons"
+                        FontSize="10"
+                        Glyph="&#xE70D;" />
+                    <TextBlock
+                        x:Name="HeaderText"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        Text="Parameters" />
+                </StackPanel>
+            </ToggleButton>
+
+            <TextBlock
+                x:Name="HintText"
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                FontSize="11"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                TextTrimming="CharacterEllipsis" />
+
+            <Button
+                x:Name="ResetButton"
+                Grid.Column="2"
+                Padding="8,2"
+                Click="OnResetAll"
+                Content="Reset to plan values"
+                FontSize="11" />
+        </Grid>
+
+        <ItemsControl
+            x:Name="ItemsHost"
+            Grid.Row="1"
+            Padding="10,0,10,8"
+            ItemsSource="{x:Bind ScalarParameters, Mode=OneWay}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ParameterBindingItem">
+                    <Grid Margin="0,0,0,6" ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontFamily="Cascadia Mono, Consolas"
+                            FontSize="12"
+                            Text="{x:Bind Name}"
+                            ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
+
+                        <TextBox
+                            Grid.Column="1"
+                            FontSize="12"
+                            IsSpellCheckEnabled="False"
+                            PlaceholderText="type"
+                            Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBox
+                            Grid.Column="2"
+                            FontFamily="Cascadia Mono, Consolas"
+                            FontSize="12"
+                            IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                            IsSpellCheckEnabled="False"
+                            PlaceholderText="value"
+                            Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
+
+                        <CheckBox
+                            Grid.Column="3"
+                            MinWidth="0"
+                            Content="NULL"
+                            FontSize="11"
+                            IsChecked="{x:Bind IsNull, Mode=TwoWay}"
+                            Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="3"
+                            Margin="2,2,0,0"
+                            FontSize="11"
+                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                            Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!--
+            Table-valued parameters get a row grid shaped by their columns, which is built in
+            code: the shape is not known until a table type is chosen, so there is no fixed
+            template to write for it.
+        -->
+        <StackPanel
+            x:Name="TableHost"
+            Grid.Row="2"
+            Padding="10,0,10,8"
+            Spacing="8" />
+    </Grid>
+</UserControl>

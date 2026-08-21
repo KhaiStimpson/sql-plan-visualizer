@@ -132,19 +132,19 @@ declares; what remains is what the user must supply. Types are inferred from the
 `ParameterList` first, then from comparison context in the AST, then defaulted with the type left
 editable.
 
-- [ ] `Editing/SqlParameterExtractor.cs` — `TSqlFragmentVisitor` collecting `VariableReference`
-- [ ] Subtract `DeclareVariableStatement` and procedure parameters already in the batch
-- [ ] Type inference: plan `ParameterList` → AST comparison context → editable default
-- [ ] `ViewModels/ParameterBindingItem.cs` — name, type, value, `IsNull`, validation state
-- [ ] Prefill from `ParameterCompiledValue` / `ParameterRuntimeValue` (parser already reads both)
-- [ ] Scalar type editors: numeric, string, date/time, `uniqueidentifier`, `bit`, binary
-- [ ] `NULL` handling as an explicit per-parameter toggle, distinct from empty string
-- [ ] Table-valued parameters: detect the user table type, render a row grid shaped by its columns
-- [ ] `Editing/SqlBatchComposer.cs` — build the `DECLARE` prelude, prepend to user text
-- [ ] TVP composition: `DECLARE @t AS dbo.Type` plus generated `INSERT` rows
-- [ ] Offset map from composed batch back to editor lines (prelude length must not shift error lines)
-- [ ] Literal escaping and quoting per type, so a value containing `'` cannot break the batch
-- [ ] `Views/ParameterStrip.xaml` — the strip under the editor, collapsible when there are none
+- [x] `Editing/SqlParameterExtractor.cs` — `TSqlFragmentVisitor` collecting `VariableReference`
+- [x] Subtract `DeclareVariableStatement` and procedure parameters already in the batch
+- [x] Type inference: plan `ParameterList` → AST comparison context → editable default
+- [x] `ViewModels/ParameterBindingItem.cs` — name, type, value, `IsNull`, validation state
+- [x] Prefill from `ParameterCompiledValue` / `ParameterRuntimeValue` (parser already reads both)
+- [x] Scalar type editors: numeric, string, date/time, `uniqueidentifier`, `bit`, binary
+- [x] `NULL` handling as an explicit per-parameter toggle, distinct from empty string
+- [x] Table-valued parameters: detect the user table type, render a row grid shaped by its columns
+- [x] `Editing/SqlBatchComposer.cs` — build the `DECLARE` prelude, prepend to user text
+- [x] TVP composition: `DECLARE @t AS dbo.Type` plus generated `INSERT` rows
+- [x] Offset map from composed batch back to editor lines (prelude length must not shift error lines)
+- [x] Literal escaping and quoting per type, so a value containing `'` cannot break the batch
+- [x] `Views/ParameterStrip.xaml` — the strip under the editor, collapsible when there are none
 
 **Deliverable:** open a parameterised plan, see its parameters listed with values from the plan, edit
 them, and get a correct composed batch — verified by inspection, since capture is Phase 4.
