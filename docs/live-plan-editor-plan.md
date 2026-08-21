@@ -193,21 +193,21 @@ deliberately gated. Tick checkboxes as they land.
 The headline cost bar needs no text mapping at all — just `PlanDiff` against the pinned baseline — so
 it lands before anything that depends on inference.
 
-- [ ] `Diagnostics/TuningSession.cs` — pinned baseline, current plan, diff between them
-- [ ] Auto-pin the plan the session started from; "Pin current as baseline" re-anchors
-- [ ] Cost delta bar above the editor: baseline cost → current, percent change, direction
-- [ ] Name the shape changes in the bar ("Key Lookup added", "Index Seek → Index Scan")
-- [ ] Label the unit as *estimated* cost, and mark when the plan is estimated-only
-- [ ] Stale state in the bar when the text has changed since the last capture
-- [ ] Wire `Canvas.SetDiff(TuningSession.Diff)` — canvas node highlighting, mostly free
-- [ ] Rewrite `SqlNodeMapper` spans on ScriptDom AST offsets instead of string search
-- [ ] `Diagnostics/SqlDeltaMapper.cs` — fold node deltas into per-line `LineImpact` records
-- [ ] Confidence threshold on `LineImpact`; below it, render nothing rather than a wrong arrow
-- [ ] Gutter marks: improved / regressed / added, drawn in the Phase 1 gutter column
-- [ ] Inline end-of-line annotations naming the delta and its cause
-- [ ] Toggle for inline annotations, since they are the noisiest of the four surfaces
-- [ ] Click a gutter mark → select the responsible operator on the canvas
-- [ ] `MainPage.xaml` — splitter, resizable editor pane, collapse/restore, replacing the 190px strip
+- [x] `Diagnostics/TuningSession.cs` — pinned baseline, current plan, diff between them
+- [x] Auto-pin the plan the session started from; "Pin current as baseline" re-anchors
+- [x] Cost delta bar above the editor: baseline cost → current, percent change, direction
+- [x] Name the shape changes in the bar ("Key Lookup added", "Index Seek → Index Scan")
+- [x] Label the unit as *estimated* cost, and mark when the plan is estimated-only
+- [x] Stale state in the bar when the text has changed since the last capture
+- [x] Wire `Canvas.SetDiff(TuningSession.Diff)` — canvas node highlighting, mostly free
+- [x] Rewrite `SqlNodeMapper` spans on ScriptDom AST offsets instead of string search
+- [x] `Diagnostics/SqlDeltaMapper.cs` — fold node deltas into per-line `LineImpact` records
+- [x] Confidence threshold on `LineImpact`; below it, render nothing rather than a wrong arrow
+- [x] Gutter marks: improved / regressed / added, drawn in the Phase 1 gutter column
+- [x] Inline end-of-line annotations naming the delta and its cause
+- [x] Toggle for inline annotations, since they are the noisiest of the four surfaces
+- [x] Click a gutter mark → select the responsible operator on the canvas
+- [x] `MainPage.xaml` — splitter, resizable editor pane, collapse/restore, replacing the 190px strip
 
 **Deliverable:** an edit that adds a Key Lookup shows red in the bar, red in the gutter on the
 responsible line, and a recolored node on the canvas — all against the pinned baseline.

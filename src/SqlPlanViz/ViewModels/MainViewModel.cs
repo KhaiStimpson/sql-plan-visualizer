@@ -91,6 +91,9 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>The editor pane's state (live-plan-editor-plan.md Phase 4).</summary>
     public SqlEditorViewModel Editor { get; } = new();
 
+    /// <summary>Pinned baseline and the diff every Phase 5 surface reads from.</summary>
+    public TuningSession TuningSession { get; } = new();
+
     public ConnectionSettings Connection { get; } = new();
 
     public bool HasPlan => Plan is not null;
@@ -445,6 +448,12 @@ public sealed partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(CanCompare));
 
             Editor.MarkCaptured(Editor.Text);
+            TuningSession.IsStale = false;
+            TuningSession.SetCurrent(SelectedStatement);
+
+            // The canvas already knows how to recolour by diff; this is the wire-up the plan
+            // says is "mostly free", and it is.
+            CurrentDiff = TuningSession.Diff;
         }
         catch (PlanCaptureException ex)
         {
@@ -467,6 +476,23 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     public bool CanCancelReplan => Editor.IsBusy;
+
+    /// <summary>Re-anchors the comparison to the plan on screen, banking an improvement.</summary>
+    public void PinBaseline()
+    {
+        TuningSession.PinCurrent();
+        CurrentDiff = TuningSession.Diff;
+    }
+
+    /// <summary>
+    /// Per-line impacts for the editor's gutter and annotations. Returns nothing when the
+    /// text has moved on from the plan: marks pointing at lines that have since been edited
+    /// are worse than no marks.
+    /// </summary>
+    public IReadOnlyList<LineImpact> EditorLineImpacts() =>
+        Editor.IsStale
+            ? []
+            : SqlDeltaMapper.Map(Editor.Text, TuningSession.Diff, Editor.ParserVersion);
 
     /// <summary>Cancels an in-flight re-plan. The plan explicitly requires captures to be cancellable.</summary>
     public void CancelReplan() => _replanCancellation?.Cancel();
@@ -511,6 +537,15 @@ public sealed partial class MainViewModel : ObservableObject
         // Parameter types and the plan-object completions always follow the selected
         // statement; the text does so only when the plan did not come from the editor.
         Editor.SetSourceStatement(value, replaceText: _syncEditorText);
+
+        // Opening a plan starts a tuning session anchored on it, so the very first re-plan
+        // already has something to be better or worse than.
+        if (_syncEditorText)
+        {
+            TuningSession.Reset();
+        }
+
+        TuningSession.SetCurrent(value);
 
         MissingIndexes.Clear();
         Warnings.Clear();

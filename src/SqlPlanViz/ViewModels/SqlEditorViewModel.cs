@@ -64,6 +64,9 @@ public sealed partial class SqlEditorViewModel : ObservableObject
     /// <summary>Raised when the parameter set or a binding changes, so the host can recompose.</summary>
     public event EventHandler? ParametersChanged;
 
+    /// <summary>Raised when staleness may have changed, so the cost bar can mark itself.</summary>
+    public event EventHandler? StaleChanged;
+
     /// <summary>
     /// Points the editor at a statement: its text becomes the editor's text unless the user
     /// has unsaved edits, and its ParameterList becomes the type source for extraction.
@@ -271,6 +274,7 @@ public sealed partial class SqlEditorViewModel : ObservableObject
     partial void OnTextChanged(string value)
     {
         IsStale = LastCapturedText is not null && !string.Equals(LastCapturedText, value, StringComparison.Ordinal);
+        StaleChanged?.Invoke(this, EventArgs.Empty);
         OnPropertyChanged(nameof(CanReplan));
     }
 

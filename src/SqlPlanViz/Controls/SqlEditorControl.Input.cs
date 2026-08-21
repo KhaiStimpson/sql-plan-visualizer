@@ -31,6 +31,14 @@ public sealed partial class SqlEditorControl
     /// <summary>Set while applying an edit that came *from* the edit context, to stop the notify loop.</summary>
     private bool _applyingEditContextUpdate;
 
+    private readonly Microsoft.UI.Xaml.Controls.ToolTip _gutterToolTip = new()
+    {
+        Placement = Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Right,
+        MaxWidth = 320,
+    };
+
+    private GutterMark? _hoveredMark;
+
     private bool _pointerSelecting;
     private DateTime _lastClickUtc;
     private Point _lastClickPoint;
@@ -48,10 +56,17 @@ public sealed partial class SqlEditorControl
         GotFocus += OnGotFocus;
         LostFocus += OnLostFocus;
 
+        Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(_canvas, _gutterToolTip);
+
         _canvas.PointerPressed += OnPointerPressed;
         _canvas.PointerMoved += OnPointerMoved;
         _canvas.PointerReleased += OnPointerReleased;
         _canvas.PointerWheelChanged += OnPointerWheelChanged;
+        _canvas.PointerExited += (_, _) =>
+        {
+            _hoveredMark = null;
+            _gutterToolTip.IsOpen = false;
+        };
 
         KeyDown += OnKeyDown;
         CharacterReceived += OnCharacterReceived;
@@ -158,6 +173,7 @@ public sealed partial class SqlEditorControl
     {
         if (!_pointerSelecting)
         {
+            UpdateGutterToolTip(e.GetCurrentPoint(_canvas).Position);
             return;
         }
 
@@ -175,6 +191,37 @@ public sealed partial class SqlEditorControl
 
         MoveCaret(OffsetAt(position), extendSelection: true);
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// Shows a gutter mark's explanation on hover. The mark itself is a coloured triangle;
+    /// the sentence that says what it means and how confident it is has to live somewhere.
+    /// </summary>
+    private void UpdateGutterToolTip(Windows.Foundation.Point position)
+    {
+        GutterMark? hovered = null;
+
+        if (position.X < _gutterWidth && _document.LineCount > 0)
+        {
+            var line = Math.Clamp((int)((position.Y + _scrollY) / _lineHeight), 0, _document.LineCount - 1);
+            hovered = GutterMarks.FirstOrDefault(m => m.Line == line);
+        }
+
+        if (ReferenceEquals(hovered, _hoveredMark))
+        {
+            return;
+        }
+
+        _hoveredMark = hovered;
+        _gutterToolTip.IsOpen = false;
+
+        if (hovered is null || string.IsNullOrWhiteSpace(hovered.Tooltip))
+        {
+            return;
+        }
+
+        _gutterToolTip.Content = hovered.Tooltip;
+        _gutterToolTip.IsOpen = true;
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)

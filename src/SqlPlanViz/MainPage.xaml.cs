@@ -60,6 +60,8 @@ public sealed partial class MainPage : Page
         };
 
         ViewModel.Editor.PropertyChanged += OnEditorPropertyChanged;
+        ViewModel.Editor.StaleChanged += (_, _) => UpdateTuningSurfaces();
+        ViewModel.TuningSession.Changed += (_, _) => UpdateTuningSurfaces();
 
         SqlEditor.TextChanged += OnEditorTextChanged;
         SqlEditor.CaretMoved += (_, _) => UpdateEditorStatus();
@@ -84,6 +86,7 @@ public sealed partial class MainPage : Page
         KeyboardAccelerators.Add(replan);
 
         UpdateEditorStatus();
+        UpdateTuningSurfaces();
     }
 
     private void OnEditorTextChanged(object? sender, EventArgs e)
@@ -143,7 +146,7 @@ public sealed partial class MainPage : Page
         ViewModel.Editor.RefreshParameters();
 
         await ViewModel.ReplanAsync();
-        ApplyEditorDecorations();
+        UpdateTuningSurfaces();
         UpdateEditorStatus();
     }
 
@@ -161,6 +164,60 @@ public sealed partial class MainPage : Page
 
     private void ApplyEditorDecorations() =>
         SqlEditor.SetDecorations(squiggles: ViewModel.Editor.Squiggles);
+
+    private void OnPinBaseline(object sender, RoutedEventArgs e)
+    {
+        ViewModel.PinBaseline();
+        UpdateTuningSurfaces();
+    }
+
+    private void OnToggleInlineAnnotations(object sender, RoutedEventArgs e)
+    {
+        SqlEditor.ShowInlineAnnotations = AnnotationsToggle.IsChecked == true;
+        SqlEditor.Redraw();
+    }
+
+    /// <summary>
+    /// Refreshes the four Phase 5 surfaces at once: the cost bar, the canvas recolouring, the
+    /// gutter marks and the inline annotations. They are computed together because they all
+    /// describe the same diff, and letting them drift apart would be worse than any one of
+    /// them being absent.
+    /// </summary>
+    private void UpdateTuningSurfaces()
+    {
+        var session = ViewModel.TuningSession;
+        session.IsStale = ViewModel.Editor.IsStale;
+
+        CostBarHeadline.Text = session.Headline;
+        CostBarDetail.Text = session.Detail;
+        PinBaselineButton.IsEnabled = session.Current is not null;
+
+        // The glyph carries the direction independently of colour, so the bar still reads
+        // for anyone who cannot separate the red from the green.
+        var (glyph, brushKey) = session.IsStale
+            ? ("\uE7BA", "SystemFillColorCautionBrush")
+            : session.Direction switch
+            {
+                TuningDirection.Improved => ("\uE74B", "SystemFillColorSuccessBrush"),
+                TuningDirection.Regressed => ("\uE74A", "SystemFillColorCriticalBrush"),
+                _ => ("\uE9CE", "SystemFillColorNeutralBrush"),
+            };
+
+        CostBarGlyph.Glyph = glyph;
+
+        if (Application.Current.Resources.TryGetValue(brushKey, out var brush))
+        {
+            CostBarGlyph.Foreground = (Brush)brush;
+        }
+
+        // Gutter marks and annotations are inference and go silent when the text has moved on
+        // — a mark pointing at a line that has since been edited is worse than no mark.
+        var impacts = ViewModel.EditorLineImpacts();
+        SqlEditor.SetDecorations(
+            marks: SqlDeltaMapper.ToGutterMarks(impacts),
+            annotations: SqlDeltaMapper.ToAnnotations(impacts),
+            squiggles: ViewModel.Editor.Squiggles);
+    }
 
     private void UpdateEditorStatus()
     {
@@ -245,6 +302,7 @@ public sealed partial class MainPage : Page
         if (e.PropertyName is nameof(MainViewModel.CurrentDiff))
         {
             Canvas.SetDiff(ViewModel.CurrentDiff);
+            UpdateTuningSurfaces();
             if (ViewModel.CurrentDiff is not null)
             {
                 PaneSelector.SelectedItem = DeltaTab;

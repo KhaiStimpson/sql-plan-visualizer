@@ -528,13 +528,70 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
+                        <!--
+                            The cost delta bar. First of the four Phase 5 surfaces because it
+                            needs no text mapping at all — just PlanDiff against the pinned
+                            baseline — so it is the one signal that is never a guess.
+                        -->
+                        <Border
+                            x:Name="CostBar"
+                            Padding="12,7"
+                            Background="{ThemeResource LayerFillColorAltBrush}">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon
+                                    x:Name="CostBarGlyph"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe Fluent Icons"
+                                    FontSize="15"
+                                    Glyph="&#xE9CE;" />
+                                <StackPanel Grid.Column="1" Spacing="1">
+                                    <TextBlock
+                                        x:Name="CostBarHeadline"
+                                        FontSize="12.5"
+                                        FontWeight="SemiBold"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        x:Name="CostBarDetail"
+                                        FontSize="11"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="4">
+                                    <Button
+                                        x:Name="PinBaselineButton"
+                                        Padding="8,2"
+                                        Click="OnPinBaseline"
+                                        Content="Pin current as baseline"
+                                        FontSize="11"
+                                        ToolTipService.ToolTip="Re-anchor the comparison to the plan on screen, once an improvement is banked" />
+                                    <ToggleButton
+                                        x:Name="AnnotationsToggle"
+                                        Padding="8,2"
+                                        Click="OnToggleInlineAnnotations"
+                                        Content="Annotations"
+                                        FontSize="11"
+                                        IsChecked="True"
+                                        ToolTipService.ToolTip="Show end-of-line delta annotations in the editor" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
                         <!--  Editor toolbar  -->
                         <Grid
-                            Grid.Row="0"
+                            Grid.Row="1"
                             Padding="10,5"
                             ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
@@ -604,9 +661,9 @@
                             </StackPanel>
                         </Grid>
 
-                        <controls:SqlEditorControl x:Name="SqlEditor" Grid.Row="1" />
+                        <controls:SqlEditorControl x:Name="SqlEditor" Grid.Row="2" />
 
-                        <views:ParameterStrip x:Name="Parameters" Grid.Row="2" />
+                        <views:ParameterStrip x:Name="Parameters" Grid.Row="3" />
                     </Grid>
                 </Border>
             </Grid>
