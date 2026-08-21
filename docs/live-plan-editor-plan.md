@@ -228,17 +228,17 @@ confidence is low, render nothing. Tick checkboxes as they land.
 **Goal:** completions that know the real schema, and completions that know what is wrong with the
 plan.
 
-- [ ] `Capture/CatalogMetadataService.cs` — one bulk read on connect, cached per session
-- [ ] Read `sys.schemas`, `sys.tables`, `sys.views`, `sys.columns`, `sys.indexes`, `sys.table_types`
-- [ ] Manual refresh command, since schemas change under a long-lived session
-- [ ] `Editing/Completion/CatalogProvider.cs` — schema-qualified objects, alias-aware columns
-- [ ] Detail text on catalog items: data type, nullability, index membership
-- [ ] Feed `sys.table_types` columns into the Phase 3 TVP row grid
-- [ ] `Editing/Completion/TuningProvider.cs` — suggestions drawn from the diagnostics layer
-- [ ] Offer covering-index columns from an active missing-index finding
-- [ ] Offer a SARGable rewrite of the predicate under the caret (`non-sargable-predicate` rule)
-- [ ] Offer an explicit column list to replace `SELECT *`
-- [ ] Rank tuning suggestions above generic matches, and mark them visually as suggestions
+- [x] `Capture/CatalogMetadataService.cs` — one bulk read on connect, cached per session
+- [x] Read `sys.schemas`, `sys.tables`, `sys.views`, `sys.columns`, `sys.indexes`, `sys.table_types`
+- [x] Manual refresh command, since schemas change under a long-lived session
+- [x] `Editing/Completion/CatalogProvider.cs` — schema-qualified objects, alias-aware columns
+- [x] Detail text on catalog items: data type, nullability, index membership
+- [x] Feed `sys.table_types` columns into the Phase 3 TVP row grid
+- [x] `Editing/Completion/TuningProvider.cs` — suggestions drawn from the diagnostics layer
+- [x] Offer covering-index columns from an active missing-index finding
+- [x] Offer a SARGable rewrite of the predicate under the caret (`non-sargable-predicate` rule)
+- [x] Offer an explicit column list to replace `SELECT *`
+- [x] Rank tuning suggestions above generic matches, and mark them visually as suggestions
 
 **Deliverable:** connected, the editor completes real tables and columns; with a missing-index
 finding active, it offers the index's columns where they belong.

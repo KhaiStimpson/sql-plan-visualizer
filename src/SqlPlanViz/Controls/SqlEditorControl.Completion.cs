@@ -160,8 +160,14 @@ public sealed partial class SqlEditorControl
 
         // The replace range came from the context; the user may have typed more since, so
         // extend it to whatever the prefix has grown into rather than duplicating characters.
-        var start = context.ReplaceStart;
-        var length = Math.Max(0, Math.Min(_caret, _document.Length) - start);
+        // An item may override the range outright — a suggestion that rewrites a predicate or
+        // expands a star is not replacing a word.
+        var start = item.ReplaceStartOverride ?? context.ReplaceStart;
+        var length = item.ReplaceLengthOverride
+                     ?? Math.Max(0, Math.Min(_caret, _document.Length) - start);
+
+        start = Math.Clamp(start, 0, _document.Length);
+        length = Math.Clamp(length, 0, _document.Length - start);
 
         DismissCompletion(CompletionDismissReason.Committed);
         ReplaceRange(start, length, item.InsertText);

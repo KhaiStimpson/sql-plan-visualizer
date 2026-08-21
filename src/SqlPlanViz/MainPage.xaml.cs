@@ -40,6 +40,10 @@ public sealed partial class MainPage : Page
 
     private readonly PlanObjectProvider _planObjectProvider = new();
 
+    private readonly CatalogProvider _catalogProvider = new();
+
+    private readonly TuningProvider _tuningProvider = new();
+
     /// <summary>Stops the editor and the view model from echoing each other's text updates.</summary>
     private bool _syncingEditorText;
 
@@ -47,10 +51,16 @@ public sealed partial class MainPage : Page
     {
         _completionEngine.Register(new KeywordProvider());
         _completionEngine.Register(_planObjectProvider);
+        _completionEngine.Register(_catalogProvider);
+        _completionEngine.Register(_tuningProvider);
         SqlEditor.CompletionEngine = _completionEngine;
 
         Parameters.Bind(ViewModel.Editor);
-        Parameters.BindingsChanged += (_, _) => UpdateEditorStatus();
+        Parameters.BindingsChanged += (_, _) =>
+        {
+            ApplyTableTypeShapes();
+            UpdateEditorStatus();
+        };
 
         _parameterRefresh.Tick += (_, _) =>
         {
@@ -331,6 +341,7 @@ public sealed partial class MainPage : Page
         }
 
         _planObjectProvider.Load(ViewModel.SelectedStatement);
+        _tuningProvider.Load(ViewModel.SelectedStatement);
 
         // The mapper reads what is in the editor, so its offsets line up with what is on
         // screen even after the batch has been edited.
@@ -515,6 +526,50 @@ public sealed partial class MainPage : Page
 
         view.Commit();
         await ViewModel.CaptureAsync(view.Query, view.Mode);
+
+        // One schema read per connection, on connect rather than on a keystroke, and the
+        // parser dialect follows the server it will actually be sent to.
+        await RefreshCatalogAsync(forceRefresh: false);
+    }
+
+    private async Task RefreshCatalogAsync(bool forceRefresh)
+    {
+        await ViewModel.LoadCatalogAsync(forceRefresh);
+        _catalogProvider.Snapshot = ViewModel.CatalogSnapshot;
+        _tuningProvider.Snapshot = ViewModel.CatalogSnapshot;
+        ApplyTableTypeShapes();
+        UpdateEditorStatus();
+
+        try
+        {
+            var banner = await ViewModel.TestConnectionAsync();
+            var version = TSqlParserFactory.FromServerVersion(banner);
+            TSqlParserFactory.Default = version;
+            ViewModel.Editor.ParserVersion = version;
+            SqlEditor.ParserVersion = version;
+        }
+        catch (Exception)
+        {
+            // Highlighting and completion degrade to the newest dialect rather than breaking.
+        }
+    }
+
+    private void OnRefreshCatalog(object sender, RoutedEventArgs e) => _ = RefreshCatalogAsync(forceRefresh: true);
+
+    /// <summary>
+    /// Shapes each table-valued parameter's row grid from sys.table_types, closing the loop
+    /// the Phase 3 strip left open.
+    /// </summary>
+    private void ApplyTableTypeShapes()
+    {
+        foreach (var parameter in ViewModel.Editor.Parameters.Where(p => p.IsTableValued))
+        {
+            var columns = ViewModel.TableTypeColumns(parameter.TableTypeName);
+            if (columns.Count > 0)
+            {
+                Parameters.SetTableTypeColumns(parameter.Name, parameter.TableTypeName, columns);
+            }
+        }
     }
 
     private void OnMetricChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)

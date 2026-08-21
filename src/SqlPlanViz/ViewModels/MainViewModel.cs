@@ -4,6 +4,7 @@ using SqlPlanViz.Capture;
 using SqlPlanViz.Common;
 using SqlPlanViz.Controls;
 using SqlPlanViz.Diagnostics;
+using SqlPlanViz.Editing;
 using SqlPlanViz.Model;
 using SqlPlanViz.Parsing;
 
@@ -18,6 +19,7 @@ public sealed partial class MainViewModel : ObservableObject
     private Dictionary<string, FixTriageState> _triage = new(StringComparer.OrdinalIgnoreCase);
     private string? _planSourcePath;
     private readonly DatabaseContextService _databaseContext = new();
+    private readonly CatalogMetadataService _catalog = new();
     private CancellationTokenSource? _objectContextCancellation;
     private string? _lastCapturedQuery;
     private CaptureMode _lastCaptureMode;
@@ -93,6 +95,62 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>Pinned baseline and the diff every Phase 5 surface reads from.</summary>
     public TuningSession TuningSession { get; } = new();
+
+    [ObservableProperty]
+    private CatalogSnapshot _catalogSnapshot = CatalogSnapshot.Empty;
+
+    [ObservableProperty]
+    private string? _catalogMessage;
+
+    [ObservableProperty]
+    private bool _isLoadingCatalog;
+
+    public bool CanRefreshCatalog => !string.IsNullOrWhiteSpace(Connection.Server) && !IsLoadingCatalog;
+
+    /// <summary>
+    /// Reads the connected database's schema for the completion providers
+    /// (live-plan-editor-plan.md Phase 6). One round trip, cached per connection; the manual
+    /// refresh exists because schemas change under a long-lived session.
+    /// </summary>
+    public async Task LoadCatalogAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(Connection.Server))
+        {
+            CatalogSnapshot = CatalogSnapshot.Empty;
+            CatalogMessage = "Connect to a server to complete real tables and columns.";
+            return;
+        }
+
+        IsLoadingCatalog = true;
+        OnPropertyChanged(nameof(CanRefreshCatalog));
+        try
+        {
+            CatalogSnapshot = await _catalog.GetAsync(Connection, forceRefresh, cancellationToken).ConfigureAwait(true);
+            CatalogMessage = CatalogSnapshot.IsEmpty
+                ? "The connected database reported no user tables."
+                : $"{CatalogSnapshot.Tables.Count} tables and views, {CatalogSnapshot.TableTypes.Count} table types.";
+        }
+        catch (PlanCaptureException ex)
+        {
+            // The catalog is an enhancement: without it the keyword and plan providers still
+            // work, so a failure is a message and not an error bar.
+            CatalogMessage = ex.Message;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsLoadingCatalog = false;
+            OnPropertyChanged(nameof(CanRefreshCatalog));
+        }
+    }
+
+    /// <summary>The columns of a user table type, for a table-valued parameter's row grid (Phase 6).</summary>
+    public IReadOnlyList<TvpColumn> TableTypeColumns(string tableTypeName) =>
+        CatalogSnapshot.FindTableType(tableTypeName) is { } type
+            ? [.. type.Columns.Select(c => new TvpColumn { Name = c.Name, DataType = c.DataType })]
+            : [];
 
     public ConnectionSettings Connection { get; } = new();
 

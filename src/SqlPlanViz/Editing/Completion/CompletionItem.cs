@@ -66,6 +66,15 @@ public sealed class CompletionItem
     /// <summary>Which provider produced this, so a provider can be disabled without re-querying.</summary>
     public string ProviderId { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Overrides the range the commit replaces. The engine's default is the word being typed,
+    /// which is right for a name but wrong for a suggestion that rewrites something larger —
+    /// expanding <c>SELECT *</c> has to replace the star, and the star is not a word.
+    /// </summary>
+    public int? ReplaceStartOverride { get; init; }
+
+    public int? ReplaceLengthOverride { get; init; }
+
     /// <summary>Set by the engine while filtering; not part of the provider's output.</summary>
     public CompletionMatchKind MatchKind { get; set; } = CompletionMatchKind.None;
 

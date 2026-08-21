@@ -577,6 +577,13 @@
                                         Content="Pin current as baseline"
                                         FontSize="11"
                                         ToolTipService.ToolTip="Re-anchor the comparison to the plan on screen, once an improvement is banked" />
+                                    <Button
+                                        x:Name="RefreshCatalogButton"
+                                        Padding="8,2"
+                                        Click="OnRefreshCatalog"
+                                        Content="Refresh schema"
+                                        FontSize="11"
+                                        ToolTipService.ToolTip="Re-read tables, columns and indexes from the connected database" />
                                     <ToggleButton
                                         x:Name="AnnotationsToggle"
                                         Padding="8,2"
