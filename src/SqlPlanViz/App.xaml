@@ -16,6 +16,7 @@
             <local:InverseBoolConverter x:Key="InverseBool" />
             <local:StringToVisibilityConverter x:Key="StringToVisibility" />
             <local:StringToDoubleConverter x:Key="StringToDouble" />
+            <local:StringToBoolConverter x:Key="StringToBool" />
 
             <!-- Card surface used by the detail panel sections. -->
             <Style x:Key="CardBorder" TargetType="Border">

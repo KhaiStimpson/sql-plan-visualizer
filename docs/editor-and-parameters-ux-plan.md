@@ -46,7 +46,7 @@ time so each step stays reviewable.
 - [x] Add the Numeric template: a `NumberBox` bound to `Value`, with a converter between
       `NumberBox.Value` (double) and the string `Value` property, since `ParameterBindingItem.Value`
       stays a string all the way to `SqlLiteral.Format` (`ParameterBindingItem.cs:225`).
-- [ ] Add the Bit template: a `ToggleSwitch` bound to `Value` through a bool↔string converter
+- [x] Add the Bit template: a `ToggleSwitch` bound to `Value` through a bool↔string converter
       (`"1"`/`"0"`, matching what `SqlLiteral` already accepts for bit literals).
 - [ ] Add the DateTime template: a `CalendarDatePicker` plus a time-of-day text field, composing
       into the same `Value` string `SqlLiteral.Format` expects for datetime/datetime2.

@@ -57,6 +57,20 @@ public sealed partial class StringToDoubleConverter : IValueConverter
         value is double number && !double.IsNaN(number) ? number.ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
 }
 
+/// <summary>
+/// Bridges <c>ToggleSwitch.IsOn</c> (bool) and <see cref="SqlPlanViz.ViewModels.ParameterBindingItem.Value"/>
+/// (string) for bit parameters, using the <c>"1"</c>/<c>"0"</c> spelling <c>SqlLiteral</c> already
+/// accepts for bit literals.
+/// </summary>
+public sealed partial class StringToBoolConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language) =>
+        value is string text && text == "1";
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        value is true ? "1" : "0";
+}
+
 /// <summary>Colours a warning's icon by severity, using the Fluent system palette.</summary>
 public sealed partial class SeverityToBrushConverter : IValueConverter
 {
