@@ -47,11 +47,26 @@ public sealed class TuningSession
 
     public double CostDelta => CurrentCost - BaselineCost;
 
-    /// <summary>Signed fraction of the baseline. Zero when there is no baseline cost to divide by.</summary>
-    public double CostFraction => BaselineCost > 0 ? CostDelta / BaselineCost : 0;
+    /// <summary>Signed fraction of the baseline. Zero when there is no baseline value to divide by.</summary>
+    public double CostFraction => BaselineMetric > 0 ? (CurrentMetric - BaselineMetric) / BaselineMetric : 0;
 
     /// <summary>True when neither side has runtime stats, so every number here is the optimizer's opinion.</summary>
     public bool IsEstimatedOnly => Current?.HasRuntimeStats != true;
+
+    /// <summary>
+    /// True when both plans were actually run, so the bar can compare measured elapsed time
+    /// instead of the optimizer's cost estimate (live-plan-editor-plan.md Phase 7).
+    /// </summary>
+    public bool UsesMeasuredTime => Baseline?.Summary.QueryElapsedMs is > 0
+                                    && Current?.Summary.QueryElapsedMs is not null;
+
+    /// <summary>Elapsed milliseconds when both sides were measured, estimated subtree cost otherwise.</summary>
+    private double BaselineMetric => UsesMeasuredTime ? Baseline!.Summary.QueryElapsedMs!.Value : BaselineCost;
+
+    private double CurrentMetric => UsesMeasuredTime ? Current!.Summary.QueryElapsedMs!.Value : CurrentCost;
+
+    private string FormatMetric(double value) =>
+        UsesMeasuredTime ? Format.Milliseconds(value) : Format.Cost(value);
 
     public TuningDirection Direction
     {
@@ -173,7 +188,9 @@ public sealed class TuningSession
 
             if (!HasComparison)
             {
-                return $"Baseline pinned  ·  estimated cost {Format.Cost(CurrentCost)}";
+                return UsesMeasuredTime || Current!.HasRuntimeStats
+                    ? $"Baseline pinned  ·  {FormatMetric(CurrentMetric)}"
+                    : $"Baseline pinned  ·  estimated cost {Format.Cost(CurrentCost)}";
             }
 
             var arrow = Direction switch
@@ -183,7 +200,7 @@ public sealed class TuningSession
                 _ => "→",
             };
 
-            var percent = BaselineCost > 0
+            var percent = BaselineMetric > 0
                 ? $"  {arrow} {Math.Abs(CostFraction) * 100:0.#}%"
                 : string.Empty;
 
@@ -194,7 +211,7 @@ public sealed class TuningSession
                 _ => "No material change",
             };
 
-            return $"{verdict}  ·  {Format.Cost(BaselineCost)} → {Format.Cost(CurrentCost)}{percent}";
+            return $"{verdict}  ·  {FormatMetric(BaselineMetric)} → {FormatMetric(CurrentMetric)}{percent}";
         }
     }
 
@@ -228,9 +245,14 @@ public sealed class TuningSession
                 parts.Add("Same plan shape, different numbers");
             }
 
-            parts.Add(IsEstimatedOnly
-                ? "Estimated cost — the optimizer's opinion, not a measurement"
-                : "Measured from an actual plan");
+            // The unit is always named. A drop in estimated subtree cost is the optimizer
+            // changing its mind, and saying so where someone will read it is the whole
+            // mitigation for that risk.
+            parts.Add(UsesMeasuredTime
+                ? "Measured elapsed time from actual plans"
+                : IsEstimatedOnly
+                    ? "Estimated cost — the optimizer's opinion, not a measurement"
+                    : "Estimated cost against an actual plan — run the baseline too to compare measured time");
 
             return string.Join("  ·  ", parts);
         }

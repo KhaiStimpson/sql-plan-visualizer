@@ -162,6 +162,51 @@ public sealed partial class MainPage : Page
 
     private void OnCancelReplan(object sender, RoutedEventArgs e) => ViewModel.CancelReplan();
 
+    /// <summary>
+    /// The guarded actual run (docs/live-plan-editor-plan.md Phase 7). The confirmation is
+    /// the point of the phase: the dialog names the server, names every modifying statement
+    /// it found, and its run button stays disabled until the user ticks a box saying so. The
+    /// close button is the default, so pressing Enter cancels.
+    /// </summary>
+    private async void OnRunActual(object sender, RoutedEventArgs e)
+    {
+        if (!ViewModel.Editor.CanReplan)
+        {
+            UpdateEditorStatus();
+            return;
+        }
+
+        _parameterRefresh.Stop();
+        ViewModel.Editor.RefreshParameters();
+
+        var report = ViewModel.AnalyseBatchSafety();
+        var view = new ConfirmRunDialog(ViewModel.Connection, report);
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = "Run this batch for real?",
+            Content = view,
+            PrimaryButtonText = view.RunButtonText,
+            CloseButtonText = "Cancel",
+
+            // Never make running the default action: Enter and Esc both back out.
+            DefaultButton = ContentDialogButton.Close,
+            IsPrimaryButtonEnabled = false,
+        };
+
+        view.ConfirmationChanged += (_, confirmed) => dialog.IsPrimaryButtonEnabled = confirmed;
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || !view.IsConfirmed)
+        {
+            return;
+        }
+
+        await ViewModel.RunActualAsync();
+        UpdateTuningSurfaces();
+        UpdateEditorStatus();
+    }
+
     private void OnGutterMarkClicked(object? sender, GutterMark mark)
     {
         if (mark.NodeId is not int nodeId || ViewModel.SelectedStatement is not { } statement)
@@ -234,6 +279,7 @@ public sealed partial class MainPage : Page
         var editor = ViewModel.Editor;
         SqlEditor.IsReadOnly = editor.IsBusy;
         ReplanButton.IsEnabled = editor.CanReplan;
+        RunActualButton.IsEnabled = editor.CanReplan && !string.IsNullOrWhiteSpace(ViewModel.Connection.Server);
 
         var (line, column) = SqlEditor.Document.PositionOf(SqlEditor.CaretOffset);
         var parts = new List<string> { $"Ln {line + 1}, Col {column + 1}" };

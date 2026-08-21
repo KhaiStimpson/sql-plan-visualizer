@@ -441,7 +441,32 @@ public sealed partial class MainViewModel : ObservableObject
     /// safe to press Ctrl+Enter on. The actual run is Phase 7 and is gated behind its own
     /// confirmation.
     /// </summary>
-    public async Task ReplanAsync(CancellationToken cancellationToken = default)
+    public Task ReplanAsync(CancellationToken cancellationToken = default) =>
+        CaptureFromEditorAsync(CaptureMode.EstimatedOnly, cancellationToken);
+
+    /// <summary>
+    /// Runs the edited batch and captures its actual plan
+    /// (live-plan-editor-plan.md Phase 7). Reuses the Phase 4 pipeline unchanged — the
+    /// difference between this and Ctrl+Enter is the capture mode and the confirmation the
+    /// caller is required to have obtained first.
+    /// </summary>
+    public Task RunActualAsync(CancellationToken cancellationToken = default) =>
+        CaptureFromEditorAsync(CaptureMode.Actual, cancellationToken);
+
+    /// <summary>
+    /// Classifies what the batch would do if executed. The caller shows this to the user and
+    /// gets a deliberate confirmation before <see cref="RunActualAsync"/>.
+    /// </summary>
+    public BatchSafetyReport AnalyseBatchSafety()
+    {
+        var batch = Editor.Compose();
+
+        // Classify the composed batch, prelude included: the DECLARE statements are part of
+        // what will run, and a table-valued parameter's generated INSERTs are real INSERTs.
+        return BatchSafetyAnalyzer.Analyse(batch.Text, Editor.ParserVersion);
+    }
+
+    private async Task CaptureFromEditorAsync(CaptureMode mode, CancellationToken cancellationToken)
     {
         if (!Editor.CanReplan)
         {
@@ -472,18 +497,20 @@ public sealed partial class MainViewModel : ObservableObject
 
         Editor.ClearError();
         Editor.IsBusy = true;
-        Editor.StatusMessage = "Compiling the edited batch…";
+        Editor.StatusMessage = mode == CaptureMode.Actual
+            ? "Running the edited batch and capturing its actual plan…"
+            : "Compiling the edited batch…";
         ErrorMessage = null;
         OnPropertyChanged(nameof(CanCancelReplan));
 
         try
         {
             var plan = await _capture
-                .CaptureAsync(Connection, batch.Text, CaptureMode.EstimatedOnly, token)
+                .CaptureAsync(Connection, batch.Text, mode, token)
                 .ConfigureAwait(true);
 
             _lastCapturedQuery = batch.Text;
-            _lastCaptureMode = CaptureMode.EstimatedOnly;
+            _lastCaptureMode = mode;
 
             // Straight through the session-plan machinery, so a re-plan is a first-class
             // entry in history and stays inspectable and comparable like any other.
@@ -523,7 +550,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            Editor.StatusMessage = "Re-plan cancelled.";
+            Editor.StatusMessage = mode == CaptureMode.Actual ? "Run cancelled." : "Re-plan cancelled.";
         }
         finally
         {

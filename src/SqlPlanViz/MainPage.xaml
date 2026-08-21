@@ -651,6 +651,13 @@
                                     FontSize="11"
                                     Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
                                 <Button
+                                    x:Name="RunActualButton"
+                                    Padding="8,2"
+                                    Click="OnRunActual"
+                                    Content="Run for actual…"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Execute the batch and capture measured row counts and timings — asks for confirmation first" />
+                                <Button
                                     x:Name="ReplanButton"
                                     Padding="10,2"
                                     Click="OnReplan"

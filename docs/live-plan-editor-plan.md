@@ -259,14 +259,14 @@ do not query per keystroke. Tick checkboxes as they land.
 
 The mistake this exists to prevent is running a dev query against production.
 
-- [ ] `Editing/BatchSafetyAnalyzer.cs` — classify statements via ScriptDom
-- [ ] Detect `INSERT`, `UPDATE`, `DELETE`, `MERGE`, `TRUNCATE`, and all DDL
-- [ ] `Views/ConfirmRunDialog.xaml` — names every modifying statement it found
-- [ ] State the connected server and database prominently in that dialog
-- [ ] Require a deliberate second click; never make running the default action
-- [ ] `MainViewModel.RunActualAsync` — `CaptureMode.Actual`, reusing the Phase 4 pipeline
-- [ ] Enable the runtime-only metrics (rows, elapsed, self time, efficiency, skew) after an actual run
-- [ ] Cost bar switches to actual measurements and says so, replacing the estimated-cost caveat
+- [x] `Editing/BatchSafetyAnalyzer.cs` — classify statements via ScriptDom
+- [x] Detect `INSERT`, `UPDATE`, `DELETE`, `MERGE`, `TRUNCATE`, and all DDL
+- [x] `Views/ConfirmRunDialog.xaml` — names every modifying statement it found
+- [x] State the connected server and database prominently in that dialog
+- [x] Require a deliberate second click; never make running the default action
+- [x] `MainViewModel.RunActualAsync` — `CaptureMode.Actual`, reusing the Phase 4 pipeline
+- [x] Enable the runtime-only metrics (rows, elapsed, self time, efficiency, skew) after an actual run
+- [x] Cost bar switches to actual measurements and says so, replacing the estimated-cost caveat
 
 **Deliverable:** a guarded "Run for actual plan" action that produces runtime row counts, with a
 confirmation no one clicks through by accident.
