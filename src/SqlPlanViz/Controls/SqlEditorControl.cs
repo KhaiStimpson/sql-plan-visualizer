@@ -119,6 +119,7 @@ public sealed partial class SqlEditorControl : UserControl
         };
 
         AttachInput();
+        AttachCompletion();
         ActualThemeChanged += (_, _) => ApplyTheme();
         Loaded += (_, _) => ApplyTheme();
     }
@@ -151,6 +152,7 @@ public sealed partial class SqlEditorControl : UserControl
 
             _caret = _anchor = 0;
             _scrollX = _scrollY = 0;
+            DismissCompletion(CompletionDismissReason.DocumentReplaced);
             InvalidateLineCache();
             UpdateScrollRanges();
             Redraw();
@@ -172,6 +174,7 @@ public sealed partial class SqlEditorControl : UserControl
 
             _document.SetText(value ?? string.Empty);
             _caret = _anchor = 0;
+            DismissCompletion(CompletionDismissReason.DocumentReplaced);
             ScrollToCaret();
         }
     }

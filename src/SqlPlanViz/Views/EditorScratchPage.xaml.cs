@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SqlPlanViz.Editing;
+using SqlPlanViz.Editing.Completion;
 
 namespace SqlPlanViz.Views;
 
@@ -35,6 +36,13 @@ public sealed partial class EditorScratchPage : Page
     public EditorScratchPage()
     {
         InitializeComponent();
+
+        // Phase 2's deliverable is completion with no server: keywords always, plus whatever
+        // objects a loaded plan named. Nothing here connects to anything.
+        var engine = new CompletionEngine();
+        engine.Register(new KeywordProvider());
+        engine.Register(new PlanObjectProvider());
+        Editor.CompletionEngine = engine;
 
         Editor.Text = Sample;
         Editor.CaretMoved += (_, _) => UpdateStatus();

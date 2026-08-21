@@ -98,16 +98,16 @@ could not compile-check.
 Context comes from the AST, not from string matching: after `FROM` offer tables, after an alias and a
 dot offer that alias's columns, inside a `SELECT` list offer columns from tables already in scope.
 
-- [ ] `Editing/Completion/CompletionItem.cs` — label, insert text, kind, detail, sort rank
-- [ ] `Editing/Completion/ICompletionProvider.cs` — provider contract, each independently disableable
-- [ ] `Editing/Completion/CompletionContext.cs` — caret position → enclosing clause, aliases in scope
-- [ ] `Editing/Completion/CompletionEngine.cs` — fan out to providers, merge, rank, filter
-- [ ] `Editing/Completion/KeywordProvider.cs` — T-SQL keywords, built-in functions, clause snippets
-- [ ] `Editing/Completion/PlanObjectProvider.cs` — tables, indexes, columns harvested from the loaded plan
-- [ ] `Controls/CompletionPopup.cs` — native WinUI `Popup` + `ListView`, positioned from the caret rect
-- [ ] Keyboard model: `Ctrl+Space` invoke, arrows navigate, Tab/Enter accept, Esc dismiss
-- [ ] Type-ahead filtering as characters arrive, with prefix matches ranked above substring matches
-- [ ] Dismiss correctly on caret move, selection change, focus loss, and document reload
+- [x] `Editing/Completion/CompletionItem.cs` — label, insert text, kind, detail, sort rank
+- [x] `Editing/Completion/ICompletionProvider.cs` — provider contract, each independently disableable
+- [x] `Editing/Completion/CompletionContext.cs` — caret position → enclosing clause, aliases in scope
+- [x] `Editing/Completion/CompletionEngine.cs` — fan out to providers, merge, rank, filter
+- [x] `Editing/Completion/KeywordProvider.cs` — T-SQL keywords, built-in functions, clause snippets
+- [x] `Editing/Completion/PlanObjectProvider.cs` — tables, indexes, columns harvested from the loaded plan
+- [x] `Controls/CompletionPopup.cs` — native WinUI `Popup` + `ListView`, positioned from the caret rect
+- [x] Keyboard model: `Ctrl+Space` invoke, arrows navigate, Tab/Enter accept, Esc dismiss
+- [x] Type-ahead filtering as characters arrive, with prefix matches ranked above substring matches
+- [x] Dismiss correctly on caret move, selection change, focus loss, and document reload
 
 **Deliverable:** completions from keywords and from the loaded plan's own objects, working on a
 `.sqlplan` file opened with no server connection.

@@ -404,6 +404,7 @@ public sealed partial class SqlEditorControl
 
     public void SelectRange(int start, int length)
     {
+        DismissCompletion(CompletionDismissReason.CaretMoved);
         _anchor = Math.Clamp(start, 0, _document.Length);
         _caret = Math.Clamp(start + length, 0, _document.Length);
         _desiredColumn = -1;
