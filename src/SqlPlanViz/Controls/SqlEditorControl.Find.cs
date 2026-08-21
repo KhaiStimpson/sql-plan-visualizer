@@ -35,18 +35,49 @@ public sealed partial class SqlEditorControl
     private readonly Button _findNextButton = new() { Content = "▼", FontSize = 10, Padding = new Thickness(6, 4, 6, 4), MinWidth = 0 };
     private readonly Button _findCloseButton = new() { Content = "✕", FontSize = 10, Padding = new Thickness(6, 4, 6, 4), MinWidth = 0 };
 
+    private readonly TextBox _replaceBox = new()
+    {
+        Width = 160,
+        FontSize = 12,
+        PlaceholderText = "Replace",
+        IsSpellCheckEnabled = false,
+    };
+
+    private readonly Button _replaceOneButton = new() { Content = "Replace", FontSize = 11, Padding = new Thickness(8, 4, 8, 4), MinWidth = 0 };
+    private readonly Button _replaceAllButton = new() { Content = "All", FontSize = 11, Padding = new Thickness(8, 4, 8, 4), MinWidth = 0 };
+
+    private StackPanel _replaceRow = null!;
     private Border _findOverlay = null!;
     private IReadOnlyList<int> _findMatches = [];
     private int _findMatchIndex = -1;
 
+    /// <summary>
+    /// True while either box owns keyboard focus — guards the canvas's own key handlers (see
+    /// <c>SqlEditorControl.Input.cs</c>) from acting on the document's selection while the user
+    /// is typing a query or replacement instead.
+    /// </summary>
+    private bool FindOverlayHasFocus =>
+        _findBox.FocusState != FocusState.Unfocused || _replaceBox.FocusState != FocusState.Unfocused;
+
     private Border BuildFindOverlay()
     {
-        var toolbar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-        toolbar.Children.Add(_findBox);
-        toolbar.Children.Add(_findStatus);
-        toolbar.Children.Add(_findPreviousButton);
-        toolbar.Children.Add(_findNextButton);
-        toolbar.Children.Add(_findCloseButton);
+        var findRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
+        findRow.Children.Add(_findBox);
+        findRow.Children.Add(_findStatus);
+        findRow.Children.Add(_findPreviousButton);
+        findRow.Children.Add(_findNextButton);
+        findRow.Children.Add(_findCloseButton);
+
+        // Hidden for Ctrl+F, shown for Ctrl+H — same overlay, replace is just the find row's
+        // sibling rather than a second dialog.
+        _replaceRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Visibility = Visibility.Collapsed };
+        _replaceRow.Children.Add(_replaceBox);
+        _replaceRow.Children.Add(_replaceOneButton);
+        _replaceRow.Children.Add(_replaceAllButton);
+
+        var stack = new StackPanel { Orientation = Orientation.Vertical, Spacing = 4 };
+        stack.Children.Add(findRow);
+        stack.Children.Add(_replaceRow);
 
         _findOverlay = new Border
         {
@@ -59,7 +90,7 @@ public sealed partial class SqlEditorControl
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
             Visibility = Visibility.Collapsed,
-            Child = toolbar,
+            Child = stack,
         };
         _findOverlay.SetValue(Grid.ColumnProperty, 0);
         _findOverlay.SetValue(Grid.RowProperty, 0);
@@ -76,6 +107,10 @@ public sealed partial class SqlEditorControl
         _findNextButton.Click += (_, _) => StepFindMatch(1);
         _findCloseButton.Click += (_, _) => CloseFind();
 
+        _replaceBox.KeyDown += OnReplaceBoxKeyDown;
+        _replaceOneButton.Click += (_, _) => ReplaceCurrentMatch();
+        _replaceAllButton.Click += (_, _) => ReplaceAllMatches();
+
         return _findOverlay;
     }
 
@@ -91,13 +126,14 @@ public sealed partial class SqlEditorControl
     }
 
     /// <summary>Opens the overlay, seeded from the current selection when there is a short one.</summary>
-    private void OpenFind()
+    private void OpenFind(bool withReplace = false)
     {
         if (HasSelection && SelectionLength is > 0 and < 200)
         {
             _findBox.Text = SelectedText;
         }
 
+        _replaceRow.Visibility = withReplace && !IsReadOnly ? Visibility.Visible : Visibility.Collapsed;
         _findOverlay.Visibility = Visibility.Visible;
         _findBox.Focus(FocusState.Programmatic);
         _findBox.SelectAll();
@@ -127,6 +163,63 @@ public sealed partial class SqlEditorControl
                 e.Handled = true;
                 break;
         }
+    }
+
+    private void OnReplaceBoxKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case VirtualKey.Escape:
+                CloseFind();
+                e.Handled = true;
+                break;
+
+            case VirtualKey.Enter:
+                ReplaceCurrentMatch();
+                e.Handled = true;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Replaces the current match and re-runs the search, which keeps landing on the same
+    /// document position — the next match, since the one just replaced no longer matches.
+    /// One call to <see cref="ReplaceRange"/> is one undo step, so repeated replace-one presses
+    /// undo individually rather than as a single block.
+    /// </summary>
+    private void ReplaceCurrentMatch()
+    {
+        if (IsReadOnly || _findMatchIndex < 0 || _findMatchIndex >= _findMatches.Count)
+        {
+            return;
+        }
+
+        var query = _findBox.Text;
+        if (query.Length == 0)
+        {
+            return;
+        }
+
+        ReplaceRange(_findMatches[_findMatchIndex], query.Length, _replaceBox.Text);
+        RunFindSearch();
+    }
+
+    /// <summary>Replaces every match, back to front so an earlier offset never shifts under it.</summary>
+    private void ReplaceAllMatches()
+    {
+        if (IsReadOnly || _findMatches.Count == 0)
+        {
+            return;
+        }
+
+        var query = _findBox.Text;
+        var replacement = _replaceBox.Text;
+        for (var i = _findMatches.Count - 1; i >= 0; i--)
+        {
+            ReplaceRange(_findMatches[i], query.Length, replacement);
+        }
+
+        RunFindSearch();
     }
 
     private void RunFindSearch()

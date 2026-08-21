@@ -1,6 +1,6 @@
 # Editor and parameters UX — plan
 
-Status: not started · Branch: `claude/editor-and-parameters-ux` · Written: 2026-08-22
+Status: complete · Branch: `claude/editor-and-parameters-ux` · Written: 2026-08-22
 
 ## Goal
 
@@ -94,7 +94,7 @@ Ordered easiest-to-hardest; each later task can lean on the one before it.
       caret-move time and drawn in `OnDraw`.
 - [x] Add a `Ctrl+F` find overlay: a small UI over the canvas, a search-in-`SqlDocument` helper,
       and a highlight-all-matches drawing pass.
-- [ ] Extend the find overlay to a `Ctrl+H` replace mode, committing each replacement through the
+- [x] Extend the find overlay to a `Ctrl+H` replace mode, committing each replacement through the
       existing `ReplaceRange` path (`SqlEditorControl.Input.cs:553-563`) so it stays one undo step
       per replacement.
 

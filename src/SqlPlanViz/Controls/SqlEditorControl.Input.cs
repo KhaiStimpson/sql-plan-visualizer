@@ -262,7 +262,7 @@ public sealed partial class SqlEditorControl
     /// </summary>
     protected override void OnPreviewKeyDown(KeyRoutedEventArgs e)
     {
-        if (e.Key == VirtualKey.Tab && !IsReadOnly && _hasFocus)
+        if (e.Key == VirtualKey.Tab && !IsReadOnly && _hasFocus && !FindOverlayHasFocus)
         {
             if (HandleCompletionKey(e.Key))
             {
@@ -280,6 +280,15 @@ public sealed partial class SqlEditorControl
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e)
     {
+        // The find/replace boxes are plain TextBoxes with their own Escape/Enter handling;
+        // letting the canvas's shortcuts run here too would act on the *document*'s selection
+        // (which JumpToCurrentFindMatch points at the current match, not whatever the text box
+        // has selected) — Ctrl+/ or Tab while typing a query would silently edit the SQL.
+        if (FindOverlayHasFocus)
+        {
+            return;
+        }
+
         var ctrl = IsDown(VirtualKey.Control);
         var shift = IsDown(VirtualKey.Shift);
 
@@ -384,6 +393,10 @@ public sealed partial class SqlEditorControl
 
             case VirtualKey.F when ctrl:
                 OpenFind();
+                break;
+
+            case VirtualKey.H when ctrl:
+                OpenFind(withReplace: true);
                 break;
 
             // VirtualKey has no named constant for OEM_2 ('/' on a US layout) — 191 is its
