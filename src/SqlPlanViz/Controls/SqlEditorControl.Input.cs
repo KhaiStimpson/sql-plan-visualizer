@@ -382,6 +382,13 @@ public sealed partial class SqlEditorControl
                 RequestCompletion(explicitInvoke: true);
                 break;
 
+            // VirtualKey has no named constant for OEM_2 ('/' on a US layout) — 191 is its
+            // virtual-key code, and Divide covers the numpad key some layouts route Ctrl+/ through.
+            case (VirtualKey)191 when ctrl:
+            case VirtualKey.Divide when ctrl:
+                ToggleLineComment();
+                break;
+
             default:
                 return;
         }
@@ -736,6 +743,69 @@ public sealed partial class SqlEditorControl
             else if (text.Length > 0 || line == firstLine)
             {
                 _document.Insert(lineStart, new string(' ', IndentWidth));
+            }
+        }
+
+        _document.EndUndoGroup();
+        SelectRange(_document.GetLineStart(firstLine), _document.GetLineEnd(lastLine) - _document.GetLineStart(firstLine));
+    }
+
+    /// <summary>
+    /// Ctrl+/, shaped like <see cref="IndentSelection"/>: line-by-line over the selection, one
+    /// undo group. Comments if any selected line isn't already commented; uncomments only when
+    /// every non-blank line already is, so a mixed selection comments first rather than doing
+    /// nothing useful.
+    /// </summary>
+    private void ToggleLineComment()
+    {
+        if (IsReadOnly)
+        {
+            return;
+        }
+
+        var start = SelectionStart;
+        var end = start + SelectionLength;
+        var firstLine = _document.LineOf(start);
+        var lastLine = _document.LineOf(Math.Max(start, end - 1));
+
+        var allCommented = true;
+        for (var line = firstLine; line <= lastLine; line++)
+        {
+            var trimmed = _document.GetLineText(line).TrimStart();
+            if (trimmed.Length == 0)
+            {
+                continue;
+            }
+
+            if (!trimmed.StartsWith("--", StringComparison.Ordinal))
+            {
+                allCommented = false;
+                break;
+            }
+        }
+
+        _document.EndUndoGroup();
+        for (var line = lastLine; line >= firstLine; line--)
+        {
+            var lineStart = _document.GetLineStart(line);
+            var text = _document.GetLineText(line);
+
+            if (allCommented)
+            {
+                var indentLength = text.Length - text.TrimStart().Length;
+                var afterIndent = text[indentLength..];
+                if (afterIndent.StartsWith("-- ", StringComparison.Ordinal))
+                {
+                    _document.Replace(lineStart + indentLength, 3, string.Empty);
+                }
+                else if (afterIndent.StartsWith("--", StringComparison.Ordinal))
+                {
+                    _document.Replace(lineStart + indentLength, 2, string.Empty);
+                }
+            }
+            else if (text.Length > 0 || line == firstLine)
+            {
+                _document.Insert(lineStart, "-- ");
             }
         }
 

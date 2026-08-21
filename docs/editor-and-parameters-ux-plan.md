@@ -86,7 +86,7 @@ nothing signals it's there.
 
 Ordered easiest-to-hardest; each later task can lean on the one before it.
 
-- [ ] Add a `Ctrl+/` line-comment toggle, shaped like `IndentSelection`
+- [x] Add a `Ctrl+/` line-comment toggle, shaped like `IndentSelection`
       (`SqlEditorControl.Input.cs:693-712`): operate line-by-line over the selection, prefix/strip
       `-- `, one undo group.
 - [ ] Add bracket/paren match highlighting, driven by the existing `TSqlTokenizer` token stream
