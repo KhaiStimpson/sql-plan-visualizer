@@ -1,0 +1,90 @@
+<UserControl
+    x:Class="SqlPlanViz.Views.ConfirmRunDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <!--
+        docs/live-plan-editor-plan.md Phase 7. The mistake this exists to prevent is running a
+        dev query against production, so the server and database are the largest thing on it
+        and the modifying statements are named individually rather than warned about in the
+        abstract. Running is never the default action.
+    -->
+    <StackPanel MinWidth="440" Spacing="14">
+        <Border
+            Padding="12,10"
+            Background="{ThemeResource LayerFillColorAltBrush}"
+            CornerRadius="6">
+            <StackPanel Spacing="2">
+                <TextBlock
+                    FontSize="11"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Text="This will execute against" />
+                <TextBlock
+                    x:Name="TargetText"
+                    FontSize="17"
+                    FontWeight="SemiBold"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="AuthText"
+                    FontSize="11"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <FontIcon
+                x:Name="RiskGlyph"
+                VerticalAlignment="Top"
+                FontFamily="Segoe Fluent Icons"
+                FontSize="18"
+                Glyph="&#xE7BA;" />
+            <TextBlock
+                x:Name="HeadlineText"
+                VerticalAlignment="Center"
+                FontSize="13"
+                FontWeight="SemiBold"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border
+            x:Name="StatementsCard"
+            MaxHeight="180"
+            Padding="12,8"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="6">
+            <ScrollViewer>
+                <ItemsControl x:Name="StatementsHost">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock
+                                Margin="0,1"
+                                FontFamily="Cascadia Mono, Consolas"
+                                FontSize="12"
+                                Text="{Binding}"
+                                TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <TextBlock
+            FontSize="11"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            TextWrapping="Wrap"
+            Text="An estimated plan needs none of this — Ctrl+Enter compiles without executing. Run this only when you need measured row counts and timings." />
+
+        <CheckBox
+            x:Name="ConfirmCheck"
+            Checked="OnConfirmChanged"
+            Unchecked="OnConfirmChanged">
+            <TextBlock
+                x:Name="ConfirmText"
+                TextWrapping="Wrap" />
+        </CheckBox>
+    </StackPanel>
+</UserControl>

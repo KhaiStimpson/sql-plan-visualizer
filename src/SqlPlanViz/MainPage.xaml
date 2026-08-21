@@ -10,6 +10,7 @@
     xmlns:diag="using:SqlPlanViz.Diagnostics"
     xmlns:model="using:SqlPlanViz.Model"
     xmlns:vm="using:SqlPlanViz.ViewModels"
+    xmlns:views="using:SqlPlanViz.Views"
     mc:Ignorable="d">
 
     <Grid AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop">
@@ -260,6 +261,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition x:Name="EditorPaneRow" Height="240" />
                 </Grid.RowDefinitions>
                 <controls:PlanCanvas
                     x:Name="Canvas"
@@ -506,9 +508,19 @@
                     </StackPanel>
                 </Grid>
 
-                <!--  SQL pane: syntax-highlighted, resizable, and scrolled to the mapped clause  -->
-                <Border
+                <!--
+                    The editor pane (docs/live-plan-editor-plan.md). The read-only SQL strip
+                    it replaces could only ever show you the SQL; this can change it, compile
+                    it, and say whether the change helped.
+                -->
+                <controls:PaneSplitter
+                    x:Name="EditorSplitter"
                     Grid.Row="1"
+                    Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                <Border
+                    x:Name="EditorPane"
+                    Grid.Row="2"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                     BorderThickness="0,1,0,0"
@@ -517,51 +529,118 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <controls:PaneResizer
-                            x:Name="SqlResizer"
-                            Height="9"
-                            Background="Transparent"
-                            ToolTipService.ToolTip="Drag to resize the SQL pane">
-                            <Border
-                                Width="34"
-                                Height="3"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Background="{ThemeResource DividerStrokeColorDefaultBrush}"
-                                CornerRadius="2" />
-                        </controls:PaneResizer>
+                        <!--
+                            The cost delta bar. First of the four Phase 5 surfaces because it
+                            needs no text mapping at all — just PlanDiff against the pinned
+                            baseline — so it is the one signal that is never a guess.
+                        -->
+                        <Border
+                            x:Name="CostBar"
+                            Padding="12,7"
+                            Background="{ThemeResource LayerFillColorAltBrush}">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon
+                                    x:Name="CostBarGlyph"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe Fluent Icons"
+                                    FontSize="15"
+                                    Glyph="&#xE9CE;" />
+                                <StackPanel Grid.Column="1" Spacing="1">
+                                    <TextBlock
+                                        x:Name="CostBarHeadline"
+                                        FontSize="12.5"
+                                        FontWeight="SemiBold"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        x:Name="CostBarDetail"
+                                        FontSize="11"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="4">
+                                    <Button
+                                        x:Name="PinBaselineButton"
+                                        Padding="8,2"
+                                        Click="OnPinBaseline"
+                                        Content="Pin current as baseline"
+                                        FontSize="11"
+                                        ToolTipService.ToolTip="Re-anchor the comparison to the plan on screen, once an improvement is banked" />
+                                    <Button
+                                        x:Name="RefreshCatalogButton"
+                                        Padding="8,2"
+                                        Click="OnRefreshCatalog"
+                                        Content="Refresh schema"
+                                        FontSize="11"
+                                        ToolTipService.ToolTip="Re-read tables, columns and indexes from the connected database" />
+                                    <ToggleButton
+                                        x:Name="AnnotationsToggle"
+                                        Padding="8,2"
+                                        Click="OnToggleInlineAnnotations"
+                                        Content="Annotations"
+                                        FontSize="11"
+                                        IsChecked="True"
+                                        ToolTipService.ToolTip="Show end-of-line delta annotations in the editor" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
+                        <!--  Editor toolbar  -->
                         <Grid
                             Grid.Row="1"
-                            Margin="12,0,8,4"
+                            Padding="10,5"
                             ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
+
                             <TextBlock
                                 x:Name="SqlMappingLabel"
                                 VerticalAlignment="Center"
                                 FontSize="11"
                                 FontWeight="SemiBold"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="SQL · select an operator to highlight its likely clause"
-                                TextTrimming="CharacterEllipsis" />
-                            <StackPanel
+                                Text="SQL · select an operator to highlight its likely clause" />
+
+                            <TextBlock
+                                x:Name="EditorStatusText"
                                 Grid.Column="1"
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                TextTrimming="CharacterEllipsis" />
+
+                            <StackPanel
+                                Grid.Column="2"
                                 Orientation="Horizontal"
                                 Spacing="4">
-                                <ToggleButton
-                                    x:Name="SqlFormatToggle"
+                                <ProgressRing
+                                    x:Name="EditorBusyRing"
+                                    Width="16"
+                                    Height="16"
+                                    VerticalAlignment="Center"
+                                    IsActive="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay}"
+                                    Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                <Button
+                                    x:Name="SqlFormatButton"
                                     Padding="10,2"
-                                    Click="OnToggleSqlFormat"
+                                    Click="OnFormatSql"
                                     Content="Format"
                                     FontSize="11"
-                                    IsChecked="True"
-                                    ToolTipService.ToolTip="Re-lay out the statement, one clause per line" />
+                                    ToolTipService.ToolTip="Re-lay out the batch, one clause per line (Shift+Alt+F)" />
                                 <Button
                                     Padding="10,4"
                                     Click="OnCopySql"
@@ -572,23 +651,40 @@
                                         Glyph="&#xE8C8;" />
                                 </Button>
                                 <Button
-                                    x:Name="SqlExpandButton"
-                                    Padding="10,4"
-                                    Click="OnToggleSqlHeight"
-                                    ToolTipService.ToolTip="Expand the SQL pane">
-                                    <FontIcon
-                                        x:Name="SqlExpandIcon"
-                                        FontFamily="Segoe Fluent Icons"
-                                        FontSize="12"
-                                        Glyph="&#xE70E;" />
+                                    x:Name="CancelReplanButton"
+                                    Padding="8,2"
+                                    Click="OnCancelReplan"
+                                    Content="Cancel"
+                                    FontSize="11"
+                                    Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                <Button
+                                    x:Name="RunActualButton"
+                                    Padding="8,2"
+                                    Click="OnRunActual"
+                                    Content="Run for actual…"
+                                    FontSize="11"
+                                    ToolTipService.ToolTip="Execute the batch and capture measured row counts and timings — asks for confirmation first" />
+                                <Button
+                                    x:Name="ReplanButton"
+                                    Padding="10,2"
+                                    Click="OnReplan"
+                                    FontSize="11"
+                                    Style="{ThemeResource AccentButtonStyle}"
+                                    ToolTipService.ToolTip="Compile the edited batch and swap in its plan (Ctrl+Enter)">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon
+                                            FontFamily="Segoe Fluent Icons"
+                                            FontSize="12"
+                                            Glyph="&#xE768;" />
+                                        <TextBlock Text="Re-plan" />
+                                    </StackPanel>
                                 </Button>
                             </StackPanel>
                         </Grid>
 
-                        <controls:SqlCodeView
-                            x:Name="SqlView"
-                            Grid.Row="2"
-                            Height="180" />
+                        <controls:SqlEditorControl x:Name="SqlEditor" Grid.Row="2" />
+
+                        <views:ParameterStrip x:Name="Parameters" Grid.Row="3" />
                     </Grid>
                 </Border>
             </Grid>

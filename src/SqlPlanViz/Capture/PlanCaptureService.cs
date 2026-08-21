@@ -5,12 +5,32 @@ using SqlPlanViz.Parsing;
 
 namespace SqlPlanViz.Capture;
 
+/// <summary>
+/// One error SQL Server reported, with the position it reported it at. The line is one-based
+/// and counted within the batch that was sent — which is the composed batch, not the editor's
+/// text, so it has to go through <see cref="Editing.ComposedBatch.ToEditorLine"/> before it
+/// means anything to the user.
+/// </summary>
+public sealed record SqlErrorDetail(int Number, int LineNumber, string Message, string? Procedure = null);
+
 public sealed class PlanCaptureException : Exception
 {
     public PlanCaptureException(string message, Exception? inner = null)
         : base(message, inner)
     {
     }
+
+    public PlanCaptureException(string message, IReadOnlyList<SqlErrorDetail> errors, Exception? inner = null)
+        : base(message, inner) => Errors = errors;
+
+    /// <summary>
+    /// The individual errors, in the order SQL Server reported them. Empty for a failure that
+    /// was not a SQL error — a connection that would not open, say.
+    /// </summary>
+    public IReadOnlyList<SqlErrorDetail> Errors { get; } = [];
+
+    /// <summary>The first error carrying a usable line number, which is the one worth pointing at.</summary>
+    public SqlErrorDetail? FirstPositioned => Errors.FirstOrDefault(e => e.LineNumber > 0);
 }
 
 /// <summary>
@@ -97,7 +117,7 @@ public sealed class PlanCaptureService
         }
         catch (SqlException ex)
         {
-            throw new PlanCaptureException(DescribeSqlError(ex), ex);
+            throw new PlanCaptureException(DescribeSqlError(ex), Describe(ex), ex);
         }
         catch (InvalidOperationException ex)
         {
@@ -147,7 +167,7 @@ public sealed class PlanCaptureService
         }
         catch (SqlException ex)
         {
-            throw new PlanCaptureException(DescribeSqlError(ex), ex);
+            throw new PlanCaptureException(DescribeSqlError(ex), Describe(ex), ex);
         }
         catch (InvalidOperationException ex)
         {
@@ -204,6 +224,25 @@ public sealed class PlanCaptureService
         }
 
         return builder.ConnectionString;
+    }
+
+    /// <summary>
+    /// Unpacks SqlException.Errors into positions the editor can point at. Flattening these
+    /// into one message string is what the plan calls out as losing the line number.
+    /// </summary>
+    private static IReadOnlyList<SqlErrorDetail> Describe(SqlException ex)
+    {
+        var errors = new List<SqlErrorDetail>(ex.Errors.Count);
+        foreach (SqlError error in ex.Errors)
+        {
+            errors.Add(new SqlErrorDetail(
+                error.Number,
+                error.LineNumber,
+                error.Message?.Trim() ?? string.Empty,
+                string.IsNullOrEmpty(error.Procedure) ? null : error.Procedure));
+        }
+
+        return errors;
     }
 
     private static string DescribeSqlError(SqlException ex)

@@ -33,6 +33,9 @@
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.3.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <!-- The parser SSMS and SqlPackage use. Powers editor highlighting, completion context,
+         parameter discovery and the batch safety analyzer (docs/live-plan-editor-plan.md). -->
+    <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.78.1" />
   </ItemGroup>
 
 </Project>
