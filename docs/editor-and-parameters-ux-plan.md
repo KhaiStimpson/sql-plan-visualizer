@@ -39,7 +39,7 @@ already classifies every scalar parameter as Text/Numeric/DateTime/Guid/Bit/Bina
 column in `ParameterStrip.xaml:100-108` just never reads it. This phase wires it up, one kind at a
 time so each step stays reviewable.
 
-- [ ] Add a `DataTemplateSelector` keyed off `EditorKind` and wire it onto the `ItemsControl` at
+- [x] Add a `DataTemplateSelector` keyed off `EditorKind` and wire it onto the `ItemsControl` at
       `ParameterStrip.xaml:67-131` in place of the single flat `DataTemplate`. Move the existing
       `TextBox` markup into the selector's default template (covers Text, Guid, Binary) so this
       step is a refactor with no behavior change.

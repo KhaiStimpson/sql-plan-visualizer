@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:SqlPlanViz.ViewModels"
+    xmlns:local="using:SqlPlanViz.Views"
     mc:Ignorable="d">
 
     <!--
@@ -69,65 +70,69 @@
             Grid.Row="1"
             Padding="10,0,10,8"
             >
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:ParameterBindingItem">
-                    <Grid Margin="0,0,0,6" ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150" />
-                            <ColumnDefinition Width="130" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+            <ItemsControl.ItemTemplateSelector>
+                <local:ParameterEditorTemplateSelector>
+                    <local:ParameterEditorTemplateSelector.DefaultTemplate>
+                        <DataTemplate x:DataType="vm:ParameterBindingItem">
+                            <Grid Margin="0,0,0,6" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontFamily="Cascadia Mono, Consolas"
-                            FontSize="12"
-                            Text="{x:Bind Name}"
-                            ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    Text="{x:Bind Name}"
+                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
-                        <TextBox
-                            Grid.Column="1"
-                            FontSize="12"
-                            IsSpellCheckEnabled="False"
-                            PlaceholderText="type"
-                            Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox
+                                    Grid.Column="1"
+                                    FontSize="12"
+                                    IsSpellCheckEnabled="False"
+                                    PlaceholderText="type"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBox
-                            Grid.Column="2"
-                            FontFamily="Cascadia Mono, Consolas"
-                            FontSize="12"
-                            IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
-                            IsSpellCheckEnabled="False"
-                            PlaceholderText="value"
-                            Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
+                                <TextBox
+                                    Grid.Column="2"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                    IsSpellCheckEnabled="False"
+                                    PlaceholderText="value"
+                                    Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
 
-                        <CheckBox
-                            Grid.Column="3"
-                            MinWidth="0"
-                            Content="NULL"
-                            FontSize="11"
-                            IsChecked="{x:Bind IsNull, Mode=TwoWay}"
-                            Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
+                                <CheckBox
+                                    Grid.Column="3"
+                                    MinWidth="0"
+                                    Content="NULL"
+                                    FontSize="11"
+                                    IsChecked="{x:Bind IsNull, Mode=TwoWay}"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
 
-                        <TextBlock
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            Grid.ColumnSpan="3"
-                            Margin="2,2,0,0"
-                            FontSize="11"
-                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                            Text="{x:Bind ValidationMessage, Mode=OneWay}"
-                            TextWrapping="Wrap"
-                            Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="3"
+                                    Margin="2,2,0,0"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ParameterEditorTemplateSelector.DefaultTemplate>
+                </local:ParameterEditorTemplateSelector>
+            </ItemsControl.ItemTemplateSelector>
         </ItemsControl>
 
         <!--
