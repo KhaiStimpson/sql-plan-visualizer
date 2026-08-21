@@ -118,6 +118,36 @@ public sealed class SqlDocument
         return _buffer.ToString(offset, length);
     }
 
+    /// <summary>
+    /// Every non-overlapping occurrence of <paramref name="query"/>, left to right (the find
+    /// overlay's own helper — SqlPlanViz.Controls.SqlEditorControl.Find.cs draws the results).
+    /// </summary>
+    public IReadOnlyList<int> FindAll(string query, bool matchCase = false)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            return [];
+        }
+
+        var text = Text;
+        var comparison = matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        var results = new List<int>();
+        var from = 0;
+        while (from <= text.Length - query.Length)
+        {
+            var index = text.IndexOf(query, from, comparison);
+            if (index < 0)
+            {
+                break;
+            }
+
+            results.Add(index);
+            from = index + query.Length;
+        }
+
+        return results;
+    }
+
     /// <summary>Zero-based line index containing <paramref name="offset"/>.</summary>
     public int LineOf(int offset)
     {

@@ -112,6 +112,7 @@ public sealed partial class SqlEditorControl : UserControl
         grid.Children.Add(_canvas);
         grid.Children.Add(_verticalScroll);
         grid.Children.Add(_horizontalScroll);
+        grid.Children.Add(BuildFindOverlay());
         Content = grid;
 
         IsTabStop = true;
@@ -527,6 +528,8 @@ public sealed partial class SqlEditorControl : UserControl
                 var x1 = ColumnX(to + trailingNewline);
                 ds.FillRectangle(x0, y, Math.Max(2f, x1 - x0), _lineHeight, _theme.SelectionFill);
             }
+
+            DrawFindMatchesForLine(ds, lineStart, lineEnd, y);
 
             var layout = GetLineLayout(sender, line);
             ds.DrawTextLayout(layout, ColumnX(0), y, _theme.Foreground);

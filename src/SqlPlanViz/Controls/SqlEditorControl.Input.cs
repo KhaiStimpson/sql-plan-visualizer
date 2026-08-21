@@ -382,6 +382,10 @@ public sealed partial class SqlEditorControl
                 RequestCompletion(explicitInvoke: true);
                 break;
 
+            case VirtualKey.F when ctrl:
+                OpenFind();
+                break;
+
             // VirtualKey has no named constant for OEM_2 ('/' on a US layout) — 191 is its
             // virtual-key code, and Divide covers the numpad key some layouts route Ctrl+/ through.
             case (VirtualKey)191 when ctrl:

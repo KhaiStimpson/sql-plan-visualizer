@@ -92,7 +92,7 @@ Ordered easiest-to-hardest; each later task can lean on the one before it.
 - [x] Add bracket/paren match highlighting, driven by the existing `TSqlTokenizer` token stream
       that already powers syntax coloring — no new parsing, just a highlight rule evaluated at
       caret-move time and drawn in `OnDraw`.
-- [ ] Add a `Ctrl+F` find overlay: a small UI over the canvas, a search-in-`SqlDocument` helper,
+- [x] Add a `Ctrl+F` find overlay: a small UI over the canvas, a search-in-`SqlDocument` helper,
       and a highlight-all-matches drawing pass.
 - [ ] Extend the find overlay to a `Ctrl+H` replace mode, committing each replacement through the
       existing `ReplaceRange` path (`SqlEditorControl.Input.cs:553-563`) so it stays one undo step

@@ -28,6 +28,12 @@ public sealed class SqlSyntaxTheme
     /// <summary>Fill behind a bracket and its match, when the caret sits next to either.</summary>
     public required Color BracketMatchFill { get; init; }
 
+    /// <summary>Fill behind every find-overlay match except the current one.</summary>
+    public required Color FindMatchFill { get; init; }
+
+    /// <summary>Fill behind the find overlay's current match — stronger than the others.</summary>
+    public required Color FindMatchActiveFill { get; init; }
+
     public required Color GutterBackground { get; init; }
 
     public required Color LineNumber { get; init; }
@@ -97,6 +103,8 @@ public sealed class SqlSyntaxTheme
             SelectionFill = Argb(0x55, 0x3C, 0x6E, 0xA8),
             CurrentLineFill = Argb(0x30, 0x3A, 0x3F, 0x4A),
             BracketMatchFill = Argb(0x70, 0x6C, 0xB6, 0xFF),
+            FindMatchFill = Argb(0x50, 0xFF, 0xC1, 0x4E),
+            FindMatchActiveFill = Argb(0x90, 0xFF, 0xA0, 0x00),
             GutterBackground = Rgb(0x17, 0x18, 0x1B),
             LineNumber = Rgb(0x5F, 0x67, 0x72),
             LineNumberActive = Rgb(0xB6, 0xBE, 0xC9),
@@ -127,6 +135,8 @@ public sealed class SqlSyntaxTheme
             SelectionFill = Argb(0x44, 0x3C, 0x84, 0xD8),
             CurrentLineFill = Argb(0x22, 0xC4, 0xCC, 0xD6),
             BracketMatchFill = Argb(0x55, 0x00, 0x55, 0xB8),
+            FindMatchFill = Argb(0x60, 0xFF, 0xD5, 0x4A),
+            FindMatchActiveFill = Argb(0x90, 0xFF, 0xA0, 0x00),
             GutterBackground = Rgb(0xF4, 0xF6, 0xF8),
             LineNumber = Rgb(0x9A, 0xA4, 0xB2),
             LineNumberActive = Rgb(0x4A, 0x53, 0x60),
