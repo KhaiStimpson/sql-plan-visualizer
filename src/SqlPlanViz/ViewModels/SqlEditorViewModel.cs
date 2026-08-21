@@ -117,6 +117,7 @@ public sealed partial class SqlEditorViewModel : ObservableObject
         ScalarParameters.Clear();
         foreach (var parameter in Parameters.Where(p => p.IsScalar))
         {
+            parameter.RowIndex = ScalarParameters.Count;
             ScalarParameters.Add(parameter);
         }
 

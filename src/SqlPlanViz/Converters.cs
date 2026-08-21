@@ -71,6 +71,25 @@ public sealed partial class StringToBoolConverter : IValueConverter
         value is true ? "1" : "0";
 }
 
+/// <summary>Tints odd-numbered parameter rows so a long strip reads by row rather than by eye-strain.</summary>
+public sealed partial class RowIndexToAlternateBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is not int index || index % 2 == 0)
+        {
+            return new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        }
+
+        return Application.Current.Resources.TryGetValue("LayerFillColorAltBrush", out var brush)
+            ? brush
+            : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}
+
 /// <summary>Colours a warning's icon by severity, using the Fluent system palette.</summary>
 public sealed partial class SeverityToBrushConverter : IValueConverter
 {

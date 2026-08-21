@@ -32,7 +32,12 @@ public sealed partial class PaneSplitter : Control
         UseSystemFocusVisuals = true;
         Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
-        PointerEntered += (_, _) => ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeNorthSouth);
+        PointerEntered += (_, _) =>
+        {
+            ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeNorthSouth);
+            VisualStateManager.GoToState(this, "PointerOver", true);
+        };
+        PointerExited += (_, _) => VisualStateManager.GoToState(this, _dragging ? "Pressed" : "Normal", true);
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
@@ -75,6 +80,7 @@ public sealed partial class PaneSplitter : Control
         _dragStartHeight = TargetRow.ActualHeight;
         CapturePointer(e.Pointer);
         Focus(FocusState.Pointer);
+        VisualStateManager.GoToState(this, "Pressed", true);
         e.Handled = true;
     }
 
@@ -100,6 +106,7 @@ public sealed partial class PaneSplitter : Control
 
         _dragging = false;
         ReleasePointerCapture(e.Pointer);
+        VisualStateManager.GoToState(this, "PointerOver", true);
         e.Handled = true;
     }
 

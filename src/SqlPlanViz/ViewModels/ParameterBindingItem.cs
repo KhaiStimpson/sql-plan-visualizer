@@ -63,6 +63,10 @@ public sealed partial class ParameterBindingItem : ObservableObject
     [ObservableProperty]
     private string? _validationMessage;
 
+    /// <summary>Position within the parameter strip's scalar rows — drives the alternating row tint.</summary>
+    [ObservableProperty]
+    private int _rowIndex;
+
     public ParameterBindingItem(RequiredParameter parameter)
     {
         Name = parameter.Name;

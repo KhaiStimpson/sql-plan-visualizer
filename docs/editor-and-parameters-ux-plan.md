@@ -65,10 +65,10 @@ validation error `Validate()` (`ParameterBindingItem.cs:214-228`) only catches a
 
 ## Phase 3 — Parameter row spacing and rhythm
 
-- [ ] Loosen `ParameterStrip.xaml:74-84`'s row: replace the flat `Margin="0,0,0,6"` with real
+- [x] Loosen `ParameterStrip.xaml:74-84`'s row: replace the flat `Margin="0,0,0,6"` with real
       `RowSpacing`/padding, align the NULL `CheckBox` to the value column instead of a bare Auto
       column, and give rows alternating tint (matches the mock-up's legend item on row rhythm).
-- [ ] Add narrow-width responsive stacking (name+type above value) via a `VisualStateManager`
+- [x] Add narrow-width responsive stacking (name+type above value) via a `VisualStateManager`
       `AdaptiveTrigger` on the row template, so the strip doesn't squeeze three columns into one
       row at every width.
 
@@ -78,7 +78,7 @@ validation error `Validate()` (`ParameterBindingItem.cs:214-228`) only catches a
 `Up`/`Down` keys — it just renders as a fully transparent 6px bar (`PaneSplitter.cs:29-33`), so
 nothing signals it's there.
 
-- [ ] Give `PaneSplitter` a visible rest-state background (a thin centered grip, not the full
+- [x] Give `PaneSplitter` a visible rest-state background (a thin centered grip, not the full
       bar) plus a distinct hover/drag brush, without touching any of its existing drag or keyboard
       logic.
 

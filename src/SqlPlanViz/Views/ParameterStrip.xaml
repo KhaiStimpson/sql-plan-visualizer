@@ -70,209 +70,50 @@
             Grid.Row="1"
             Padding="10,0,10,8"
             >
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="4" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplateSelector>
                 <local:ParameterEditorTemplateSelector>
                     <local:ParameterEditorTemplateSelector.DefaultTemplate>
                         <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid Margin="0,0,0,6" ColumnSpacing="8">
+                            <Grid
+                                Padding="8,6"
+                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
+                                ColumnSpacing="8"
+                                RowSpacing="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="150" />
                                     <ColumnDefinition Width="130" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    FontFamily="Cascadia Mono, Consolas"
-                                    FontSize="12"
-                                    Text="{x:Bind Name}"
-                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
-
-                                <AutoSuggestBox
-                                    Grid.Column="1"
-                                    FontSize="12"
-                                    GotFocus="OnDataTypeGotFocus"
-                                    PlaceholderText="type"
-                                    SuggestionChosen="OnDataTypeSuggestionChosen"
-                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    TextChanged="OnDataTypeTextChanged" />
-
-                                <TextBox
-                                    Grid.Column="2"
-                                    FontFamily="Cascadia Mono, Consolas"
-                                    FontSize="12"
-                                    IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
-                                    IsSpellCheckEnabled="False"
-                                    PlaceholderText="value"
-                                    Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
-
-                                <CheckBox
-                                    Grid.Column="3"
-                                    MinWidth="0"
-                                    Content="NULL"
-                                    FontSize="11"
-                                    IsChecked="{x:Bind IsNull, Mode=TwoWay}"
-                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
-
-                                <TextBlock
-                                    Grid.Row="1"
-                                    Grid.Column="1"
-                                    Grid.ColumnSpan="3"
-                                    Margin="2,2,0,0"
-                                    FontSize="11"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
-                                    TextWrapping="Wrap"
-                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
-                            </Grid>
-                        </DataTemplate>
-                    </local:ParameterEditorTemplateSelector.DefaultTemplate>
-
-                    <local:ParameterEditorTemplateSelector.NumericTemplate>
-                        <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid Margin="0,0,0,6" ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    FontFamily="Cascadia Mono, Consolas"
-                                    FontSize="12"
-                                    Text="{x:Bind Name}"
-                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
-
-                                <AutoSuggestBox
-                                    Grid.Column="1"
-                                    FontSize="12"
-                                    GotFocus="OnDataTypeGotFocus"
-                                    PlaceholderText="type"
-                                    SuggestionChosen="OnDataTypeSuggestionChosen"
-                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    TextChanged="OnDataTypeTextChanged" />
-
-                                <NumberBox
-                                    Grid.Column="2"
-                                    FontFamily="Cascadia Mono, Consolas"
-                                    FontSize="12"
-                                    IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
-                                    PlaceholderText="value"
-                                    SpinButtonPlacementMode="Compact"
-                                    Value="{x:Bind Value, Mode=TwoWay, Converter={StaticResource StringToDouble}}"
-                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
-
-                                <CheckBox
-                                    Grid.Column="3"
-                                    MinWidth="0"
-                                    Content="NULL"
-                                    FontSize="11"
-                                    IsChecked="{x:Bind IsNull, Mode=TwoWay}"
-                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
-
-                                <TextBlock
-                                    Grid.Row="1"
-                                    Grid.Column="1"
-                                    Grid.ColumnSpan="3"
-                                    Margin="2,2,0,0"
-                                    FontSize="11"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
-                                    TextWrapping="Wrap"
-                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
-                            </Grid>
-                        </DataTemplate>
-                    </local:ParameterEditorTemplateSelector.NumericTemplate>
-
-                    <local:ParameterEditorTemplateSelector.BitTemplate>
-                        <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid Margin="0,0,0,6" ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    FontFamily="Cascadia Mono, Consolas"
-                                    FontSize="12"
-                                    Text="{x:Bind Name}"
-                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
-
-                                <AutoSuggestBox
-                                    Grid.Column="1"
-                                    FontSize="12"
-                                    GotFocus="OnDataTypeGotFocus"
-                                    PlaceholderText="type"
-                                    SuggestionChosen="OnDataTypeSuggestionChosen"
-                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    TextChanged="OnDataTypeTextChanged" />
-
-                                <ToggleSwitch
-                                    Grid.Column="2"
-                                    MinWidth="0"
-                                    Padding="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
-                                    IsOn="{x:Bind Value, Mode=TwoWay, Converter={StaticResource StringToBool}}"
-                                    OffContent=""
-                                    OnContent=""
-                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
-
-                                <CheckBox
-                                    Grid.Column="3"
-                                    MinWidth="0"
-                                    Content="NULL"
-                                    FontSize="11"
-                                    IsChecked="{x:Bind IsNull, Mode=TwoWay}"
-                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
-
-                                <TextBlock
-                                    Grid.Row="1"
-                                    Grid.Column="1"
-                                    Grid.ColumnSpan="3"
-                                    Margin="2,2,0,0"
-                                    FontSize="11"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
-                                    TextWrapping="Wrap"
-                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
-                            </Grid>
-                        </DataTemplate>
-                    </local:ParameterEditorTemplateSelector.BitTemplate>
-
-                    <local:ParameterEditorTemplateSelector.DateTimeTemplate>
-                        <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid Margin="0,0,0,6" ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="130" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup>
+                                        <VisualState x:Name="NarrowRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="0" />
+                                            </VisualState.StateTriggers>
+                                            <VisualState.Setters>
+                                                <Setter Target="ValueGroup.(Grid.Row)" Value="1" />
+                                                <Setter Target="ValueGroup.(Grid.Column)" Value="0" />
+                                                <Setter Target="ValueGroup.(Grid.ColumnSpan)" Value="3" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="WideRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="480" />
+                                            </VisualState.StateTriggers>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
 
                                 <TextBlock
                                     VerticalAlignment="Center"
@@ -291,12 +132,302 @@
                                     TextChanged="OnDataTypeTextChanged" />
 
                                 <Grid
+                                    x:Name="ValueGroup"
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    ColumnSpacing="8"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBox
+                                        FontFamily="Cascadia Mono, Consolas"
+                                        FontSize="12"
+                                        IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                        IsSpellCheckEnabled="False"
+                                        PlaceholderText="value"
+                                        Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <CheckBox
+                                        Grid.Column="1"
+                                        MinWidth="0"
+                                        Content="NULL"
+                                        FontSize="11"
+                                        IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
+                                </Grid>
+
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="2"
+                                    Margin="2,2,0,0"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ParameterEditorTemplateSelector.DefaultTemplate>
+
+                    <local:ParameterEditorTemplateSelector.NumericTemplate>
+                        <DataTemplate x:DataType="vm:ParameterBindingItem">
+                            <Grid
+                                Padding="8,6"
+                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
+                                ColumnSpacing="8"
+                                RowSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup>
+                                        <VisualState x:Name="NarrowRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="0" />
+                                            </VisualState.StateTriggers>
+                                            <VisualState.Setters>
+                                                <Setter Target="ValueGroup.(Grid.Row)" Value="1" />
+                                                <Setter Target="ValueGroup.(Grid.Column)" Value="0" />
+                                                <Setter Target="ValueGroup.(Grid.ColumnSpan)" Value="3" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="WideRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="480" />
+                                            </VisualState.StateTriggers>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    Text="{x:Bind Name}"
+                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
+
+                                <AutoSuggestBox
+                                    Grid.Column="1"
+                                    FontSize="12"
+                                    GotFocus="OnDataTypeGotFocus"
+                                    PlaceholderText="type"
+                                    SuggestionChosen="OnDataTypeSuggestionChosen"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextChanged="OnDataTypeTextChanged" />
+
+                                <Grid
+                                    x:Name="ValueGroup"
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    ColumnSpacing="8"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <NumberBox
+                                        FontFamily="Cascadia Mono, Consolas"
+                                        FontSize="12"
+                                        IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                        PlaceholderText="value"
+                                        SpinButtonPlacementMode="Compact"
+                                        Value="{x:Bind Value, Mode=TwoWay, Converter={StaticResource StringToDouble}}" />
+
+                                    <CheckBox
+                                        Grid.Column="1"
+                                        MinWidth="0"
+                                        Content="NULL"
+                                        FontSize="11"
+                                        IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
+                                </Grid>
+
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="2"
+                                    Margin="2,2,0,0"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ParameterEditorTemplateSelector.NumericTemplate>
+
+                    <local:ParameterEditorTemplateSelector.BitTemplate>
+                        <DataTemplate x:DataType="vm:ParameterBindingItem">
+                            <Grid
+                                Padding="8,6"
+                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
+                                ColumnSpacing="8"
+                                RowSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup>
+                                        <VisualState x:Name="NarrowRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="0" />
+                                            </VisualState.StateTriggers>
+                                            <VisualState.Setters>
+                                                <Setter Target="ValueGroup.(Grid.Row)" Value="1" />
+                                                <Setter Target="ValueGroup.(Grid.Column)" Value="0" />
+                                                <Setter Target="ValueGroup.(Grid.ColumnSpan)" Value="3" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="WideRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="480" />
+                                            </VisualState.StateTriggers>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    Text="{x:Bind Name}"
+                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
+
+                                <AutoSuggestBox
+                                    Grid.Column="1"
+                                    FontSize="12"
+                                    GotFocus="OnDataTypeGotFocus"
+                                    PlaceholderText="type"
+                                    SuggestionChosen="OnDataTypeSuggestionChosen"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextChanged="OnDataTypeTextChanged" />
+
+                                <Grid
+                                    x:Name="ValueGroup"
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    ColumnSpacing="8"
+                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ToggleSwitch
+                                        MinWidth="0"
+                                        Padding="0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                        IsOn="{x:Bind Value, Mode=TwoWay, Converter={StaticResource StringToBool}}"
+                                        OffContent=""
+                                        OnContent="" />
+
+                                    <CheckBox
+                                        Grid.Column="1"
+                                        MinWidth="0"
+                                        Content="NULL"
+                                        FontSize="11"
+                                        IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
+                                </Grid>
+
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="2"
+                                    Margin="2,2,0,0"
+                                    FontSize="11"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </local:ParameterEditorTemplateSelector.BitTemplate>
+
+                    <local:ParameterEditorTemplateSelector.DateTimeTemplate>
+                        <DataTemplate x:DataType="vm:ParameterBindingItem">
+                            <Grid
+                                Padding="8,6"
+                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
+                                ColumnSpacing="8"
+                                RowSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup>
+                                        <VisualState x:Name="NarrowRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="0" />
+                                            </VisualState.StateTriggers>
+                                            <VisualState.Setters>
+                                                <Setter Target="ValueGroup.(Grid.Row)" Value="1" />
+                                                <Setter Target="ValueGroup.(Grid.Column)" Value="0" />
+                                                <Setter Target="ValueGroup.(Grid.ColumnSpan)" Value="3" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="WideRow">
+                                            <VisualState.StateTriggers>
+                                                <AdaptiveTrigger MinWindowWidth="480" />
+                                            </VisualState.StateTriggers>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    FontSize="12"
+                                    Text="{x:Bind Name}"
+                                    ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
+
+                                <AutoSuggestBox
+                                    Grid.Column="1"
+                                    FontSize="12"
+                                    GotFocus="OnDataTypeGotFocus"
+                                    PlaceholderText="type"
+                                    SuggestionChosen="OnDataTypeSuggestionChosen"
+                                    Text="{x:Bind DataType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextChanged="OnDataTypeTextChanged" />
+
+                                <Grid
+                                    x:Name="ValueGroup"
+                                    Grid.Row="0"
                                     Grid.Column="2"
                                     ColumnSpacing="4"
                                     Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
                                     <CalendarDatePicker
@@ -313,20 +444,19 @@
                                         IsSpellCheckEnabled="False"
                                         PlaceholderText="HH:mm:ss"
                                         Text="{x:Bind TimeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <CheckBox
+                                        Grid.Column="2"
+                                        MinWidth="0"
+                                        Content="NULL"
+                                        FontSize="11"
+                                        IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
                                 </Grid>
 
-                                <CheckBox
-                                    Grid.Column="3"
-                                    MinWidth="0"
-                                    Content="NULL"
-                                    FontSize="11"
-                                    IsChecked="{x:Bind IsNull, Mode=TwoWay}"
-                                    Visibility="{x:Bind IsScalar, Converter={StaticResource BoolToVisibility}}" />
-
                                 <TextBlock
-                                    Grid.Row="1"
+                                    Grid.Row="2"
                                     Grid.Column="1"
-                                    Grid.ColumnSpan="3"
+                                    Grid.ColumnSpan="2"
                                     Margin="2,2,0,0"
                                     FontSize="11"
                                     Foreground="{ThemeResource SystemFillColorCriticalBrush}"
