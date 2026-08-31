@@ -115,7 +115,7 @@
         <InfoBar
             IsClosable="False"
             IsOpen="True"
-            Message="Credentials are used for this connection only and are never written to disk, though Microsoft Entra sign-in tokens stay cached in memory until the app closes."
+            Message="Recent servers and logins are remembered on this PC, but passwords are never written to disk, though Microsoft Entra sign-in tokens stay cached in memory until the app closes."
             Severity="Informational" />
     </StackPanel>
 </UserControl>

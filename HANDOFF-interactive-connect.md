@@ -114,7 +114,9 @@ live-server manual verification with no code component — the plan's "hand off 
   connection"; a malformed string shows a clear error; toggling back to details mode restores
   form editing.
 
-## Phase 4 — Remember recent connections (5 tasks) — IN PROGRESS (t1 ticked)
+## Phase 4 — Remember recent connections (5 tasks) — CODE COMPLETE (t1-4 ticked; t5 live-only)
+Phase boundary reached. All code tasks done on green builds; t5 is purely live-server manual
+verification with no code component — the plan's "hand off part-done" case.
 - **t1 DONE:** `src/SqlPlanViz/Capture/RecentConnectionsStore.cs`. `RecentConnection` record
   (Server, Database, UserId, Auth — no password) + `RecentConnectionsStore`. JSON file at
   `%LOCALAPPDATA%\SqlPlanViz\recent-connections.json` via
@@ -137,26 +139,50 @@ live-server manual verification with no code component — the plan's "hand off 
   refilter on user input; `OnServerSuggestionChosen` prefills Database/Login/Auth from the matching
   entry. Build green, app launches clean.
 
-### Phase 4 — remaining tasks
-- t4: reword `ConnectView` `InfoBar` — recent servers/logins remembered on this PC, passwords
-  never; keep it one sentence, consistent with Phase 2 task 7's copy.
-- t5: purely live-server — goes on the pending list.
+- **t4 DONE:** `ConnectView` `InfoBar` reworded to "Recent servers and logins are remembered on
+  this PC, but passwords are never written to disk, though Microsoft Entra sign-in tokens stay
+  cached in memory until the app closes." One sentence; keeps the Phase 2 task 7 Entra clause.
+  Build green.
+- **t5 NOT ticked:** purely live-server — on the pending list below.
 
 ### Phase 4 — Live-server verification pending (user runs before merge)
-- **P4 t3/t5:** connect to two different servers for real, relaunch, open Connect — both appear
-  as `ServerBox` suggestions and picking one prefills server/database/login/auth. (The store
-  read/write/dedup/cap-10 path itself is exercised by connecting; only the "written by a real
-  connect" round-trip is unverified by the loop.)
+- **P4 t3/t5:** connect to two different servers for real, relaunch the app, open Connect — both
+  appear as `ServerBox` suggestions and picking one prefills server/database/login/auth. (The
+  store read/write/dedup/cap-10 logic is exercised whenever a details-mode connect commits; only
+  the "entries written by a real connect, survive relaunch, prefill correctly" round-trip is
+  unverified by the loop.)
 
-## Phase boundary — STOP after Phase 3
-Phase 3 code is complete (t1-3 ticked, t4 live-only). Do NOT start Phase 4.
-**Phase 4 task 1 has a blocking open question:** unpackaged WinUI 3 storage APIs —
-`ApplicationData.Current` throws for an unpackaged app (`WindowsPackageType=None`). Phase 4
-assumes a plain `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)` + app-subfolder
-JSON file instead; Phase 5 task 2 must likewise confirm `PasswordVault` works unpackaged or
-fall back to DPAPI. Resolve inside the task, do not guess silently. Phase 4 also does the first
-write of connection info to disk, so the `ConnectView` `InfoBar` copy needs rewording as it
-lands.
+## Phase 4 — FINAL STATUS
+- **Ticked: t1, t2, t3, t4** — build green at every step, app launches clean.
+- **NOT ticked: t5** — purely live-server, on the pending list.
+- **Unpackaged storage — RESOLVED for Phase 4:** `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)`
+  + `SqlPlanViz\recent-connections.json` compiles and runs with no package identity needed;
+  `ApplicationData.Current` was correctly avoided. This does NOT resolve Phase 5's `PasswordVault`
+  question — that is a different API (`Windows.Security.Credentials`) and still needs its own
+  check at Phase 5 task 2 (fall back to DPAPI `ProtectedData` over a JSON store if it throws
+  unpackaged).
+
+## What Phase 5 needs (do NOT start it here)
+Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revocable.
+- **t1:** "Remember password" `CheckBox` in `SqlAuthPanel` (`ConnectView.xaml`), visible for
+  `SqlLogin`, unchecked by default. Build gate.
+- **t2 — has its own open question:** confirm `Windows.Security.Credentials.PasswordVault` works
+  for this UNPACKAGED app as the first step. It generally does, but if it throws, fall back to
+  DPAPI (`System.Security.Cryptography.ProtectedData`) over a JSON store next to
+  `recent-connections.json`. Resolve inside the task, do not guess. Then write on `Commit()` when
+  checked (key = `Server` + `UserId`), remove on unchecked.
+- **t3:** on dialog open / recent-suggestion chosen, read back the vault credential for
+  `Server` + `UserId` and prefill `PasswordBox`. The suggestion-chosen hook already exists
+  (`OnServerSuggestionChosen` in `ConnectView.xaml.cs`) — extend it.
+- **t4:** "Forget saved password" button beside the checkbox, enabled only when a credential
+  exists for the current `Server` + `UserId`.
+- **t5:** reword the `InfoBar` again to cover the opt-in stored-password case.
+- **t6:** end-to-end live verification → pending list.
+
+## Phase boundary — STOP after Phase 4
+Phase 4 code is complete (t1-4 ticked, t5 live-only). Do NOT start Phase 5 — see
+"What Phase 5 needs" above; Phase 5 task 2 carries its own `PasswordVault`-unpackaged open
+question.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.
@@ -169,5 +195,7 @@ lands.
 - Catalog-completion / editor integration out of scope here (deferred — plan Open questions).
 
 ## Open questions
-- Unpackaged WinUI 3 storage APIs (blocks Phase 4 t1 / Phase 5 t2) — resolve inside the task.
+- Unpackaged WinUI 3 storage APIs — **Phase 4 side RESOLVED** (plain `LocalApplicationData` JSON
+  file works, no package identity needed). **Phase 5 task 2 side still open:** confirm
+  `PasswordVault` works unpackaged or fall back to DPAPI — resolve inside that task.
 - Persistent MSAL token cache — decided by Phase 2 task 6.

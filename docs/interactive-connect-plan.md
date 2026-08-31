@@ -294,8 +294,11 @@ Stop retyping the server every session. First write of connection info to disk.
       looks up the matching `RecentConnection` and prefills Database + Login + Auth. Build green,
       app launches clean. Real suggestion/prefill round-trip on the pending list — needs entries
       written by an actual connect.)*
-- [ ] Reword the `ConnectView` `InfoBar` to state what is now true — recent servers and logins
+- [x] Reword the `ConnectView` `InfoBar` to state what is now true — recent servers and logins
       are remembered on this PC, passwords are not. Build gate + visual check.
+      *(Now "Recent servers and logins are remembered on this PC, but passwords are never written
+      to disk, though Microsoft Entra sign-in tokens stay cached in memory until the app closes."
+      One sentence; keeps the Phase 2 task 7 Entra-token clause. Build green.)*
 - [ ] Manually verify: connect to two different servers, relaunch the app, open Connect, both
       appear as suggestions and picking one prefills server/database/login/auth.
 
