@@ -46,6 +46,37 @@ Build green at every task. No live-server testing was done (see below).
 - **t3 DONE:** 3rd `AuthBox` item "Microsoft Entra MFA"; `AuthToIndex`/`IndexToAuth` helpers.
   `SqlAuthPanel` still shows only for index 1 (SqlLogin). Build green, app launches clean.
 - Task 7 is build-gate / visual UI and can be done by the loop.
+
+### BLOCKED — Phase 2 task 4 needs a decision from the user
+
+Task 4 ("anchor the MFA popup to the app window … `WithParentActivityOrWindow` via a custom
+`SqlAuthenticationProvider` registration, or the provider's parent-window hook") assumes the
+bundled `Microsoft.Data.SqlClient` exposes a parent-window hook. **It does not at the pinned
+version 5.2.2.** `ActiveDirectoryAuthenticationProvider` in 5.2.2 has no
+`SetParentActivityOrWindowFunc` and no `Func<object>` (parent activity/window) constructor —
+those arrived in Microsoft.Data.SqlClient 6.0. In 5.2.2 the only public ctors are `()`,
+`(string clientId)`, and `(Func<DeviceCodeResult,Task>, string)`; the setters are
+`SetAcquireAuthorizationCodeAsyncCallback` and `SetDeviceCodeFlowCallback` only.
+
+So there is no way to anchor the interactive popup to the app HWND without one of:
+  1. **Upgrade `Microsoft.Data.SqlClient` to 6.x** (6.1.2 / 7.0.1 are already in the local
+     nuget cache) and use `ActiveDirectoryAuthenticationProvider(() => App.WindowHandle)` or
+     `SetParentActivityOrWindowFunc`. This is a package *version bump*, which brushes against
+     the "no new package" line (it is an upgrade, not a new dependency, but still a change).
+  2. **Register a hand-rolled `SqlAuthenticationProvider`** whose `AcquireTokenAsync` calls MSAL
+     (`Microsoft.Identity.Client`, already transitive) directly with
+     `.WithParentActivityOrWindow(App.WindowHandle)`. This is exactly the "no hand-rolled MSAL"
+     that the do-not-relitigate list rules out.
+  3. **Drop the anchoring requirement** — ship `ActiveDirectoryInteractive` as-is (task 2 already
+     wires it). The MSAL popup still appears, just not parented to the app window; it is a
+     top-level browser/dialog. Task 4 becomes "documented as won't-fix at 5.2.2".
+
+Both 1 and 2 cross a settled decision, so the loop stopped rather than pick one. **User: choose
+1, 2, or 3** (or confirm the package upgrade is acceptable). Tasks 5–6 (live-server) partly
+depend on 4; task 7 (InfoBar copy) does not but the loop does not skip ahead.
+
+Current Phase 2 state: **tasks 1–3 ticked, build green. Task 4 blocked on the above. Tasks 5–7
+not started.**
 - **Tasks 4–5 need a real Entra-secured Azure SQL / Managed Instance** for the MFA popup and
   end-to-end auth. If that target is unavailable, the phase hands off part-done after task 3
   (+ 6/7 where possible) with 4–5 on the pending list.
