@@ -81,10 +81,16 @@ this section.
   one branch per effort off `main` — there is no `integration/*` or `dev` branch in use. The PR
   targets `main`. Merge only when the whole effort is reviewed.
 - **UI changes:** WinUI 3 desktop app, no automated UI test harness, no `docs/screenshots/`
-  convention in this repo — **skip the generic screenshot step**. Instead, any task that changes
-  `ConnectView`, `MainPage`, or adds a dialog must be manually exercised with
-  `dotnet run --project src/SqlPlanViz` before it is ticked. Each such task's description says
-  what to click through. A running instance locks `bin/` — kill it before the next build.
+  convention in this repo — **skip the generic screenshot step**. A running instance locks
+  `bin/` — kill it before the next build.
+- **Manual verification posture (decided 2026-09-01, do not re-ask):** the loop has **no live
+  SQL Server** and cannot drive the desktop UI. A task is ticked on a **green build** plus any
+  check the loop *can* do without a server (code compiles, XAML parses, a launched app opens
+  the dialog / collapses the right controls / does not crash). Every step that needs a live
+  server — connecting, Query Store, object context, Entra MFA popups — is **not** done by the
+  loop; instead each such step is appended to a **"Live-server verification pending"** list in
+  `HANDOFF-interactive-connect.md`, for the user to run at the phase boundary. The loop still
+  launches the app for the non-server checks where a task names them.
 - **Out of scope:**
   - Entra auth modes other than interactive MFA (Password, Integrated, device code, managed
     identity, service principal) — the connection-string mode is the escape hatch for these.
@@ -119,15 +125,14 @@ built until connecting and capturing are separate. ~6 tasks; task 1 already land
 - [x] Add a connect-only mode to `ConnectView` (constructor flag or settable property) that
       collapses the `QueryBox` and the `ModeButtons` radio group and changes nothing else. Build
       gate only. *(Done — `ConnectView.ConnectOnly`.)*
-- [ ] Split capture from connect in `MainPage.xaml.cs`: rename the current `OnConnect` to
+- [x] Split capture from connect in `MainPage.xaml.cs`: rename the current `OnConnect` to
       `OnCapture` (keep its dialog title "Capture a plan from SQL Server", primary button
       "Capture", and its `view.Commit()` + `ViewModel.CaptureAsync(view.Query, view.Mode)` body).
       Write a new `OnConnect` that news up `ConnectView` with `ConnectOnly = true`, primary button
       "Connect", and on primary result calls `view.Commit()` then a new
       `ViewModel.NotifyConnectionChanged()` (raises `CanRerun`, `CanBrowseQueryStore` and any
-      other `Connection`-derived flags) — **no** `CaptureAsync`. Manually verify: launch, click
-      Connect, fill a real server, Connect; then open the Query Store browser and confirm it is
-      enabled and lists plans for that server with no plan captured.
+      other `Connection`-derived flags) — **no** `CaptureAsync`. *(Live-server verify pending in
+      handoff: Connect → Query Store lists plans with no plan captured.)*
 - [ ] Replace the command-strip "Capture" button (`MainPage.xaml:89`) with a "Connect" button
       (keep a glyph + the label "Connect", tooltip "Open a connection to a SQL Server") wired to
       the new `OnConnect`. Leave the empty-state panel button (`MainPage.xaml:507`, "Capture from
