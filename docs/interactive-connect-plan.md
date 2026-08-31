@@ -133,11 +133,11 @@ built until connecting and capturing are separate. ~6 tasks; task 1 already land
       `ViewModel.NotifyConnectionChanged()` (raises `CanRerun`, `CanBrowseQueryStore` and any
       other `Connection`-derived flags) — **no** `CaptureAsync`. *(Live-server verify pending in
       handoff: Connect → Query Store lists plans with no plan captured.)*
-- [ ] Replace the command-strip "Capture" button (`MainPage.xaml:89`) with a "Connect" button
+- [x] Replace the command-strip "Capture" button (`MainPage.xaml:89`) with a "Connect" button
       (keep a glyph + the label "Connect", tooltip "Open a connection to a SQL Server") wired to
       the new `OnConnect`. Leave the empty-state panel button (`MainPage.xaml:507`, "Capture from
-      server") wired to `OnCapture`. Manually verify: the command-strip button opens the
-      connect-only dialog; the empty-state button opens the capture dialog; both complete.
+      server") wired to `OnCapture`. *(App launches clean; dialog click-through pending in
+      handoff.)*
 - [ ] Add a connection status readout to the command strip — a `TextBlock` bound to
       `ViewModel.Connection.Describe()` (add a `ConnectionDescription` pass-through on the VM that
       `NotifyConnectionChanged()` raises, since `Describe()` is a method not a bindable property).

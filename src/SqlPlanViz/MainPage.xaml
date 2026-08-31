@@ -86,13 +86,13 @@
                             FontSize="14"
                             Glyph="&#xE77F;" />
                     </Button>
-                    <Button Click="OnConnect" ToolTipService.ToolTip="Run a query and capture its plan">
+                    <Button Click="OnConnect" ToolTipService.ToolTip="Open a connection to a SQL Server">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon
                                 FontFamily="Segoe Fluent Icons"
                                 FontSize="14"
                                 Glyph="&#xE968;" />
-                            <TextBlock Text="Capture" />
+                            <TextBlock Text="Connect" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -504,7 +504,7 @@
                         Spacing="8">
                         <Button Click="OnOpenFile" Style="{ThemeResource AccentButtonStyle}" Content="Open a .sqlplan file" />
                         <Button Click="OnPasteXml" Content="Paste XML" />
-                        <Button Click="OnConnect" Content="Capture from server" />
+                        <Button Click="OnCapture" Content="Capture from server" />
                     </StackPanel>
                 </StackPanel>
 

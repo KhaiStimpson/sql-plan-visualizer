@@ -10,6 +10,9 @@ Recorded in the plan's Ground rules.
 ## Live-server verification pending (user runs at phase boundary)
 - **Phase 1 task 2:** launch, click command-strip **Connect**, fill a real server, Connect;
   open the Query Store browser — confirm it is enabled and lists plans with no plan captured.
+- **Phase 1 task 3:** command-strip **Connect** button opens the connect-only dialog (no query
+  box / mode picker); empty-state **Capture from server** opens the full capture dialog; both
+  complete a real connection. (App confirmed to launch clean.)
 
 ## State
 - Plan rewritten against `main` (2026-09-01); catalog/editor wiring deferred (see plan Open
