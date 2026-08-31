@@ -1,6 +1,7 @@
 # Interactive database connections — plan
 
-Status: not started · Branch: `claude/interactive-connect` · Written: 2026-08-22 · Reworked: 2026-09-01
+Status: in progress · Branch: `claude/interactive-connect` (cut off `main`; PR targets `main`) ·
+Written: 2026-08-22 · Reworked: 2026-09-01 (rebased onto `main`, not the editor branch)
 
 ## Goal
 
@@ -8,11 +9,11 @@ Connecting to a SQL Server stops being welded to capturing a plan, and gains nea
 getting *in*. Concretely, when this is done:
 
 - A **Connect** button replaces **Capture** in the command strip. It opens a connection with no
-  query in hand and wires the editor, catalog completions, and Query Store to it. Capturing a
-  plan from a live query is still reachable (empty-state panel, editor re-plan) — the button
-  goes, the capability does not.
+  query in hand and makes the connection-dependent surfaces (Query Store browser, object context,
+  re-run) live against it. Capturing a plan from a live query is still reachable (empty-state
+  panel) — the button goes, the capability does not.
 - A connection **status readout** in the command strip always shows which server/database/auth is
-  live, with a **Disconnect** that tears the connection and its catalog state back down.
+  live, with a **Disconnect** that tears the connection and its derived state back down.
 - **Microsoft Entra MFA** (interactive browser/popup auth) is selectable alongside Windows and
   SQL auth and actually authenticates against a real Entra-secured Azure SQL / Managed Instance.
 - A **connection-string** mode lets you paste a full ADO.NET string and connect verbatim,
@@ -24,27 +25,43 @@ getting *in*. Concretely, when this is done:
 - **Named connection profiles** hold a full config (including Entra MFA and remembered-password
   references) and connect in one click from the dialog or the empty-state panel.
 
-## Drift from the 2026-08-22 draft
+## Drift — reworked 2026-09-01 against `main`
 
-Re-read against the tree on 2026-09-01. The base connection code is essentially unchanged since
-the draft, so almost nothing has rotted — but scope moved:
+The first rework (also dated 2026-08-22→09-01) was written against the **editor branch**
+(`claude/live-plan-editor-impl-svla9m`) and referenced a completion engine, catalog/tuning
+providers (`_catalogProvider`, `_tuningProvider`, `CatalogSnapshot.Empty`, `RefreshCatalogAsync`)
+and an editor parser (`TSqlParserFactory`). **None of that is on `main`.** This effort's branch is
+cut off `main` and its PR targets `main`, so every task must build against `main` as it is today.
 
-- `ConnectionSettings.Describe()` **already exists** (`src/SqlPlanViz/Capture/ConnectionSettings.cs:35`),
-  so the Phase 1 status-readout task is lighter than the draft assumed — bind, don't build.
-- `MainViewModel.Connection` is a **get-only single instance** (`MainViewModel.cs:155`,
-  `public ConnectionSettings Connection { get; } = new();`). Disconnect must mutate its fields or
-  call a new `ConnectionSettings.Reset()` — it cannot reassign the property.
-- The command-strip button today is labelled **"Capture"** (`MainPage.xaml:89`) and its handler
-  `OnConnect` (`MainPage.xaml.cs:584`) does capture-then-refresh. The empty-state panel has a
-  second entry point, `OnConnect` again, labelled "Capture from server" (`MainPage.xaml:477`).
-- **Scope change (this rework):** auth is now **Entra MFA only** — `EntraPassword` and
-  `EntraIntegrated` from the draft's Phase 2, plus device-code / managed-identity / service
-  principal, are **out** (the connection-string mode covers those cases). **Connection-string
-  mode** (new — draft had none), **Disconnect** (new), and **named profiles** (new) are added.
-- `AuthMode` enum still has only `Windows`, `SqlLogin`. The settings property is `Auth`; the enum
-  is `AuthMode`. `CommandTimeoutSeconds` defaults to 60.
-- The branch `claude/interactive-connect` was never cut — editor work continued on other
-  `claude/*` branches. This effort still gets its own branch off `main`.
+What `main` actually has:
+
+- `ConnectionSettings` (`src/SqlPlanViz/Capture/ConnectionSettings.cs`) — `Server`, `Database`,
+  `Auth` (`AuthMode` enum: `Windows`, `SqlLogin`), `UserId`, `Password`, `Encrypt`,
+  `TrustServerCertificate`, `CommandTimeoutSeconds` (default 60), and a `Describe()` that already
+  returns `"Not connected"` when `Server` is blank else `"server · db"`.
+- `ConnectView` (`src/SqlPlanViz/Views/ConnectView.xaml[.cs]`) — the form, `Commit()`,
+  `OnTestConnection`, `OnAuthChanged`, and a **`ConnectOnly` property (Phase 1 task 1 — already
+  landed)** that collapses `QueryBox` + `ModeButtons`.
+- `PlanCaptureService` — `CaptureAsync`, `TestConnectionAsync`, `internal static
+  BuildConnectionString(ConnectionSettings)`.
+- `MainViewModel` (`src/SqlPlanViz/ViewModels/MainViewModel.cs`) — `Connection` is a **get-only
+  single instance** (`public ConnectionSettings Connection { get; } = new();`). Connection-derived
+  state that exists today: `CanRerun`, `CanBrowseQueryStore`
+  (`!string.IsNullOrWhiteSpace(Connection.Server)`), `QueryStorePlans`, `SelectedObjectContext`,
+  all driven **statelessly** off `Connection` via `DatabaseContextService` on each call — there is
+  no cached catalog to refresh or clear.
+- `MainPage` — command-strip button `OnConnect` (`MainPage.xaml:89`) does capture-then-visualise
+  via `ViewModel.CaptureAsync`; the empty-state panel has a second `OnConnect` entry
+  (`MainPage.xaml:507`, "Capture from server").
+
+Scope decisions from the earlier rework still hold: auth is **Entra MFA only** (Password /
+Integrated / device-code / managed-identity / service-principal are out — connection-string mode
+covers them); connection-string mode, Disconnect, and named profiles are in.
+
+**Deferred, not dropped:** wiring the connection into catalog completions and the plan editor.
+That work belongs to whenever the live-plan-editor effort lands on `main`; a one-line follow-up
+task will add the `Connect`/`Disconnect` hooks into the completion providers then. It is out of
+this plan because it cannot be built here.
 
 ## Ground rules
 
@@ -61,16 +78,18 @@ this section.
 - **Context backstop:** `250000` — the safety net, not the trigger. Phases end sessions; this
   only catches a runaway task.
 - **Branching:** work on `claude/interactive-connect`, cut from `main`. This repo's convention is
-  one branch per effort off `main` — there is no `integration/*` or `dev` branch in use. Merge to
-  `main` only when the whole effort is reviewed.
+  one branch per effort off `main` — there is no `integration/*` or `dev` branch in use. The PR
+  targets `main`. Merge only when the whole effort is reviewed.
 - **UI changes:** WinUI 3 desktop app, no automated UI test harness, no `docs/screenshots/`
   convention in this repo — **skip the generic screenshot step**. Instead, any task that changes
   `ConnectView`, `MainPage`, or adds a dialog must be manually exercised with
   `dotnet run --project src/SqlPlanViz` before it is ticked. Each such task's description says
-  what to click through.
+  what to click through. A running instance locks `bin/` — kill it before the next build.
 - **Out of scope:**
   - Entra auth modes other than interactive MFA (Password, Integrated, device code, managed
     identity, service principal) — the connection-string mode is the escape hatch for these.
+  - Catalog-completion / plan-editor integration — deferred to when that infra reaches `main`
+    (see Drift).
   - Multiple simultaneous connections / per-tab connections — `MainViewModel.Connection` stays a
     single shared instance.
   - Server discovery / "browse for servers" button.
@@ -86,39 +105,49 @@ this section.
     info to disk; Phase 5 (remembered password) is the first secret written anywhere. Both are
     deliberately in scope, both strictly opt-in where a secret is involved, and Phase 5 uses
     Windows Credential Manager (`PasswordVault`) only — never plaintext disk storage.
-  - The `ConnectView` `InfoBar` copy ("…never written to disk") is now false once Phase 4 lands
-    and must be reworded as those phases go in — this is expected, not a question.
+  - `MainViewModel.Connection` is get-only; Disconnect mutates its fields via a new
+    `ConnectionSettings.Reset()`, it cannot reassign the property.
+  - The `ConnectView` `InfoBar` copy ("…never written to disk") becomes false once Phase 4 lands
+    and is reworded as those phases go in — this is expected, not a question.
 - One task per iteration. Stop and ask rather than guess. Do not skip ahead.
 
 ## Phase 1 — Connect without capturing
 
 A standalone Connect action plus a visible, tear-downable connection state. Nothing else can be
-built until connecting and capturing are separate.
+built until connecting and capturing are separate. ~6 tasks; task 1 already landed.
 
 - [x] Add a connect-only mode to `ConnectView` (constructor flag or settable property) that
       collapses the `QueryBox` and the `ModeButtons` radio group and changes nothing else. Build
-      gate only.
-- [ ] Add an `OnConnect` handler in `MainPage` distinct from capture: rename the current
-      `OnConnect` to `OnCapture` (keep its dialog title "Capture a plan from SQL Server" and its
-      `CaptureAsync` call), and write a new `OnConnect` that opens `ConnectView` in connect-only
-      mode, primary button "Connect", calls `view.Commit()` then `RefreshCatalogAsync(forceRefresh: false)`
-      with **no** `CaptureAsync`. Manually verify: launch, Connect to a real server with no plan
-      loaded, confirm catalog/completion providers pick up the schema.
+      gate only. *(Done — `ConnectView.ConnectOnly`.)*
+- [ ] Split capture from connect in `MainPage.xaml.cs`: rename the current `OnConnect` to
+      `OnCapture` (keep its dialog title "Capture a plan from SQL Server", primary button
+      "Capture", and its `view.Commit()` + `ViewModel.CaptureAsync(view.Query, view.Mode)` body).
+      Write a new `OnConnect` that news up `ConnectView` with `ConnectOnly = true`, primary button
+      "Connect", and on primary result calls `view.Commit()` then a new
+      `ViewModel.NotifyConnectionChanged()` (raises `CanRerun`, `CanBrowseQueryStore` and any
+      other `Connection`-derived flags) — **no** `CaptureAsync`. Manually verify: launch, click
+      Connect, fill a real server, Connect; then open the Query Store browser and confirm it is
+      enabled and lists plans for that server with no plan captured.
 - [ ] Replace the command-strip "Capture" button (`MainPage.xaml:89`) with a "Connect" button
-      (glyph + label) wired to the new `OnConnect`. Relabel the empty-state panel button
-      (`MainPage.xaml:477`) to keep capture-from-server reachable, wired to `OnCapture`. Manually
-      verify: both buttons open their correct dialog and complete.
+      (keep a glyph + the label "Connect", tooltip "Open a connection to a SQL Server") wired to
+      the new `OnConnect`. Leave the empty-state panel button (`MainPage.xaml:507`, "Capture from
+      server") wired to `OnCapture`. Manually verify: the command-strip button opens the
+      connect-only dialog; the empty-state button opens the capture dialog; both complete.
 - [ ] Add a connection status readout to the command strip — a `TextBlock` bound to
-      `ViewModel.Connection.Describe()`, refreshed after both the Connect and Capture flows.
-      Manually verify: connect, readout updates; capture against a *different* server, readout
-      updates again.
-- [ ] Add a `ConnectionSettings.Reset()` and a "Disconnect" control next to the status readout
-      that calls it, then clears catalog state (`CatalogSnapshot.Empty` into `_catalogProvider` /
-      `_tuningProvider`, reset the editor parser to `TSqlParserFactory` default). Manually verify:
-      connect, disconnect, confirm completions stop offering schema and run-actual disables.
+      `ViewModel.Connection.Describe()` (add a `ConnectionDescription` pass-through on the VM that
+      `NotifyConnectionChanged()` raises, since `Describe()` is a method not a bindable property).
+      Manually verify: connect, readout updates; capture-from-server against a *different* server,
+      readout updates again.
+- [ ] Add `ConnectionSettings.Reset()` (clears `Server`, `Database`, `UserId`, `Password`, resets
+      `Auth` to `Windows`) and a "Disconnect" control next to the status readout that calls it,
+      then clears connection-derived VM state: `QueryStorePlans.Clear()`,
+      `SelectedObjectContext = null`, `QueryStoreMessage = null`, and `NotifyConnectionChanged()`.
+      Manually verify: connect, open Query Store (populates), Disconnect — readout shows "Not
+      connected", Query Store browser disables, re-run is disabled.
 - [ ] Extend `ConnectionSettings.Describe()` to name the auth mode when connected (e.g.
-      `server · db · Windows`) and read "Not connected" when `Reset()`. Manually verify the
-      readout text in each state.
+      `server · db · Windows`, `server · db · SQL login`) and keep returning "Not connected" after
+      `Reset()`. Manually verify the readout text in the Windows, SQL-login, and disconnected
+      states.
 
 ## Phase 2 — Microsoft Entra MFA
 
@@ -136,15 +165,15 @@ block and the phase should hand off part-done.
 - [ ] Add a "Microsoft Entra MFA" item to `AuthBox` in `ConnectView.xaml`; fix `OnAuthChanged`,
       `Commit()`, and the constructor's index↔`AuthMode` mapping for three items, so `SqlAuthPanel`
       shows only for `SqlLogin`. Manually verify: switch to Entra MFA, login/password fields hide;
-      switch back, they return.
+      switch back to SQL auth, they return; Windows still shows neither.
 - [ ] Anchor the MFA popup to the app window — pass the app `HWND` (from `MainWindow`) into the
       interactive auth flow (`WithParentActivityOrWindow` via a custom `SqlAuthenticationProvider`
       registration, or the provider's parent-window hook). Manually verify against a real
       Entra-secured target: the popup appears anchored to the app window and auth succeeds via
       "Test connection".
 - [ ] Manually verify each path end to end against the real target: Entra MFA connect from the
-      new command-strip Connect button reaches the catalog; capture-from-server with Entra MFA
-      still works.
+      new command-strip Connect button makes the Query Store browser live; capture-from-server
+      with Entra MFA still produces a plan.
 - [ ] Verify repeat connects within one session do not re-prompt for MFA (MSAL's in-memory
       cache), and record the observed behaviour as a comment near `AuthMode` in
       `ConnectionSettings.cs`. This is what decides whether the persistent-token-cache item in
@@ -232,8 +261,9 @@ One-click reconnect to a named server config. The "reassess" item from the brain
       vaulted password when the flag is set. Manually verify a saved profile round-trips.
 - [ ] Add rename + delete for profiles (inline list or a small secondary dialog). Manually verify
       rename and delete.
-- [ ] Show saved profiles as one-click connect entries in the empty-state panel
-      (`MainPage.xaml:449`). Clicking one connects without opening the dialog. Manually verify.
+- [ ] Show saved profiles as one-click connect entries in the empty-state panel (the button
+      stack around `MainPage.xaml:501`). Clicking one connects without opening the dialog.
+      Manually verify.
 - [ ] Manually verify end to end: create a prod (Entra MFA) profile and a local (SQL auth +
       remembered password) profile, relaunch, connect to each from both the dialog picker and the
       empty-state list.
@@ -250,3 +280,6 @@ One-click reconnect to a named server config. The "reassess" item from the brain
       restarts (`Microsoft.Identity.Client.Extensions.Msal`, already in the graph, via a custom
       `SqlAuthenticationProvider`). Becomes its own phase only if Phase 2 finds that MFA
       re-prompts on every launch and that is painful. Not in scope until then.
+- [ ] **Non-blocking, follow-up after this effort:** once the live-plan-editor work reaches
+      `main`, add a task to hook `Connect` / `Disconnect` into the catalog-completion providers
+      and editor parser. Deliberately excluded from this plan because that infra is not on `main`.
