@@ -29,6 +29,22 @@ public enum SizeMetric
 }
 
 /// <summary>
+/// How much text a node shows, independent of zoom (hot-path-plan.md Phase 1). The effective
+/// density is the more restrictive of this and the zoom-driven level-of-detail threshold.
+/// </summary>
+public enum LabelDetail
+{
+    /// <summary>Operator name and heat only.</summary>
+    Minimal,
+
+    /// <summary>Adds subtitle, rows, and cost/self-time lines.</summary>
+    Standard,
+
+    /// <summary>Adds the verdict line (the node's highest-severity finding).</summary>
+    Full,
+}
+
+/// <summary>
 /// Theme-aware colours for the plan canvas. Win2D draws outside the XAML resource system,
 /// so the Fluent palette is mirrored here and rebuilt whenever the app theme changes.
 /// </summary>

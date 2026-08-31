@@ -10,6 +10,7 @@
     xmlns:diag="using:SqlPlanViz.Diagnostics"
     xmlns:model="using:SqlPlanViz.Model"
     xmlns:vm="using:SqlPlanViz.ViewModels"
+    xmlns:views="using:SqlPlanViz.Views"
     mc:Ignorable="d">
 
     <Grid AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop">
@@ -85,14 +86,34 @@
                             FontSize="14"
                             Glyph="&#xE77F;" />
                     </Button>
-                    <Button Click="OnConnect" ToolTipService.ToolTip="Run a query and capture its plan">
+                    <Button Click="OnConnect" ToolTipService.ToolTip="Open a connection to a SQL Server">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon
                                 FontFamily="Segoe Fluent Icons"
                                 FontSize="14"
                                 Glyph="&#xE968;" />
-                            <TextBlock Text="Capture" />
+                            <TextBlock Text="Connect" />
                         </StackPanel>
+                    </Button>
+                    <TextBlock
+                        x:Name="ConnectionReadout"
+                        Margin="6,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}" />
+                    <Button
+                        x:Name="DisconnectButton"
+                        Margin="4,0,0,0"
+                        Click="OnDisconnect"
+                        ToolTipService.ToolTip="Disconnect from the current server"
+                        Visibility="{x:Bind ViewModel.IsConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <FontIcon
+                            FontFamily="Segoe Fluent Icons"
+                            FontSize="14"
+                            Glyph="&#xE8CB;" />
                     </Button>
                 </StackPanel>
 
@@ -154,6 +175,13 @@
                         Content="Detailed"
                         ToolTipService.ToolTip="Toggle terse or expansive explanations" />
 
+                    <Button
+                        x:Name="LabelDetailButton"
+                        VerticalAlignment="Center"
+                        Click="OnToggleLabelDetail"
+                        Content="Detail: Full"
+                        ToolTipService.ToolTip="Cycle how much text each node card shows: full, standard, or operator name only" />
+
                     <AutoSuggestBox
                         x:Name="SearchBox"
                         Width="220"
@@ -185,6 +213,15 @@
                             FontFamily="Segoe Fluent Icons"
                             FontSize="14"
                             Glyph="&#xEA37;" />
+                    </Button>
+                    <Button
+                        x:Name="FlameViewButton"
+                        Click="OnToggleFlameView"
+                        ToolTipService.ToolTip="Toggle the time-attribution flame view">
+                        <FontIcon
+                            FontFamily="Segoe Fluent Icons"
+                            FontSize="14"
+                            Glyph="&#xE9D9;" />
                     </Button>
                     <Button
                         x:Name="CompareButton"
@@ -271,6 +308,13 @@
                     SelectedNode="{x:Bind ViewModel.SelectedNode, Mode=TwoWay}"
                     Statement="{x:Bind ViewModel.SelectedStatement, Mode=OneWay}" />
 
+                <views:FlameView
+                    x:Name="Flame"
+                    Grid.Row="0"
+                    Visibility="Collapsed"
+                    SelectedNode="{x:Bind ViewModel.SelectedNode, Mode=TwoWay}"
+                    Statement="{x:Bind ViewModel.SelectedStatement, Mode=OneWay}" />
+
                 <Button
                     x:Name="FocusBreadcrumbButton"
                     Grid.Row="0"
@@ -299,11 +343,14 @@
                             <TextBlock
                                 FontSize="16"
                                 FontWeight="SemiBold"
-                                Text="Operators ranked by self time" />
-                            <Button
-                                HorizontalAlignment="Right"
-                                Click="OnToggleOperatorList"
-                                Content="Back to tree" />
+                                Text="{x:Bind ViewModel.RankedOperatorsTitle, Mode=OneWay}" />
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                                <ToggleButton
+                                    Content="Sort by divergence"
+                                    IsChecked="{x:Bind ViewModel.RankOperatorsByDivergence, Mode=TwoWay}"
+                                    ToolTipService.ToolTip="Sort by |estimated cost share − actual time share| instead of self time" />
+                                <Button Click="OnToggleOperatorList" Content="Back to tree" />
+                            </StackPanel>
                         </Grid>
                         <ListView
                             Grid.Row="1"
@@ -337,6 +384,11 @@
                                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                     Text="{x:Bind Subtitle}"
                                                     TextTrimming="CharacterEllipsis" />
+                                                <TextBlock
+                                                    FontSize="11"
+                                                    Foreground="{x:Bind DivergenceExceedsThreshold, Converter={StaticResource DivergenceForeground}}"
+                                                    Text="{x:Bind DivergenceText}"
+                                                    Visibility="{x:Bind HasDivergence, Converter={StaticResource BoolToVisibility}}" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" HorizontalAlignment="Right">
                                                 <TextBlock HorizontalAlignment="Right" Text="{x:Bind PrimaryMetric}" />
@@ -472,7 +524,29 @@
                         Spacing="8">
                         <Button Click="OnOpenFile" Style="{ThemeResource AccentButtonStyle}" Content="Open a .sqlplan file" />
                         <Button Click="OnPasteXml" Content="Paste XML" />
-                        <Button Click="OnConnect" Content="Capture from server" />
+                        <Button Click="OnCapture" Content="Capture from server" />
+                    </StackPanel>
+                    <StackPanel
+                        x:Name="ProfilesPanel"
+                        HorizontalAlignment="Center"
+                        Spacing="8"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Or connect to a saved profile" />
+                        <ItemsControl ItemsSource="{x:Bind ConnectionProfiles, Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Click="OnConnectProfile" Content="{Binding Name}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </StackPanel>
 

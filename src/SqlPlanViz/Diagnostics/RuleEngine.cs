@@ -31,6 +31,7 @@ public sealed class RuleEngine
         new WaitDominatedRule(),
         new WideUpdateRule(),
         new MissingIndexMergeRule(),
+        new CostModelDivergenceRule(),
     ];
 
     private readonly IReadOnlyList<IPlanRule> _rules;

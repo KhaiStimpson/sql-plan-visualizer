@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-16"?>
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.539" Build="16.0.4135.4">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementCompId="1" StatementEstRows="248517" StatementId="1" StatementOptmLevel="FULL" StatementSubTreeCost="18.4471" StatementText="SELECT c.Name, o.OrderDate, o.Total&#xD;&#xA;FROM dbo.Orders AS o&#xD;&#xA;JOIN dbo.Customers AS c ON c.CustomerId = o.CustomerId&#xD;&#xA;WHERE o.OrderDate >= '2024-01-01'&#xD;&#xA;ORDER BY o.Total DESC;" StatementType="SELECT" QueryHash="0x8F1C2D3E4A5B6C7D" QueryPlanHash="0x1A2B3C4D5E6F7A8B">
+          <QueryPlan DegreeOfParallelism="4" MemoryGrant="24576" CachedPlanSize="112" CompileTime="9" CompileCPU="9" CompileMemory="784">
+            <MissingIndexes>
+              <MissingIndexGroup Impact="87.4413">
+                <MissingIndex Database="[SalesDb]" Schema="[dbo]" Table="[Orders]">
+                  <ColumnGroup Usage="INEQUALITY">
+                    <Column Name="[OrderDate]" ColumnId="3" />
+                  </ColumnGroup>
+                  <ColumnGroup Usage="INCLUDE">
+                    <Column Name="[CustomerId]" ColumnId="2" />
+                    <Column Name="[Total]" ColumnId="5" />
+                  </ColumnGroup>
+                </MissingIndex>
+              </MissingIndexGroup>
+            </MissingIndexes>
+            <QueryTimeStats CpuTime="4127" ElapsedTime="1893" />
+            <RelOp NodeId="0" PhysicalOp="Parallelism" LogicalOp="Gather Streams" EstimateRows="248517" EstimateIO="0" EstimateCPU="0.108583" AvgRowSize="43" EstimatedTotalSubtreeCost="18.4471" Parallel="1" EstimateRebinds="0" EstimateRewinds="0">
+              <OutputList>
+                <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="Name" />
+                <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="OrderDate" />
+                <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="Total" />
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="248517" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="1893" ActualCPUms="184" />
+              </RunTimeInformation>
+              <Parallelism>
+                <RelOp NodeId="1" PhysicalOp="Sort" LogicalOp="Sort" EstimateRows="62129" EstimateIO="0.0112613" EstimateCPU="1.94218" AvgRowSize="43" EstimatedTotalSubtreeCost="18.3385" Parallel="1" EstimateRebinds="0" EstimateRewinds="0">
+                  <OutputList>
+                    <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="Name" />
+                    <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="OrderDate" />
+                    <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="Total" />
+                  </OutputList>
+                  <Warnings>
+                    <SpillToTempDb SpillLevel="1" SpilledThreadCount="4" />
+                  </Warnings>
+                  <MemoryFractions Input="0.9" Output="1" />
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="1" ActualRows="62130" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="1502" ActualCPUms="712" />
+                    <RunTimeCountersPerThread Thread="2" ActualRows="62129" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="1488" ActualCPUms="705" />
+                    <RunTimeCountersPerThread Thread="3" ActualRows="62129" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="1461" ActualCPUms="698" />
+                    <RunTimeCountersPerThread Thread="4" ActualRows="62129" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="1444" ActualCPUms="691" />
+                  </RunTimeInformation>
+                  <Sort Distinct="0">
+                    <OrderBy>
+                      <OrderByColumn Ascending="0">
+                        <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="Total" />
+                      </OrderByColumn>
+                    </OrderBy>
+                    <RelOp NodeId="2" PhysicalOp="Hash Match" LogicalOp="Inner Join" EstimateRows="62129" EstimateIO="0" EstimateCPU="0.907268" AvgRowSize="43" EstimatedTotalSubtreeCost="16.3851" Parallel="1" EstimateRebinds="0" EstimateRewinds="0">
+                      <OutputList>
+                        <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="Name" />
+                        <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="OrderDate" />
+                        <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="Total" />
+                      </OutputList>
+                      <Warnings>
+                        <ColumnsWithNoStatistics>
+                          <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Column="CustomerId" />
+                        </ColumnsWithNoStatistics>
+                      </Warnings>
+                      <RunTimeInformation>
+                        <RunTimeCountersPerThread Thread="1" ActualRows="62130" ActualExecutions="1" ActualElapsedms="921" ActualCPUms="402" />
+                        <RunTimeCountersPerThread Thread="2" ActualRows="62129" ActualExecutions="1" ActualElapsedms="915" ActualCPUms="398" />
+                        <RunTimeCountersPerThread Thread="3" ActualRows="62129" ActualExecutions="1" ActualElapsedms="902" ActualCPUms="391" />
+                        <RunTimeCountersPerThread Thread="4" ActualRows="62129" ActualExecutions="1" ActualElapsedms="898" ActualCPUms="388" />
+                      </RunTimeInformation>
+                      <Hash>
+                        <DefinedValues />
+                        <HashKeysBuild>
+                          <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="CustomerId" />
+                        </HashKeysBuild>
+                        <HashKeysProbe>
+                          <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="CustomerId" />
+                        </HashKeysProbe>
+                        <ProbeResidual>
+                          <ScalarOperator ScalarString="[SalesDb].[dbo].[Customers].[CustomerId] as [c].[CustomerId] = [SalesDb].[dbo].[Orders].[CustomerId] as [o].[CustomerId]">
+                            <Compare CompareOp="EQ" />
+                          </ScalarOperator>
+                        </ProbeResidual>
+                        <RelOp NodeId="3" PhysicalOp="Index Seek" LogicalOp="Index Seek" EstimateRows="4821" EstimateIO="0.0688657" EstimateCPU="0.0059241" AvgRowSize="27" EstimatedTotalSubtreeCost="0.0747898" Parallel="0" EstimateRebinds="0" EstimateRewinds="0">
+                          <OutputList>
+                            <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="CustomerId" />
+                            <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="Name" />
+                          </OutputList>
+                          <RunTimeInformation>
+                            <RunTimeCountersPerThread Thread="0" ActualRows="4821" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="14" ActualCPUms="11" />
+                          </RunTimeInformation>
+                          <IndexScan Ordered="1" ScanDirection="FORWARD" ForcedIndex="0" NoExpandHint="0">
+                            <DefinedValues>
+                              <DefinedValue>
+                                <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="Name" />
+                              </DefinedValue>
+                            </DefinedValues>
+                            <Object Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Index="[IX_Customers_Active]" Alias="[c]" IndexKind="NonClustered" Storage="RowStore" />
+                            <SeekPredicates>
+                              <SeekPredicateNew>
+                                <SeekKeys>
+                                  <Prefix ScanType="EQ">
+                                    <RangeColumns>
+                                      <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="IsActive" />
+                                    </RangeColumns>
+                                    <RangeExpressions>
+                                      <ScalarOperator ScalarString="(1)">
+                                        <Const ConstValue="(1)" />
+                                      </ScalarOperator>
+                                    </RangeExpressions>
+                                  </Prefix>
+                                </SeekKeys>
+                              </SeekPredicateNew>
+                            </SeekPredicates>
+                          </IndexScan>
+                        </RelOp>
+                        <RelOp NodeId="4" PhysicalOp="Clustered Index Scan" LogicalOp="Clustered Index Scan" EstimateRows="1204" EstimateIO="14.9861" EstimateCPU="1.41908" AvgRowSize="31" EstimatedTotalSubtreeCost="15.4032" Parallel="1" EstimateRebinds="0" EstimateRewinds="0">
+                          <OutputList>
+                            <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="CustomerId" />
+                            <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="OrderDate" />
+                            <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="Total" />
+                          </OutputList>
+                          <RunTimeInformation>
+                            <RunTimeCountersPerThread Thread="1" ActualRows="62130" ActualEndOfScans="0" ActualExecutions="1" ActualElapsedms="611" ActualCPUms="288" />
+                            <RunTimeCountersPerThread Thread="2" ActualRows="62129" ActualEndOfScans="0" ActualExecutions="1" ActualElapsedms="604" ActualCPUms="284" />
+                            <RunTimeCountersPerThread Thread="3" ActualRows="62129" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="598" ActualCPUms="281" />
+                            <RunTimeCountersPerThread Thread="4" ActualRows="62129" ActualEndOfScans="1" ActualExecutions="1" ActualElapsedms="592" ActualCPUms="279" />
+                          </RunTimeInformation>
+                          <IndexScan Ordered="0" ForcedIndex="0" NoExpandHint="0">
+                            <DefinedValues>
+                              <DefinedValue>
+                                <ColumnReference Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="Total" />
+                              </DefinedValue>
+                            </DefinedValues>
+                            <Object Database="[SalesDb]" Schema="[dbo]" Table="[Orders]" Index="[PK_Orders]" Alias="[o]" IndexKind="Clustered" Storage="RowStore" />
+                            <Predicate>
+                              <ScalarOperator ScalarString="[SalesDb].[dbo].[Orders].[OrderDate] as [o].[OrderDate]&gt;='2024-01-01'">
+                                <Compare CompareOp="GE" />
+                              </ScalarOperator>
+                            </Predicate>
+                          </IndexScan>
+                        </RelOp>
+                      </Hash>
+                    </RelOp>
+                  </Sort>
+                </RelOp>
+              </Parallelism>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>
