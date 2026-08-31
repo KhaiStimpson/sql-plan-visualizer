@@ -95,6 +95,15 @@
                             <TextBlock Text="Connect" />
                         </StackPanel>
                     </Button>
+                    <TextBlock
+                        x:Name="ConnectionReadout"
+                        Margin="6,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}" />
                 </StackPanel>
 
                 <ComboBox

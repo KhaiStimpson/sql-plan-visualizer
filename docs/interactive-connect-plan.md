@@ -138,11 +138,11 @@ built until connecting and capturing are separate. ~6 tasks; task 1 already land
       the new `OnConnect`. Leave the empty-state panel button (`MainPage.xaml:507`, "Capture from
       server") wired to `OnCapture`. *(App launches clean; dialog click-through pending in
       handoff.)*
-- [ ] Add a connection status readout to the command strip — a `TextBlock` bound to
+- [x] Add a connection status readout to the command strip — a `TextBlock` bound to
       `ViewModel.Connection.Describe()` (add a `ConnectionDescription` pass-through on the VM that
       `NotifyConnectionChanged()` raises, since `Describe()` is a method not a bindable property).
-      Manually verify: connect, readout updates; capture-from-server against a *different* server,
-      readout updates again.
+      *(`ConnectionReadout` TextBlock in the command strip, raised from `NotifyConnectionChanged`
+      and after capture. App launches clean; server round-trip pending in handoff.)*
 - [ ] Add `ConnectionSettings.Reset()` (clears `Server`, `Database`, `UserId`, `Password`, resets
       `Auth` to `Windows`) and a "Disconnect" control next to the status readout that calls it,
       then clears connection-derived VM state: `QueryStorePlans.Clear()`,

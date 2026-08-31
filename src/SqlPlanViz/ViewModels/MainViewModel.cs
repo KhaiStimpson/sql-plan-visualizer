@@ -92,6 +92,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool HasPlan => Plan is not null;
 
+    /// <summary>Command-strip readout of the live connection; raised by <see cref="NotifyConnectionChanged"/>.</summary>
+    public string ConnectionDescription => Connection.Describe();
+
     public bool HasSessionPlans => SessionPlans.Count > 0;
 
     public bool CanCompare => SessionPlans.Count >= 2;
@@ -218,6 +221,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanRerun));
         OnPropertyChanged(nameof(CanBrowseQueryStore));
+        OnPropertyChanged(nameof(ConnectionDescription));
     }
 
     public async Task CaptureAsync(string query, CaptureMode mode, CancellationToken cancellationToken = default)
@@ -236,6 +240,7 @@ public sealed partial class MainViewModel : ObservableObject
             _lastCaptureMode = mode;
             SetPlan(plan, sourcePath: null);
             OnPropertyChanged(nameof(CanRerun));
+            OnPropertyChanged(nameof(ConnectionDescription));
         }
         catch (PlanCaptureException ex)
         {

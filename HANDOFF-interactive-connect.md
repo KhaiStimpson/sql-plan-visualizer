@@ -13,6 +13,8 @@ Recorded in the plan's Ground rules.
 - **Phase 1 task 3:** command-strip **Connect** button opens the connect-only dialog (no query
   box / mode picker); empty-state **Capture from server** opens the full capture dialog; both
   complete a real connection. (App confirmed to launch clean.)
+- **Phase 1 task 4:** command-strip readout shows "Not connected" at start; after Connect it
+  shows `server · db`; after capture-from-server against a *different* server it updates again.
 
 ## State
 - Plan rewritten against `main` (2026-09-01); catalog/editor wiring deferred (see plan Open
