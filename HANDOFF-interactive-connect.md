@@ -30,8 +30,10 @@ Build green at every task. No live-server testing was done (see below).
 - **t6:** readout shows `· Windows` vs `· SQL login`; captured-plan `SourceName` still reads
   sensibly (now carries the auth label).
 
-## Next: Phase 2 — Microsoft Entra MFA (7 tasks, at the ceiling)
-- Tasks 1–3 and 7 are build-gate / non-server UI and can be done by the loop.
+## Phase 2 — Microsoft Entra MFA (7 tasks, at the ceiling) — IN PROGRESS
+- **t1 DONE:** `AuthMode.EntraMfa` added with deferral comment; `Describe()` maps it to
+  "Microsoft Entra MFA". Build green.
+- Tasks 2–3 and 7 are build-gate / non-server UI and can be done by the loop.
 - **Tasks 4–5 need a real Entra-secured Azure SQL / Managed Instance** for the MFA popup and
   end-to-end auth. If that target is unavailable, the phase hands off part-done after task 3
   (+ 6/7 where possible) with 4–5 on the pending list.

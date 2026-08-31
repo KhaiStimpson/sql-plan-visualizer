@@ -160,9 +160,11 @@ window handle for the popup. **This phase is at the 7-task ceiling** and its man
 real Entra-secured Azure SQL / Managed Instance target; if that target is unavailable, tasks 4–5
 block and the phase should hand off part-done.
 
-- [ ] Extend the `AuthMode` enum (`src/SqlPlanViz/Capture/ConnectionSettings.cs`) with `EntraMfa`
+- [x] Extend the `AuthMode` enum (`src/SqlPlanViz/Capture/ConnectionSettings.cs`) with `EntraMfa`
       (Active Directory Interactive). Add a comment that Password / Integrated / device-code
       modes are deliberately deferred to the connection-string path. Build gate only.
+      *(`AuthMode.EntraMfa` added with the deferral comment; `Describe()` `AuthLabel` maps it to
+      "Microsoft Entra MFA". Build green.)*
 - [ ] Wire `EntraMfa` into `PlanCaptureService.BuildConnectionString`: set
       `SqlConnectionStringBuilder.Authentication = SqlAuthenticationMethod.ActiveDirectoryInteractive`,
       and do not populate `UserID` / `Password`. Build gate only.

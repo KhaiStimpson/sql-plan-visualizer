@@ -4,6 +4,14 @@ public enum AuthMode
 {
     Windows,
     SqlLogin,
+
+    /// <summary>
+    /// Microsoft Entra MFA — Active Directory Interactive (browser/popup) auth via
+    /// <c>Microsoft.Data.SqlClient</c>'s built-in <c>SqlAuthenticationMethod.ActiveDirectoryInteractive</c>.
+    /// Other Entra modes (Password, Integrated, device code, managed identity, service principal)
+    /// are deliberately deferred to the connection-string path rather than modelled in the form.
+    /// </summary>
+    EntraMfa,
 }
 
 /// <summary>
@@ -56,6 +64,7 @@ public sealed class ConnectionSettings
     private static string AuthLabel(AuthMode auth) => auth switch
     {
         AuthMode.SqlLogin => "SQL login",
+        AuthMode.EntraMfa => "Microsoft Entra MFA",
         _ => "Windows",
     };
 }
