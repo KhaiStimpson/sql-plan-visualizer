@@ -149,10 +149,9 @@ built until connecting and capturing are separate. ~6 tasks; task 1 already land
       `SelectedObjectContext = null`, `QueryStoreMessage = null`, and `NotifyConnectionChanged()`.
       *(`MainViewModel.Disconnect()` + `IsConnected`; `DisconnectButton` shows only when
       connected. App launches clean; server round-trip pending in handoff.)*
-- [ ] Extend `ConnectionSettings.Describe()` to name the auth mode when connected (e.g.
+- [x] Extend `ConnectionSettings.Describe()` to name the auth mode when connected (e.g.
       `server · db · Windows`, `server · db · SQL login`) and keep returning "Not connected" after
-      `Reset()`. Manually verify the readout text in the Windows, SQL-login, and disconnected
-      states.
+      `Reset()`. *(`AuthLabel` switch appended to `Describe()`. Readout text pending in handoff.)*
 
 ## Phase 2 — Microsoft Entra MFA
 

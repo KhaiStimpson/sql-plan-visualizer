@@ -18,6 +18,9 @@ Recorded in the plan's Ground rules.
 - **Phase 1 task 5:** connect, open Query Store (populates), click **Disconnect** — readout
   reverts to "Not connected", Disconnect button hides, Query Store / Re-run disable, Query
   Store list clears.
+- **Phase 1 task 6:** readout reads `server · db · Windows` on a Windows-auth connection,
+  `server · db · SQL login` on a SQL-auth connection, `Not connected` after Disconnect. Also
+  spot-check the captured-plan `SourceName` still reads sensibly (now includes the auth label).
 
 ## State
 - Plan rewritten against `main` (2026-09-01); catalog/editor wiring deferred (see plan Open

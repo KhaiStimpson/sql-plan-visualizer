@@ -42,10 +42,22 @@ public sealed class ConnectionSettings
         Auth = AuthMode.Windows;
     }
 
-    public string Describe() =>
-        string.IsNullOrWhiteSpace(Server)
-            ? "Not connected"
-            : $"{Server}{(string.IsNullOrWhiteSpace(Database) ? string.Empty : " · " + Database)}";
+    public string Describe()
+    {
+        if (string.IsNullOrWhiteSpace(Server))
+        {
+            return "Not connected";
+        }
+
+        var database = string.IsNullOrWhiteSpace(Database) ? string.Empty : " · " + Database;
+        return $"{Server}{database} · {AuthLabel(Auth)}";
+    }
+
+    private static string AuthLabel(AuthMode auth) => auth switch
+    {
+        AuthMode.SqlLogin => "SQL login",
+        _ => "Windows",
+    };
 }
 
 public enum CaptureMode
