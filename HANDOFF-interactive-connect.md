@@ -192,7 +192,15 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
   (`Save`/`Remove`/`Retrieve`/`Has`, resource `"SqlPlanViz"`, account `Server|UserId`, all paths
   try/catch). `ConnectView.Commit()` details path: `SqlLogin` + `RememberPasswordBox` checked →
   `Save`; else → `Remove`. Build green; credential round-trip verified via the snippet.
-- **t3-t6:** not started.
+- **t3 DONE:** `ConnectView.TryPrefillPassword(server, userId)` — on a vault hit sets
+  `PasswordBox.Password` and ticks `RememberPasswordBox`. Called from the constructor and from
+  `OnServerSuggestionChosen`. Build green.
+- **t4-t6:** not started.
+
+### Phase 5 — Live-server verification pending (user runs before merge)
+- **P5 t3/t6:** check "Remember password", connect for real, relaunch, pick the server from
+  `ServerBox` suggestions → `PasswordBox` prefills and "Remember password" is ticked.
+- **P5 t4/t6:** "Forget saved password", relaunch → no prefill.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.

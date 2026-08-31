@@ -32,6 +32,23 @@ public sealed partial class ConnectView : UserControl
         ConnectionStringBox.Text = settings.RawConnectionString;
         EntryModeBox.SelectedIndex = settings.UseConnectionString ? 1 : 0;
         ApplyEntryMode();
+        TryPrefillPassword(settings.Server, settings.UserId);
+    }
+
+    /// <summary>
+    /// If Windows Credential Manager holds a password for this server + login, fill
+    /// <c>PasswordBox</c> and tick "Remember password" so a re-commit keeps it stored.
+    /// </summary>
+    private void TryPrefillPassword(string server, string userId)
+    {
+        var stored = _passwords.Retrieve(server, userId);
+        if (stored is null)
+        {
+            return;
+        }
+
+        PasswordBox.Password = stored;
+        RememberPasswordBox.IsChecked = true;
     }
 
     /// <summary>
@@ -94,6 +111,7 @@ public sealed partial class ConnectView : UserControl
         DatabaseBox.Text = match.Database;
         UserBox.Text = match.UserId;
         AuthBox.SelectedIndex = AuthToIndex(match.Auth);
+        TryPrefillPassword(match.Server, match.UserId);
     }
 
     private List<string> DistinctServers(string? term)

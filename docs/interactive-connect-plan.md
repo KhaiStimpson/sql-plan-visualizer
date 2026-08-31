@@ -324,9 +324,13 @@ The one piece that reverses "nothing persisted" — strictly opt-in, OS-backed, 
       every path try/catch so a vault failure never breaks connecting. `ConnectView.Commit()`
       details path: for `SqlLogin` with `RememberPasswordBox` checked → `Save`; otherwise (or any
       other auth) → `Remove`. Build green; credential write/read/delete verified via the snippet.)*
-- [ ] When the dialog opens or a recent-connection suggestion is selected, if a vault credential
+- [x] When the dialog opens or a recent-connection suggestion is selected, if a vault credential
       exists for that `Server` + `UserId`, read it back and prefill `PasswordBox`. Manually
       verify prefill after relaunch.
+      *(New `TryPrefillPassword(server, userId)` — on a hit sets `PasswordBox.Password` and ticks
+      `RememberPasswordBox` so a re-commit keeps the entry. Called from the constructor (with the
+      incoming `settings`) and from `OnServerSuggestionChosen` (with the matched `RecentConnection`).
+      Build green. Prefill-after-real-relaunch on the live-server pending list.)*
 - [ ] Add a "Forget saved password" button beside the checkbox, enabled only when a credential
       exists for the current `Server` + `UserId`, that removes it from the vault. Manually verify
       the next launch no longer prefills.
