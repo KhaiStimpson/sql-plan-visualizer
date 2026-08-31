@@ -311,10 +311,19 @@ The one piece that reverses "nothing persisted" — strictly opt-in, OS-backed, 
       *(`SqlAuthPanel` changed from `Grid` to `StackPanel` wrapping the login/password `Grid` plus a
       new `RememberPasswordBox` `CheckBox` (unchecked by default). `OnAuthChanged` still toggles
       `SqlAuthPanel.Visibility` so the checkbox shows only for `SqlLogin` (index 1). Build green.)*
-- [ ] On `Commit()` when checked, write the password to
+- [x] On `Commit()` when checked, write the password to
       `Windows.Security.Credentials.PasswordVault` keyed by `Server` + `UserId`; when unchecked,
       remove any existing entry for that key. Confirm `PasswordVault` works for an unpackaged app
       (see Open questions) as the first step of this task. Build gate only.
+      *(**Open question RESOLVED — `PasswordVault` is used, not DPAPI.** A throwaway console app on
+      the same TFM (`net8.0-windows10.0.19041.0`, unpackaged) did `vault.Add` → `Retrieve` →
+      `RetrievePassword` → `Remove` and the round-trip succeeded, so no package identity is needed
+      here and the DPAPI `ProtectedData` fallback was not required. Recorded in a class comment on
+      `PasswordVaultStore`. New `src/SqlPlanViz/Capture/PasswordVaultStore.cs` —
+      `Save`/`Remove`/`Retrieve`/`Has` keyed by resource `"SqlPlanViz"` + account `Server|UserId`,
+      every path try/catch so a vault failure never breaks connecting. `ConnectView.Commit()`
+      details path: for `SqlLogin` with `RememberPasswordBox` checked → `Save`; otherwise (or any
+      other auth) → `Remove`. Build green; credential write/read/delete verified via the snippet.)*
 - [ ] When the dialog opens or a recent-connection suggestion is selected, if a vault credential
       exists for that `Server` + `UserId`, read it back and prefill `PasswordBox`. Manually
       verify prefill after relaunch.

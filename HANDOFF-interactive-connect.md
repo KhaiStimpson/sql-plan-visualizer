@@ -184,9 +184,15 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
   the login/password `Grid` plus a new `RememberPasswordBox` `CheckBox` (unchecked by default,
   tooltip explains Credential Manager storage). `OnAuthChanged` still toggles `SqlAuthPanel`
   visibility, so the checkbox is visible only for `SqlLogin`. Build green.
-- **t2-t6:** not started. t2 carries the `PasswordVault`-unpackaged open question (confirm it
-  works unpackaged as the first step, else fall back to DPAPI `ProtectedData`/CurrentUser over a
-  JSON file in `%LOCALAPPDATA%\SqlPlanViz`).
+- **t2 DONE — open question RESOLVED:** **`PasswordVault` is the mechanism, not DPAPI.** A
+  throwaway console app on the app's exact TFM (`net8.0-windows10.0.19041.0`, unpackaged) ran
+  `vault.Add` → `Retrieve` → `RetrievePassword` → `Remove` successfully, so no package identity is
+  needed and the DPAPI (`ProtectedData`/CurrentUser) fallback was not used. Recorded in a class
+  comment on `PasswordVaultStore`. New `src/SqlPlanViz/Capture/PasswordVaultStore.cs`
+  (`Save`/`Remove`/`Retrieve`/`Has`, resource `"SqlPlanViz"`, account `Server|UserId`, all paths
+  try/catch). `ConnectView.Commit()` details path: `SqlLogin` + `RememberPasswordBox` checked →
+  `Save`; else → `Remove`. Build green; credential round-trip verified via the snippet.
+- **t3-t6:** not started.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.

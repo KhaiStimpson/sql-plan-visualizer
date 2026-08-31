@@ -13,6 +13,7 @@ public sealed partial class ConnectView : UserControl
     private readonly ConnectionSettings _settings;
     private readonly PlanCaptureService _capture = new();
     private readonly RecentConnectionsStore _recent = new();
+    private readonly PasswordVaultStore _passwords = new();
     private readonly IReadOnlyList<RecentConnection> _recentConnections;
 
     public ConnectView(ConnectionSettings settings)
@@ -185,6 +186,17 @@ public sealed partial class ConnectView : UserControl
         // Record() no-ops on a blank server and caps the list at 10.
         _recent.Record(new RecentConnection(
             _settings.Server, _settings.Database, _settings.UserId, _settings.Auth));
+
+        // Opt-in password storage (Phase 5): only for SQL login, only when the box is checked.
+        // Unchecked (or any other auth) removes any previously stored entry for this key.
+        if (_settings.Auth == AuthMode.SqlLogin && RememberPasswordBox.IsChecked == true)
+        {
+            _passwords.Save(_settings.Server, _settings.UserId, _settings.Password);
+        }
+        else
+        {
+            _passwords.Remove(_settings.Server, _settings.UserId);
+        }
     }
 
     private async void OnTestConnection(object sender, RoutedEventArgs e)
