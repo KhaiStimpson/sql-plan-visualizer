@@ -143,12 +143,12 @@ built until connecting and capturing are separate. ~6 tasks; task 1 already land
       `NotifyConnectionChanged()` raises, since `Describe()` is a method not a bindable property).
       *(`ConnectionReadout` TextBlock in the command strip, raised from `NotifyConnectionChanged`
       and after capture. App launches clean; server round-trip pending in handoff.)*
-- [ ] Add `ConnectionSettings.Reset()` (clears `Server`, `Database`, `UserId`, `Password`, resets
+- [x] Add `ConnectionSettings.Reset()` (clears `Server`, `Database`, `UserId`, `Password`, resets
       `Auth` to `Windows`) and a "Disconnect" control next to the status readout that calls it,
       then clears connection-derived VM state: `QueryStorePlans.Clear()`,
       `SelectedObjectContext = null`, `QueryStoreMessage = null`, and `NotifyConnectionChanged()`.
-      Manually verify: connect, open Query Store (populates), Disconnect — readout shows "Not
-      connected", Query Store browser disables, re-run is disabled.
+      *(`MainViewModel.Disconnect()` + `IsConnected`; `DisconnectButton` shows only when
+      connected. App launches clean; server round-trip pending in handoff.)*
 - [ ] Extend `ConnectionSettings.Describe()` to name the auth mode when connected (e.g.
       `server · db · Windows`, `server · db · SQL login`) and keep returning "Not connected" after
       `Reset()`. Manually verify the readout text in the Windows, SQL-login, and disconnected

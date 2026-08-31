@@ -95,6 +95,8 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Command-strip readout of the live connection; raised by <see cref="NotifyConnectionChanged"/>.</summary>
     public string ConnectionDescription => Connection.Describe();
 
+    public bool IsConnected => !string.IsNullOrWhiteSpace(Connection.Server);
+
     public bool HasSessionPlans => SessionPlans.Count > 0;
 
     public bool CanCompare => SessionPlans.Count >= 2;
@@ -222,6 +224,18 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanRerun));
         OnPropertyChanged(nameof(CanBrowseQueryStore));
         OnPropertyChanged(nameof(ConnectionDescription));
+        OnPropertyChanged(nameof(IsConnected));
+    }
+
+    /// <summary>Disconnect: reset the connection and drop every surface derived from it.</summary>
+    public void Disconnect()
+    {
+        Connection.Reset();
+        QueryStorePlans.Clear();
+        SelectedObjectContext = null;
+        QueryStoreMessage = null;
+        OnPropertyChanged(nameof(HasQueryStorePlans));
+        NotifyConnectionChanged();
     }
 
     public async Task CaptureAsync(string query, CaptureMode mode, CancellationToken cancellationToken = default)
@@ -241,6 +255,7 @@ public sealed partial class MainViewModel : ObservableObject
             SetPlan(plan, sourcePath: null);
             OnPropertyChanged(nameof(CanRerun));
             OnPropertyChanged(nameof(ConnectionDescription));
+            OnPropertyChanged(nameof(IsConnected));
         }
         catch (PlanCaptureException ex)
         {

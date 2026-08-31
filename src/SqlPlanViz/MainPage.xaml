@@ -104,6 +104,17 @@
                         Text="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}"
                         TextTrimming="CharacterEllipsis"
                         ToolTipService.ToolTip="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}" />
+                    <Button
+                        x:Name="DisconnectButton"
+                        Margin="4,0,0,0"
+                        Click="OnDisconnect"
+                        ToolTipService.ToolTip="Disconnect from the current server"
+                        Visibility="{x:Bind ViewModel.IsConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <FontIcon
+                            FontFamily="Segoe Fluent Icons"
+                            FontSize="14"
+                            Glyph="&#xE8CB;" />
+                    </Button>
                 </StackPanel>
 
                 <ComboBox

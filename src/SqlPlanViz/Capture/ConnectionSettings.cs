@@ -32,6 +32,16 @@ public sealed class ConnectionSettings
 
     public int CommandTimeoutSeconds { get; set; } = 60;
 
+    /// <summary>Tears the connection back down to its defaults (the Disconnect action).</summary>
+    public void Reset()
+    {
+        Server = string.Empty;
+        Database = string.Empty;
+        UserId = string.Empty;
+        Password = string.Empty;
+        Auth = AuthMode.Windows;
+    }
+
     public string Describe() =>
         string.IsNullOrWhiteSpace(Server)
             ? "Not connected"

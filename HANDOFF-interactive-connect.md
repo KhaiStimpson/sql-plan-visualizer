@@ -15,6 +15,9 @@ Recorded in the plan's Ground rules.
   complete a real connection. (App confirmed to launch clean.)
 - **Phase 1 task 4:** command-strip readout shows "Not connected" at start; after Connect it
   shows `server · db`; after capture-from-server against a *different* server it updates again.
+- **Phase 1 task 5:** connect, open Query Store (populates), click **Disconnect** — readout
+  reverts to "Not connected", Disconnect button hides, Query Store / Re-run disable, Query
+  Store list clears.
 
 ## State
 - Plan rewritten against `main` (2026-09-01); catalog/editor wiring deferred (see plan Open

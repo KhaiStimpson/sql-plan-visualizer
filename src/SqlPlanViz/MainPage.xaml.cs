@@ -314,6 +314,8 @@ public sealed partial class MainPage : Page
         ViewModel.NotifyConnectionChanged();
     }
 
+    private void OnDisconnect(object sender, RoutedEventArgs e) => ViewModel.Disconnect();
+
     private async void OnCapture(object sender, RoutedEventArgs e)
     {
         var view = new ConnectView(ViewModel.Connection);
