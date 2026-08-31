@@ -293,6 +293,29 @@ public sealed partial class MainPage : Page
 
     private async void OnConnect(object sender, RoutedEventArgs e)
     {
+        var view = new ConnectView(ViewModel.Connection) { ConnectOnly = true };
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = "Connect to a SQL Server",
+            Content = view,
+            PrimaryButtonText = "Connect",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        view.Commit();
+        ViewModel.NotifyConnectionChanged();
+    }
+
+    private async void OnCapture(object sender, RoutedEventArgs e)
+    {
         var view = new ConnectView(ViewModel.Connection);
 
         var dialog = new ContentDialog

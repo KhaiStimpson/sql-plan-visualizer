@@ -210,6 +210,16 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Call after the connection settings change without a capture (the standalone Connect
+    /// flow), so the connection-derived surfaces re-evaluate against the new server.
+    /// </summary>
+    public void NotifyConnectionChanged()
+    {
+        OnPropertyChanged(nameof(CanRerun));
+        OnPropertyChanged(nameof(CanBrowseQueryStore));
+    }
+
     public async Task CaptureAsync(string query, CaptureMode mode, CancellationToken cancellationToken = default)
     {
         ErrorMessage = null;
