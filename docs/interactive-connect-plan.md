@@ -372,7 +372,9 @@ One-click reconnect to a named server config. The "reassess" item from the brain
 
 ## Open questions
 
-- [ ] **Blocking for Phase 4 task 1 / Phase 5 task 2:** unpackaged WinUI 3 storage APIs.
+- [x] **Blocking for Phase 4 task 1 / Phase 5 task 2:** unpackaged WinUI 3 storage APIs.
+      *(RESOLVED. Phase 4: plain `LocalApplicationData` JSON file works. Phase 5 task 2:
+      `PasswordVault` verified working unpackaged on this target — used directly, no DPAPI fallback.)*
       `ApplicationData.Current` and possibly `PasswordVault` throw or misbehave for an unpackaged
       app (`WindowsPackageType=None`). Phase 4 assumes a plain `LocalApplicationData` JSON file;
       Phase 5 task 2 must confirm `PasswordVault` is usable unpackaged (it generally is, but needs

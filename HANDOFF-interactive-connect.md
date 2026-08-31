@@ -179,7 +179,13 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
 - **t5:** reword the `InfoBar` again to cover the opt-in stored-password case.
 - **t6:** end-to-end live verification → pending list.
 
-## Phase 5 — Optional password storage (6 tasks) — IN PROGRESS
+## Phase 5 — Optional password storage (6 tasks) — CODE COMPLETE (t1-5 ticked; t6 live-only)
+Phase boundary reached. All code tasks done on green builds; t6 is purely live-server manual
+verification with no code component — the plan's "hand off part-done" case.
+**Credential mechanism: `Windows.Security.Credentials.PasswordVault`** (NOT DPAPI) — the
+unpackaged round-trip check in t2 passed, so no package identity is needed and the
+`ProtectedData` fallback was never used. Recorded in a class comment on `PasswordVaultStore`.
+
 - **t1 DONE:** `SqlAuthPanel` in `ConnectView.xaml` changed from `Grid` to `StackPanel` wrapping
   the login/password `Grid` plus a new `RememberPasswordBox` `CheckBox` (unchecked by default,
   tooltip explains Credential Manager storage). `OnAuthChanged` still toggles `SqlAuthPanel`
@@ -211,6 +217,30 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
   `ServerBox` suggestions → `PasswordBox` prefills and "Remember password" is ticked.
 - **P5 t4/t6:** "Forget saved password", relaunch → no prefill.
 
+## Phase 5 — FINAL STATUS
+- **Ticked: t1, t2, t3, t4, t5** — build green at every step; app launches clean.
+- **NOT ticked: t6** — purely live-server end-to-end, no code component. On the pending list.
+- **Open question RESOLVED:** `PasswordVault` works unpackaged on this target (t2 snippet
+  round-trip: `Add` → `Retrieve` → `RetrievePassword` → `Remove`). Mechanism = `PasswordVault`,
+  not DPAPI; no `ProtectedData` fallback needed. Documented in the `PasswordVaultStore` class
+  comment and the plan's t2 tick note.
+- New file: `src/SqlPlanViz/Capture/PasswordVaultStore.cs`.
+- `ConnectView`: `RememberPasswordBox` + `ForgetPasswordButton` in `SqlAuthPanel` (now a
+  `StackPanel`); `Commit()` save/remove on the SqlLogin path; `TryPrefillPassword` on open and
+  suggestion-chosen; `UpdateForgetPasswordState` gates the button; InfoBar reworded.
+
+## What Phase 6 needs (do NOT start it here)
+Phase 6 = named connection profiles: a separate `ConnectionProfileStore` holding the full config
+(Server, Database, Auth incl. `EntraMfa`, Encrypt, TrustServerCertificate, UserId, "password is
+vaulted" + "is raw connection string" flags); a "Save as…" affordance in `ConnectView`; a profile
+picker that loads every field (pulling the vaulted password via `PasswordVaultStore` when the flag
+is set); rename/delete; one-click profile entries in the empty-state panel (around
+`MainPage.xaml:501`). `PasswordVaultStore` and `RecentConnectionsStore` are reusable as-is.
+Phase 6 is explicitly droppable/deferrable per the plan.
+
+## Phase boundary — STOP after Phase 5
+Phase 5 code is complete (t1-5 ticked, t6 live-only). Do NOT start Phase 6.
+
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.
 - No test project — build is the gate.
@@ -222,7 +252,7 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
 - Catalog-completion / editor integration out of scope here (deferred — plan Open questions).
 
 ## Open questions
-- Unpackaged WinUI 3 storage APIs — **Phase 4 side RESOLVED** (plain `LocalApplicationData` JSON
-  file works, no package identity needed). **Phase 5 task 2 side still open:** confirm
-  `PasswordVault` works unpackaged or fall back to DPAPI — resolve inside that task.
+- Unpackaged WinUI 3 storage APIs — **RESOLVED both sides.** Phase 4: plain `LocalApplicationData`
+  JSON file works, no package identity needed. Phase 5 task 2: `PasswordVault` works unpackaged on
+  this target (verified round-trip) — used directly, no DPAPI fallback.
 - Persistent MSAL token cache — decided by Phase 2 task 6.
