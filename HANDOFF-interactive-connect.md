@@ -2,6 +2,133 @@
 
 Branch: `claude/interactive-connect`, cut off `main`. PR targets `main`.
 
+---
+
+# EFFORT COMPLETE — FINAL HANDOFF (2026-09-01)
+
+All six phases are code-complete. Every code task across Phases 1–6 is ticked on a green build
+plus non-server checks (compiles, XAML parses, clean `dotnet run` launch, and — for the three
+stores — isolated read/write/rename/delete/edge-case runs). The only unticked tasks are the
+per-phase **live-server end-to-end verifications**, which the loop cannot perform: they are all
+listed under "COMPLETE live-server verification checklist" below. The user must run every one
+before merging.
+
+## What was built (feature as it stands on the branch)
+
+Connecting to SQL Server is now a first-class action, separate from capturing a plan:
+
+- **Connect vs Capture split.** The command strip has a **Connect** button (`ConnectView` with
+  `ConnectOnly = true` — no query box / mode picker) that opens a connection and lights up the
+  connection-dependent surfaces via `MainViewModel.NotifyConnectionChanged()`, without capturing.
+  Capture-from-server stays on the empty-state panel.
+- **Connection status + Disconnect.** A `ConnectionReadout` TextBlock in the command strip shows
+  `server · db · <auth>` (or a parsed summary for a pasted string, or "Not connected"); a
+  `DisconnectButton` (visible only while connected) calls `MainViewModel.Disconnect()` →
+  `ConnectionSettings.Reset()` and clears Query Store plans, object context and messages.
+- **Microsoft Entra MFA auth.** `AuthMode.EntraMfa` → `SqlAuthenticationMethod.ActiveDirectoryInteractive`.
+  A custom `SqlAuthenticationProvider` (`src/SqlPlanViz/Capture/InteractiveAuthProvider.cs`) calls
+  MSAL directly (`AcquireTokenSilent` → `AcquireTokenInteractive` with
+  `.WithParentActivityOrWindow(() => hwnd)`) so the MFA popup anchors to the app window, registered
+  once in `App.OnLaunched`. Other Entra sub-modes are deliberately deferred to connection-string
+  mode.
+- **Connection-string mode.** An entry-mode toggle in `ConnectView` swaps the details form for a
+  single multiline box; a pasted ADO.NET string is authoritative (parsed/validated via
+  `SqlConnectionStringBuilder`, `ApplicationName`/`ConnectTimeout` injected only if absent, parse
+  failure → `PlanCaptureException`).
+- **Recent connections.** `RecentConnectionsStore` — JSON at
+  `%LOCALAPPDATA%\SqlPlanViz\recent-connections.json`, up to 10 `{Server,Database,UserId,Auth}`
+  entries (never a password), MRU, deduped by server+database. `ServerBox`/`DatabaseBox` are
+  `AutoSuggestBox`es sourced from it; choosing a server prefills database/login/auth.
+- **Optional password storage.** `PasswordVaultStore` — Windows Credential Manager
+  (`PasswordVault`, verified working unpackaged), opt-in via a "Remember password" checkbox,
+  revocable via "Forget saved password", prefilled on dialog open / suggestion choice. Never
+  plaintext to disk.
+- **Named connection profiles (Phase 6).** `ConnectionProfileStore` — JSON at
+  `%LOCALAPPDATA%\SqlPlanViz\connection-profiles.json`, user-named `ConnectionProfile` holding the
+  full config (Server, Database, Auth incl. `EntraMfa`, UserId, Encrypt, TrustServerCertificate,
+  `PasswordIsVaulted`, `IsRawConnectionString`, RawConnectionString — never a password).
+  `ConnectView` has a "Load a saved profile" picker, a "Save as profile" affordance, and inline
+  Rename/Delete. The empty-state panel shows one **one-click connect button per profile**
+  (`ConnectionSettings.ApplyProfile` pulls the vaulted password when flagged; no dialog).
+
+New files: `InteractiveAuthProvider.cs`, `RecentConnectionsStore.cs`, `PasswordVaultStore.cs`,
+`ConnectionProfileStore.cs` (all in `src/SqlPlanViz/Capture/`).
+
+## Two notable decisions
+
+1. **`Microsoft.Data.SqlClient` 5.2.2 → 6.1.2** (commit `e7a3afd`). Taken as a maintenance/security
+   update; also the baseline against which the Entra provider work was verified. Launches clean.
+2. **The "no hand-rolled MSAL" rule was LIFTED.** `Microsoft.Data.SqlClient`'s bundled
+   `ActiveDirectoryAuthenticationProvider` exposes no parent-window hook at any version
+   (reflection-verified over 6.1.2 and 7.0.1). Anchoring the MFA popup to the app window *requires*
+   a custom `SqlAuthenticationProvider` over MSAL (`Microsoft.Identity.Client`, promoted to an
+   explicit `PackageReference` at 4.73.1 — the exact version already transitive via
+   `Azure.Identity` 1.14.2, so no new dependency subtree).
+
+## Deferred follow-up (not in this effort)
+
+Wiring `Connect` / `Disconnect` into the catalog-completion providers and the plan-editor parser.
+That infrastructure is on the live-plan-editor branch, not `main`; a one-line task adds the hooks
+once it lands. Also non-blocking: a **persistent MSAL token cache** across app restarts — becomes
+its own phase only if Phase 2 task 6 finds MFA re-prompts every launch and that is painful.
+
+## COMPLETE live-server verification checklist (user runs ALL before merge)
+
+### Phase 1
+- Command-strip Connect → real server → Connect: Query Store browser enables and lists plans with
+  no plan captured.
+- Connect opens the connect-only dialog (no query box / mode picker); empty-state "Capture from
+  server" opens the full capture dialog; both complete a real connection.
+- Readout "Not connected" → `server · db` after Connect → updates again after capture-from-server
+  against a *different* server.
+- Connect, populate Query Store, Disconnect → readout "Not connected", button hides, Query
+  Store/Re-run disable, list clears.
+- Readout shows `· Windows` vs `· SQL login`; captured-plan `SourceName` still reads sensibly.
+
+### Phase 2 (needs a real Entra-secured Azure SQL / Managed Instance)
+- Regression: after the 5.2.2 → 6.1.2 bump, ordinary Windows-auth and SQL-login capture against a
+  live server still produce a plan.
+- UI (no server): Connect dialog — auth "Microsoft Entra MFA" hides login/password; back to "SQL
+  Server Authentication" restores them; "Windows" shows neither.
+- The MFA popup (from `InteractiveAuthProvider`) appears anchored to the app window and "Test
+  connection" succeeds; a second connect in the same session is silent (MSAL in-memory cache).
+- Entra MFA connect from the command-strip Connect button makes the Query Store browser live;
+  capture-from-server with Entra MFA still produces a plan.
+- **P2 t6:** confirm repeat connects within one session do not re-prompt for MFA, then record the
+  observed behaviour as a comment near `AuthMode` in `ConnectionSettings.cs` — that comment
+  decides whether the persistent MSAL token-cache item becomes its own phase.
+
+### Phase 3
+- UI (no server): Connect → "Paste connection string" hides the details form and shows one
+  multiline box; back to "Enter details" restores the form.
+- A pasted string connects; the status readout shows the right `server · db · connection string`.
+- A known-good Entra string and a known-good SQL-auth string both connect via "Test connection";
+  a malformed string shows a clear error; toggling back to details mode restores form editing.
+
+### Phase 4
+- Connect to two different servers for real, relaunch, open Connect — both appear as `ServerBox`
+  suggestions and picking one prefills server/database/login/auth.
+
+### Phase 5
+- Check "Remember password", connect for real, relaunch, pick the server from suggestions →
+  `PasswordBox` prefills and "Remember password" is ticked.
+- "Forget saved password", relaunch → no prefill.
+
+### Phase 6
+- "Save as profile" with a real form → the profile persists and reloads after relaunch, and
+  picking it from the `ConnectView` profile picker restores every field (and the password when
+  vaulted).
+- Rename a profile (type the new name in the profile-name box, click Rename) and delete a profile
+  from the picker; both survive relaunch.
+- With saved profiles, the empty-state panel shows one button per profile; clicking one connects
+  (Query Store browser goes live) without opening the dialog; a profile carrying a vaulted
+  password connects with SQL auth silently.
+- **P6 t6:** create a prod (Entra MFA) profile and a local (SQL auth + remembered password)
+  profile, relaunch, connect to each from both the dialog picker and the empty-state list.
+
+---
+
+
 ## Phase 1 — COMPLETE (all 6 tasks ticked)
 Connecting and capturing are now separate:
 - `ConnectView.ConnectOnly` collapses the query box + mode picker.
@@ -229,7 +356,7 @@ unpackaged round-trip check in t2 passed, so no package identity is needed and t
   `StackPanel`); `Commit()` save/remove on the SqlLogin path; `TryPrefillPassword` on open and
   suggestion-chosen; `UpdateForgetPasswordState` gates the button; InfoBar reworded.
 
-## What Phase 6 needs (do NOT start it here)
+## What Phase 6 needed (historical prep note — Phase 6 is now DONE, see top)
 Phase 6 = named connection profiles: a separate `ConnectionProfileStore` holding the full config
 (Server, Database, Auth incl. `EntraMfa`, Encrypt, TrustServerCertificate, UserId, "password is
 vaulted" + "is raw connection string" flags); a "Save as…" affordance in `ConnectView`; a profile
