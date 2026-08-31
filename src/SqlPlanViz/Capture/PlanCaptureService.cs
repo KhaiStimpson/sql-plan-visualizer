@@ -173,6 +173,11 @@ public sealed class PlanCaptureService
 
     internal static string BuildConnectionString(ConnectionSettings settings)
     {
+        if (!string.IsNullOrWhiteSpace(settings.RawConnectionString))
+        {
+            return BuildFromRawConnectionString(settings.RawConnectionString.Trim());
+        }
+
         if (string.IsNullOrWhiteSpace(settings.Server))
         {
             throw new PlanCaptureException("Enter a server name.");
@@ -209,6 +214,36 @@ public sealed class PlanCaptureService
                 builder.UserID = settings.UserId;
                 builder.Password = settings.Password;
                 break;
+        }
+
+        return builder.ConnectionString;
+    }
+
+    /// <summary>
+    /// Connection-string mode: parse the pasted ADO.NET string verbatim (this validates and
+    /// normalises it), only supplying <c>ApplicationName</c> / <c>ConnectTimeout</c> when the
+    /// string does not already set them.
+    /// </summary>
+    private static string BuildFromRawConnectionString(string raw)
+    {
+        SqlConnectionStringBuilder builder;
+        try
+        {
+            builder = new SqlConnectionStringBuilder(raw);
+        }
+        catch (Exception ex) when (ex is ArgumentException or FormatException or KeyNotFoundException)
+        {
+            throw new PlanCaptureException($"That connection string could not be parsed: {ex.Message}", ex);
+        }
+
+        if (!builder.ContainsKey("Application Name"))
+        {
+            builder.ApplicationName = "SQL Plan Visualizer";
+        }
+
+        if (!builder.ContainsKey("Connect Timeout"))
+        {
+            builder.ConnectTimeout = 15;
         }
 
         return builder.ConnectionString;

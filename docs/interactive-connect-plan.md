@@ -235,11 +235,16 @@ a short phase (4 tasks) — not padded.**
       controls) vs `ConnectionStringBox` (collapsed multiline TextBox) via `ApplyEntryMode()`;
       constructor prefills both and calls `ApplyEntryMode()`; `Commit()` persists string + mode.
       Build green, app launches clean. Interactive toggle show/hide check pending in handoff.)*
-- [ ] Branch `PlanCaptureService.BuildConnectionString`: when `RawConnectionString` is non-empty,
+- [x] Branch `PlanCaptureService.BuildConnectionString`: when `RawConnectionString` is non-empty,
       build `new SqlConnectionStringBuilder(raw)` (this validates and normalises), inject
       `ApplicationName` / `ConnectTimeout` only if absent, and return it; a parse failure becomes
       a `PlanCaptureException` with a readable message. Otherwise the existing field path. Build
       gate only.
+      *(New `BuildFromRawConnectionString(raw)` helper, called first thing in
+      `BuildConnectionString` when the raw string is non-empty. `new SqlConnectionStringBuilder(raw)`
+      wrapped in try/catch (`ArgumentException`/`FormatException`/`KeyNotFoundException` →
+      `PlanCaptureException`). `ApplicationName`/`ConnectTimeout` set only when
+      `builder.ContainsKey` is false. Build green.)*
 - [ ] Make connection-string mode authoritative when active: `Commit()` records only
       `RawConnectionString`, and `Describe()` shows the `DataSource` / `InitialCatalog` parsed
       from it. Manually verify the status readout shows the right server/db after connecting via a

@@ -86,12 +86,14 @@ Build green at every task. No live-server testing was done (see below).
   wrapping the server/db grid, `AuthBox`, `SqlAuthPanel`, encrypt/trust panel) against a
   collapsed multiline `ConnectionStringBox`. Constructor prefills text + mode and calls
   `ApplyEntryMode()`; `Commit()` persists both. Build green, `dotnet run` launches clean.
-- **t2 (next):** branch `PlanCaptureService.BuildConnectionString` for the raw string —
-  `new SqlConnectionStringBuilder(raw)` to validate/normalise, inject `ApplicationName` /
-  `ConnectTimeout` only if absent, parse failure → `PlanCaptureException`. Build gate only.
-- **t3:** make connection-string mode authoritative — `Commit()` records only
-  `RawConnectionString` when active; `Describe()` shows `DataSource`/`InitialCatalog` parsed
-  from it.
+- **t2 DONE:** `BuildConnectionString` now short-circuits to `BuildFromRawConnectionString(raw)`
+  when `RawConnectionString` is non-empty — parses via `new SqlConnectionStringBuilder(raw)`
+  (try/catch → `PlanCaptureException`), sets `ApplicationName`/`ConnectTimeout` only when not
+  already present. Build green.
+- **t3 (next):** make connection-string mode authoritative — `Commit()` records only
+  `RawConnectionString` when active (clear the field values, or leave them — plan says "records
+  only `RawConnectionString`"); `Describe()` shows `DataSource`/`InitialCatalog` parsed from it.
+  Note `Commit()` currently always writes both; `t1` added `UseConnectionString` for this.
 - **t4:** entirely live-server manual verification → goes on the pending list.
 
 ## Phase 3 — Live-server verification pending (user runs before merge)
