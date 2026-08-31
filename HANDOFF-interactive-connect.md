@@ -128,9 +128,11 @@ live-server manual verification with no code component — the plan's "hand off 
   JSON approach compiles and is the right call; nothing about it needs a package identity. Phase 5
   task 2 still needs to confirm `PasswordVault` separately.
 
+- **t2 DONE:** `ConnectView` has a `RecentConnectionsStore _recent`; details-mode `Commit()` ends
+  with `_recent.Record(new RecentConnection(Server, Database, UserId, Auth))`. Connection-string
+  mode returns before that (pasted string may embed a password). Build green.
+
 ### Phase 4 — remaining tasks
-- t2: call the store from `ConnectView.Commit()` on every successful commit; skip/redact in
-  connection-string mode. Build gate only.
 - t3: `ServerBox`/`DatabaseBox` `TextBox` → `AutoSuggestBox` sourced from the store; selecting a
   suggestion prefills Database/Login/Auth. Non-server UI check.
 - t4: reword `ConnectView` `InfoBar` — recent servers/logins remembered on this PC, passwords

@@ -12,6 +12,7 @@ public sealed partial class ConnectView : UserControl
 {
     private readonly ConnectionSettings _settings;
     private readonly PlanCaptureService _capture = new();
+    private readonly RecentConnectionsStore _recent = new();
 
     public ConnectView(ConnectionSettings settings)
     {
@@ -101,6 +102,8 @@ public sealed partial class ConnectView : UserControl
             _settings.Reset();
             _settings.UseConnectionString = true;
             _settings.RawConnectionString = ConnectionStringBox.Text.Trim();
+            // Connection-string mode: skip the recent list — the pasted string may embed a
+            // password, and it is not a form target worth suggesting back.
             return;
         }
 
@@ -113,6 +116,11 @@ public sealed partial class ConnectView : UserControl
         _settings.TrustServerCertificate = TrustCertBox.IsChecked == true;
         _settings.RawConnectionString = string.Empty;
         _settings.UseConnectionString = false;
+
+        // Remember this target (server / database / login / auth — never the password).
+        // Record() no-ops on a blank server and caps the list at 10.
+        _recent.Record(new RecentConnection(
+            _settings.Server, _settings.Database, _settings.UserId, _settings.Auth));
     }
 
     private async void OnTestConnection(object sender, RoutedEventArgs e)

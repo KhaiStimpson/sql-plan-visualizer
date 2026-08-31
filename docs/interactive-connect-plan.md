@@ -278,8 +278,12 @@ Stop retyping the server every session. First write of connection info to disk.
       subfolder, swallows IO failures). Enum persisted as string. Ctor overload takes an explicit
       path for exercising. Build green; read/write/dedup/cap-10/most-recent-first reasoned through
       — no server needed.)*
-- [ ] Call the store from `ConnectView.Commit()` to record the current connection on every
+- [x] Call the store from `ConnectView.Commit()` to record the current connection on every
       successful commit; skip or redact when connection-string mode is active. Build gate only.
+      *(`ConnectView` gains a `RecentConnectionsStore _recent = new()`; the details-mode path of
+      `Commit()` ends with `_recent.Record(new RecentConnection(Server, Database, UserId, Auth))`
+      (no-ops on blank server, caps at 10). Connection-string mode returns early before the
+      Record call — comment notes the pasted string may embed a password. Build green.)*
 - [ ] Change `ServerBox` and `DatabaseBox` from `TextBox` to `AutoSuggestBox`, sourced from the
       store and loaded when the dialog opens; selecting a suggestion prefills Database, Login, and
       Auth from the matching entry. Manually verify suggestions appear and prefill.
