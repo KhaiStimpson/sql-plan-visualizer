@@ -95,7 +95,7 @@ this section.
 A standalone Connect action plus a visible, tear-downable connection state. Nothing else can be
 built until connecting and capturing are separate.
 
-- [ ] Add a connect-only mode to `ConnectView` (constructor flag or settable property) that
+- [x] Add a connect-only mode to `ConnectView` (constructor flag or settable property) that
       collapses the `QueryBox` and the `ModeButtons` radio group and changes nothing else. Build
       gate only.
 - [ ] Add an `OnConnect` handler in `MainPage` distinct from capture: rename the current

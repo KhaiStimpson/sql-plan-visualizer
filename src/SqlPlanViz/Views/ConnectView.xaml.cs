@@ -26,6 +26,24 @@ public sealed partial class ConnectView : UserControl
         AuthBox.SelectedIndex = settings.Auth == AuthMode.SqlLogin ? 1 : 0;
     }
 
+    /// <summary>
+    /// When true the view is for opening a connection only — the query editor and the
+    /// actual/estimated mode picker are hidden. Everything else is unchanged.
+    /// </summary>
+    public bool ConnectOnly
+    {
+        get => _connectOnly;
+        set
+        {
+            _connectOnly = value;
+            var visibility = value ? Visibility.Collapsed : Visibility.Visible;
+            QueryBox.Visibility = visibility;
+            ModeButtons.Visibility = visibility;
+        }
+    }
+
+    private bool _connectOnly;
+
     public string Query => QueryBox.Text;
 
     public CaptureMode Mode =>
