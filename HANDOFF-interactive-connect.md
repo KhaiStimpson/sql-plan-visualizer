@@ -114,6 +114,29 @@ live-server manual verification with no code component — the plan's "hand off 
   connection"; a malformed string shows a clear error; toggling back to details mode restores
   form editing.
 
+## Phase 4 — Remember recent connections (5 tasks) — IN PROGRESS (t1 ticked)
+- **t1 DONE:** `src/SqlPlanViz/Capture/RecentConnectionsStore.cs`. `RecentConnection` record
+  (Server, Database, UserId, Auth — no password) + `RecentConnectionsStore`. JSON file at
+  `%LOCALAPPDATA%\SqlPlanViz\recent-connections.json` via
+  `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)` — **no `ApplicationData.Current`**.
+  `Load()` returns most-recent-first, never throws (missing/corrupt → empty). `Record(entry)`
+  front-inserts, dedups by Server+Database (OrdinalIgnoreCase), caps at 10 (`MaxEntries`), ignores
+  blank-server entries. `Save()` creates the subfolder and swallows IO/UnauthorizedAccess so a
+  disk failure never breaks connecting. Enum stored as string. A 2nd ctor takes an explicit path.
+  Build green. Store semantics reasoned through (no live server needed for this one).
+  **Unpackaged-storage open question — RESOLVED for Phase 4:** the plain `LocalApplicationData`
+  JSON approach compiles and is the right call; nothing about it needs a package identity. Phase 5
+  task 2 still needs to confirm `PasswordVault` separately.
+
+### Phase 4 — remaining tasks
+- t2: call the store from `ConnectView.Commit()` on every successful commit; skip/redact in
+  connection-string mode. Build gate only.
+- t3: `ServerBox`/`DatabaseBox` `TextBox` → `AutoSuggestBox` sourced from the store; selecting a
+  suggestion prefills Database/Login/Auth. Non-server UI check.
+- t4: reword `ConnectView` `InfoBar` — recent servers/logins remembered on this PC, passwords
+  never; keep it one sentence, consistent with Phase 2 task 7's copy.
+- t5: purely live-server — goes on the pending list.
+
 ## Phase boundary — STOP after Phase 3
 Phase 3 code is complete (t1-3 ticked, t4 live-only). Do NOT start Phase 4.
 **Phase 4 task 1 has a blocking open question:** unpackaged WinUI 3 storage APIs —

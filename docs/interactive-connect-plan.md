@@ -263,12 +263,21 @@ a short phase (4 tasks) — not padded.**
 
 Stop retyping the server every session. First write of connection info to disk.
 
-- [ ] Add a `RecentConnectionsStore` service that reads/writes a JSON file under the per-user
+- [x] Add a `RecentConnectionsStore` service that reads/writes a JSON file under the per-user
       local app-data folder (the app is **unpackaged** — use
       `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)` + an app subfolder, not
       `ApplicationData.Current`, which throws unpackaged — see Open questions). Up to 10 entries
       of `{ Server, Database, UserId, Auth }`, most-recent-first, de-duplicated by
       `Server` + `Database`. Never the password. Build gate only.
+      *(`src/SqlPlanViz/Capture/RecentConnectionsStore.cs` — `RecentConnection` record
+      (Server/Database/UserId/Auth, no password) + `RecentConnectionsStore`. File at
+      `%LOCALAPPDATA%\SqlPlanViz\recent-connections.json` via
+      `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)`; no `ApplicationData.Current`.
+      `Load()` (missing/corrupt → empty, never throws), `Record()` (front-insert, dedup by
+      Server+Database OrdinalIgnoreCase, cap 10, blank server ignored), `Save()` (creates the
+      subfolder, swallows IO failures). Enum persisted as string. Ctor overload takes an explicit
+      path for exercising. Build green; read/write/dedup/cap-10/most-recent-first reasoned through
+      — no server needed.)*
 - [ ] Call the store from `ConnectView.Commit()` to record the current connection on every
       successful commit; skip or redact when connection-string mode is active. Build gate only.
 - [ ] Change `ServerBox` and `DatabaseBox` from `TextBox` to `AutoSuggestBox`, sourced from the
