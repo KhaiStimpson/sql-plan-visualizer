@@ -339,8 +339,12 @@ The one piece that reverses "nothing persisted" — strictly opt-in, OS-backed, 
       and is called from `OnServerTextChanged`, the new `OnUserTextChanged`, and after a prefill
       hit. `OnForgetPassword` calls `_passwords.Remove`, clears `PasswordBox`, unchecks the box,
       re-evaluates. Build green. No-prefill-after-relaunch on the live pending list.)*
-- [ ] Reword the `ConnectView` `InfoBar` once more to cover the opt-in stored-password case.
+- [x] Reword the `ConnectView` `InfoBar` once more to cover the opt-in stored-password case.
       Build gate + visual check.
+      *(Now: "Recent servers and logins are remembered on this PC, a SQL password is never written
+      to disk and is kept only in Windows Credential Manager when you tick &quot;Remember
+      password&quot;, and Microsoft Entra sign-in tokens stay cached in memory until the app
+      closes." One sentence. Build green, app launches clean.)*
 - [ ] Manually verify end to end: check "Remember password", connect, relaunch, pick the server
       from suggestions, password prefills; "Forget saved password", relaunch, no prefill.
 

@@ -128,7 +128,7 @@
         <InfoBar
             IsClosable="False"
             IsOpen="True"
-            Message="Recent servers and logins are remembered on this PC, but passwords are never written to disk, though Microsoft Entra sign-in tokens stay cached in memory until the app closes."
+            Message="Recent servers and logins are remembered on this PC, a SQL password is never written to disk and is kept only in Windows Credential Manager when you tick &quot;Remember password&quot;, and Microsoft Entra sign-in tokens stay cached in memory until the app closes."
             Severity="Informational" />
     </StackPanel>
 </UserControl>

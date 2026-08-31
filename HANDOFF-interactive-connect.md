@@ -199,7 +199,12 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
   `UpdateForgetPasswordState()` (`_passwords.Has(server, userId)`) runs on server/login text
   changes and after a prefill. `OnForgetPassword` removes the vault entry, clears `PasswordBox`,
   unchecks the box. Build green.
-- **t5-t6:** not started (t5 = InfoBar reword, build+visual; t6 = live-only).
+- **t5 DONE:** `ConnectView` `InfoBar` reworded to one sentence covering the opt-in stored-password
+  case: "Recent servers and logins are remembered on this PC, a SQL password is never written to
+  disk and is kept only in Windows Credential Manager when you tick \"Remember password\", and
+  Microsoft Entra sign-in tokens stay cached in memory until the app closes." Build green, app
+  launches clean.
+- **t6:** NOT ticked — purely live-server end-to-end (on the pending list above). No code.
 
 ### Phase 5 — Live-server verification pending (user runs before merge)
 - **P5 t3/t6:** check "Remember password", connect for real, relaunch, pick the server from
