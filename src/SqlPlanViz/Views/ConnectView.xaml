@@ -32,6 +32,7 @@
             SelectionChanged="OnAuthChanged">
             <ComboBoxItem Content="Windows Authentication" />
             <ComboBoxItem Content="SQL Server Authentication" />
+            <ComboBoxItem Content="Microsoft Entra MFA" />
         </ComboBox>
 
         <Grid

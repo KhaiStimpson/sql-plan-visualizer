@@ -19,6 +19,14 @@ Connecting and capturing are now separate:
 Build green at every task. No live-server testing was done (see below).
 
 ## Live-server verification pending (user runs before merge)
+- **P2 t3 (UI, non-server):** open Connect, switch auth to "Microsoft Entra MFA" → login/password
+  fields hide; switch back to "SQL Server Authentication" → they return; "Windows" shows neither.
+- **P2 t4:** against a real Entra-secured Azure SQL / MI target, the MFA popup appears anchored to
+  the app window and "Test connection" succeeds.
+- **P2 t5:** Entra MFA connect from the command-strip Connect button makes the Query Store browser
+  live; capture-from-server with Entra MFA still produces a plan.
+- **P2 t6:** repeat connects within one session do not re-prompt for MFA (MSAL in-memory cache);
+  record observed behaviour as a comment near `AuthMode` in `ConnectionSettings.cs`.
 - **t2:** command-strip Connect → fill real server → Connect; Query Store browser enables and
   lists plans with no plan captured.
 - **t3:** Connect button opens connect-only dialog (no query box/mode picker); empty-state
@@ -35,7 +43,9 @@ Build green at every task. No live-server testing was done (see below).
   "Microsoft Entra MFA". Build green.
 - **t2 DONE:** `BuildConnectionString` auth branch is now a `switch`; `EntraMfa` sets
   `Authentication = ActiveDirectoryInteractive`, no UserID/Password. Build green.
-- Tasks 3 and 7 are build-gate / non-server UI and can be done by the loop.
+- **t3 DONE:** 3rd `AuthBox` item "Microsoft Entra MFA"; `AuthToIndex`/`IndexToAuth` helpers.
+  `SqlAuthPanel` still shows only for index 1 (SqlLogin). Build green, app launches clean.
+- Task 7 is build-gate / visual UI and can be done by the loop.
 - **Tasks 4–5 need a real Entra-secured Azure SQL / Managed Instance** for the MFA popup and
   end-to-end auth. If that target is unavailable, the phase hands off part-done after task 3
   (+ 6/7 where possible) with 4–5 on the pending list.

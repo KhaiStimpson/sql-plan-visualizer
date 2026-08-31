@@ -23,7 +23,7 @@ public sealed partial class ConnectView : UserControl
         UserBox.Text = settings.UserId;
         EncryptBox.IsChecked = settings.Encrypt;
         TrustCertBox.IsChecked = settings.TrustServerCertificate;
-        AuthBox.SelectedIndex = settings.Auth == AuthMode.SqlLogin ? 1 : 0;
+        AuthBox.SelectedIndex = AuthToIndex(settings.Auth);
     }
 
     /// <summary>
@@ -59,12 +59,27 @@ public sealed partial class ConnectView : UserControl
         SqlAuthPanel.Visibility = AuthBox.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    // AuthBox item order: 0 = Windows, 1 = SQL Server, 2 = Microsoft Entra MFA.
+    private static int AuthToIndex(AuthMode auth) => auth switch
+    {
+        AuthMode.SqlLogin => 1,
+        AuthMode.EntraMfa => 2,
+        _ => 0,
+    };
+
+    private static AuthMode IndexToAuth(int index) => index switch
+    {
+        1 => AuthMode.SqlLogin,
+        2 => AuthMode.EntraMfa,
+        _ => AuthMode.Windows,
+    };
+
     /// <summary>Pushes the form back into the shared settings object.</summary>
     public void Commit()
     {
         _settings.Server = ServerBox.Text.Trim();
         _settings.Database = DatabaseBox.Text.Trim();
-        _settings.Auth = AuthBox.SelectedIndex == 1 ? AuthMode.SqlLogin : AuthMode.Windows;
+        _settings.Auth = IndexToAuth(AuthBox.SelectedIndex);
         _settings.UserId = UserBox.Text.Trim();
         _settings.Password = PasswordBox.Password;
         _settings.Encrypt = EncryptBox.IsChecked == true;

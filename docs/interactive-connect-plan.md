@@ -169,10 +169,12 @@ block and the phase should hand off part-done.
       `SqlConnectionStringBuilder.Authentication = SqlAuthenticationMethod.ActiveDirectoryInteractive`,
       and do not populate `UserID` / `Password`. Build gate only.
       *(Auth `if/else` converted to a `switch`; `EntraMfa` sets `Authentication` only. Build green.)*
-- [ ] Add a "Microsoft Entra MFA" item to `AuthBox` in `ConnectView.xaml`; fix `OnAuthChanged`,
+- [x] Add a "Microsoft Entra MFA" item to `AuthBox` in `ConnectView.xaml`; fix `OnAuthChanged`,
       `Commit()`, and the constructor's index↔`AuthMode` mapping for three items, so `SqlAuthPanel`
       shows only for `SqlLogin`. Manually verify: switch to Entra MFA, login/password fields hide;
       switch back to SQL auth, they return; Windows still shows neither.
+      *(3rd ComboBoxItem added; `AuthToIndex`/`IndexToAuth` helpers replace the two-way ternaries.
+      Build green, app launches clean. Interactive field-toggle check pending in handoff.)*
 - [ ] Anchor the MFA popup to the app window — pass the app `HWND` (from `MainWindow`) into the
       interactive auth flow (`WithParentActivityOrWindow` via a custom `SqlAuthenticationProvider`
       registration, or the provider's parent-window hook). Manually verify against a real
