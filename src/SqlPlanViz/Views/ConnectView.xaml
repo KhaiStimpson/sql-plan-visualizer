@@ -49,20 +49,28 @@
                 <ComboBoxItem Content="Microsoft Entra MFA" />
             </ComboBox>
 
-            <Grid
+            <StackPanel
                 x:Name="SqlAuthPanel"
-                ColumnSpacing="12"
+                Spacing="8"
                 Visibility="Collapsed">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="UserBox" Header="Login" />
-                <PasswordBox
-                    x:Name="PasswordBox"
-                    Grid.Column="1"
-                    Header="Password" />
-            </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="UserBox" Header="Login" />
+                    <PasswordBox
+                        x:Name="PasswordBox"
+                        Grid.Column="1"
+                        Header="Password" />
+                </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <CheckBox
+                        x:Name="RememberPasswordBox"
+                        Content="Remember password"
+                        ToolTipService.ToolTip="Stores the password for this server and login in Windows Credential Manager. Opt-in and revocable." />
+                </StackPanel>
+            </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="16">
                 <CheckBox x:Name="EncryptBox" Content="Encrypt connection" IsChecked="True" />

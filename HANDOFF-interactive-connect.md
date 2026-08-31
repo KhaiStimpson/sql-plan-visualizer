@@ -179,10 +179,14 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
 - **t5:** reword the `InfoBar` again to cover the opt-in stored-password case.
 - **t6:** end-to-end live verification → pending list.
 
-## Phase boundary — STOP after Phase 4
-Phase 4 code is complete (t1-4 ticked, t5 live-only). Do NOT start Phase 5 — see
-"What Phase 5 needs" above; Phase 5 task 2 carries its own `PasswordVault`-unpackaged open
-question.
+## Phase 5 — Optional password storage (6 tasks) — IN PROGRESS
+- **t1 DONE:** `SqlAuthPanel` in `ConnectView.xaml` changed from `Grid` to `StackPanel` wrapping
+  the login/password `Grid` plus a new `RememberPasswordBox` `CheckBox` (unchecked by default,
+  tooltip explains Credential Manager storage). `OnAuthChanged` still toggles `SqlAuthPanel`
+  visibility, so the checkbox is visible only for `SqlLogin`. Build green.
+- **t2-t6:** not started. t2 carries the `PasswordVault`-unpackaged open question (confirm it
+  works unpackaged as the first step, else fall back to DPAPI `ProtectedData`/CurrentUser over a
+  JSON file in `%LOCALAPPDATA%\SqlPlanViz`).
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.

@@ -306,8 +306,11 @@ Stop retyping the server every session. First write of connection info to disk.
 
 The one piece that reverses "nothing persisted" — strictly opt-in, OS-backed, revocable.
 
-- [ ] Add a "Remember password" `CheckBox` to `SqlAuthPanel` in `ConnectView.xaml`, visible for
+- [x] Add a "Remember password" `CheckBox` to `SqlAuthPanel` in `ConnectView.xaml`, visible for
       `SqlLogin`, unchecked by default. Build gate only.
+      *(`SqlAuthPanel` changed from `Grid` to `StackPanel` wrapping the login/password `Grid` plus a
+      new `RememberPasswordBox` `CheckBox` (unchecked by default). `OnAuthChanged` still toggles
+      `SqlAuthPanel.Visibility` so the checkbox shows only for `SqlLogin` (index 1). Build green.)*
 - [ ] On `Commit()` when checked, write the password to
       `Windows.Security.Credentials.PasswordVault` keyed by `Server` + `UserId`; when unchecked,
       remove any existing entry for that key. Confirm `PasswordVault` works for an unpackaged app
