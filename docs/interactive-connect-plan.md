@@ -104,15 +104,17 @@ this section.
   - Persistent MSAL token cache across restarts — deferred; see Open questions. Phase 2 records
     whether it is actually needed.
 - **Already decided, do not re-litigate:**
-  - Entra auth goes through `Microsoft.Data.SqlClient`'s existing `Authentication` /
-    `SqlAuthenticationMethod` support — **not** a hand-rolled MSAL integration. MSAL is already in
-    the dependency graph transitively via `Microsoft.Data.SqlClient`.
-  - **`Microsoft.Data.SqlClient` is upgraded 5.2.2 → 6.x** (decided 2026-09-01) — the pinned
-    5.2.2 has no parent-window hook for the interactive-auth popup;
-    `ActiveDirectoryAuthenticationProvider(Func<object>)` / `SetParentActivityOrWindowFunc`
-    arrived in 6.0. This is a version bump of an existing package, not a new dependency. Phase 2
-    task 4 does the bump as its first step and smoke-tests ordinary capture against the new
-    major version.
+  - `EntraMfa` selects `SqlAuthenticationMethod.ActiveDirectoryInteractive` (done, tasks 2–3).
+  - **`Microsoft.Data.SqlClient` upgraded 5.2.2 → 6.1.2** (decided 2026-09-01, done in commit
+    `e7a3afd`). Kept as a maintenance/security update; launches clean.
+  - **The "no hand-rolled MSAL" rule is LIFTED** (decided 2026-09-01, superseding the original
+    plan). `Microsoft.Data.SqlClient` exposes **no** parent-window hook for interactive auth at
+    any version (verified by reflection over 6.1.2 and 7.0.1 — `ActiveDirectoryAuthenticationProvider`
+    has no `SetParentActivityOrWindowFunc` and no parent-window ctor). The only way to anchor the
+    MFA popup to the app window is a custom `SqlAuthenticationProvider` that calls MSAL
+    (`Microsoft.Identity.Client`) directly with `.WithParentActivityOrWindow(() => hwnd)`. Phase 2
+    task 4 builds exactly that. Adding an explicit `Microsoft.Identity.Client` package reference
+    is now acceptable if the transitive one is not directly usable.
   - Nothing is persisted today. Phase 4 (recent connections) is the first write of connection
     info to disk; Phase 5 (remembered password) is the first secret written anywhere. Both are
     deliberately in scope, both strictly opt-in where a secret is involved, and Phase 5 uses
@@ -161,11 +163,12 @@ built until connecting and capturing are separate. ~6 tasks; task 1 already land
 
 ## Phase 2 — Microsoft Entra MFA
 
-The headline auth requirement. One `SqlAuthenticationMethod` value, a `Microsoft.Data.SqlClient`
-5.2.2 → 6.x bump (decided 2026-09-01 — see Ground rules), and a parent window handle for the
-popup. **This phase is at the 7-task ceiling** and its manual steps need a real Entra-secured
-Azure SQL / Managed Instance target; if that target is unavailable, tasks 4–5 block and the phase
-should hand off part-done.
+The headline auth requirement. `SqlAuthenticationMethod.ActiveDirectoryInteractive` (done), the
+`Microsoft.Data.SqlClient` 6.1.2 bump (done), and a **custom `SqlAuthenticationProvider` over
+MSAL** to anchor the popup to the app window (task 4 — the "no hand-rolled MSAL" rule was lifted
+for this; see Ground rules). Manual steps need a real Entra-secured Azure SQL / Managed Instance
+target; without it, tasks 4 (end-to-end), 5 and 6 go on the handoff pending list and the phase
+hands off part-done.
 
 - [x] Extend the `AuthMode` enum (`src/SqlPlanViz/Capture/ConnectionSettings.cs`) with `EntraMfa`
       (Active Directory Interactive). Add a comment that Password / Integrated / device-code
@@ -182,15 +185,21 @@ should hand off part-done.
       switch back to SQL auth, they return; Windows still shows neither.
       *(3rd ComboBoxItem added; `AuthToIndex`/`IndexToAuth` helpers replace the two-way ternaries.
       Build green, app launches clean. Interactive field-toggle check pending in handoff.)*
-- [ ] Bump `Microsoft.Data.SqlClient` 5.2.2 → 6.x in `src/SqlPlanViz/SqlPlanViz.csproj` (6.1.2
-      or 7.0.1 are already in the local nuget cache — pick the latest 6.x), build, and launch the
-      app to confirm it starts clean. Then anchor the MFA popup to the app window: register an
-      `ActiveDirectoryAuthenticationProvider` built with the app `HWND` (from `MainWindow`) via
-      `SqlAuthenticationProvider.SetProvider(SqlAuthenticationMethod.ActiveDirectoryInteractive, …)`
-      using the `Func<object>` parent-window ctor or `SetParentActivityOrWindowFunc`. Build gate +
-      clean launch; append to the handoff pending list: against a real Entra-secured target the
-      popup appears anchored and "Test connection" succeeds. **If the 6.x bump breaks the build or
-      ordinary capture in a way that is not a quick fix, stop and ask.**
+- [ ] Add a custom `SqlAuthenticationProvider` (`src/SqlPlanViz/Capture/InteractiveAuthProvider.cs`)
+      for `SqlAuthenticationMethod.ActiveDirectoryInteractive` that calls MSAL directly:
+      `PublicClientApplicationBuilder.Create(parameters.ClientId)` (fall back to the documented
+      SqlClient client id `2fd908ad-0664-4344-b9be-cd3e8b574c38` / `a94f9c62-97fe-4d19-b06d-472bed8d2bcf`
+      if `ClientId` is empty) `.WithAuthority(parameters.Authority).WithRedirectUri("http://localhost")`,
+      then `AcquireTokenSilent` → on `MsalUiRequiredException` `AcquireTokenInteractive(scopes)`
+      `.WithParentActivityOrWindow(() => _hwnd)` `.WithLoginHint(parameters.UserId)`, scopes =
+      `{ parameters.Resource.TrimEnd('/') + "/.default" }`. Register it once at startup
+      (`App`/`MainWindow`) via `SqlAuthenticationProvider.SetProvider(...)`, passing the app HWND
+      from `MainWindow` (`WinRT.Interop.WindowNative.GetWindowHandle`). Add an explicit
+      `Microsoft.Identity.Client` `PackageReference` if the transitive one is not directly usable.
+      Build gate + clean `dotnet run` launch. Append to the handoff pending list: against a real
+      Entra-secured target the popup appears anchored to the app window and "Test connection"
+      succeeds. **If MSAL is not directly referenceable and adding the package pulls a large new
+      subtree, or the provider signature differs from the above, stop and ask.**
 - [ ] Manually verify each path end to end against the real target: Entra MFA connect from the
       new command-strip Connect button makes the Query Store browser live; capture-from-server
       with Entra MFA still produces a plan.
