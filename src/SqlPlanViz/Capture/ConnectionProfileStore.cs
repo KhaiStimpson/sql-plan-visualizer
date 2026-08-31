@@ -10,17 +10,60 @@ namespace SqlPlanViz.Capture;
 /// (<see cref="PasswordVaultStore"/>); <see cref="IsRawConnectionString"/> records that
 /// <see cref="RawConnectionString"/> is authoritative and the other fields are ignored.
 /// </summary>
-public sealed record ConnectionProfile(
-    string Name,
-    string Server,
-    string Database,
-    AuthMode Auth,
-    string UserId,
-    bool Encrypt,
-    bool TrustServerCertificate,
-    bool PasswordIsVaulted,
-    bool IsRawConnectionString,
-    string RawConnectionString);
+public sealed class ConnectionProfile
+{
+    public ConnectionProfile()
+    {
+    }
+
+    public ConnectionProfile(
+        string name,
+        string server,
+        string database,
+        AuthMode auth,
+        string userId,
+        bool encrypt,
+        bool trustServerCertificate,
+        bool passwordIsVaulted,
+        bool isRawConnectionString,
+        string rawConnectionString)
+    {
+        Name = name;
+        Server = server;
+        Database = database;
+        Auth = auth;
+        UserId = userId;
+        Encrypt = encrypt;
+        TrustServerCertificate = trustServerCertificate;
+        PasswordIsVaulted = passwordIsVaulted;
+        IsRawConnectionString = isRawConnectionString;
+        RawConnectionString = rawConnectionString;
+    }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Server { get; set; } = string.Empty;
+
+    public string Database { get; set; } = string.Empty;
+
+    public AuthMode Auth { get; set; } = AuthMode.Windows;
+
+    public string UserId { get; set; } = string.Empty;
+
+    public bool Encrypt { get; set; } = true;
+
+    public bool TrustServerCertificate { get; set; } = true;
+
+    public bool PasswordIsVaulted { get; set; }
+
+    public bool IsRawConnectionString { get; set; }
+
+    public string RawConnectionString { get; set; } = string.Empty;
+
+    public ConnectionProfile WithName(string name) => new(
+        name, Server, Database, Auth, UserId, Encrypt, TrustServerCertificate,
+        PasswordIsVaulted, IsRawConnectionString, RawConnectionString);
+}
 
 /// <summary>
 /// Named connection profiles — persistence separate from <see cref="RecentConnectionsStore"/>
@@ -126,7 +169,7 @@ public sealed class ConnectionProfileStore
         }
 
         var updated = all.Where(p => !SameName(p.Name, oldName))
-            .Append(source with { Name = newName })
+            .Append(source.WithName(newName))
             .ToList();
         Write(updated);
     }

@@ -63,6 +63,31 @@ public sealed class ConnectionSettings
         UseConnectionString = false;
     }
 
+    /// <summary>
+    /// Loads a saved <see cref="ConnectionProfile"/> into this instance (the one-click reconnect
+    /// path). <paramref name="vaultedPassword"/> is the value pulled from
+    /// <see cref="PasswordVaultStore"/> when the profile's <c>PasswordIsVaulted</c> flag is set.
+    /// </summary>
+    public void ApplyProfile(ConnectionProfile profile, string? vaultedPassword = null)
+    {
+        Reset();
+
+        if (profile.IsRawConnectionString)
+        {
+            UseConnectionString = true;
+            RawConnectionString = profile.RawConnectionString;
+            return;
+        }
+
+        Server = profile.Server;
+        Database = profile.Database;
+        Auth = profile.Auth;
+        UserId = profile.UserId;
+        Encrypt = profile.Encrypt;
+        TrustServerCertificate = profile.TrustServerCertificate;
+        Password = vaultedPassword ?? string.Empty;
+    }
+
     public string Describe()
     {
         if (UseConnectionString && !string.IsNullOrWhiteSpace(RawConnectionString))

@@ -8,6 +8,7 @@ using SqlPlanViz.Model;
 using SqlPlanViz.Sql;
 using SqlPlanViz.ViewModels;
 using SqlPlanViz.Views;
+using System.Collections.ObjectModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -41,9 +42,44 @@ public sealed partial class MainPage : Page
         SizeChanged += (_, _) => SetSqlViewHeight(_sqlViewHeight);
 
         UpdateMetricAvailability();
+        RefreshConnectionProfiles();
     }
 
     public MainViewModel ViewModel { get; }
+
+    private readonly ConnectionProfileStore _profileStore = new();
+    private readonly PasswordVaultStore _profilePasswords = new();
+
+    /// <summary>Saved connection profiles offered as one-click connect buttons in the empty state.</summary>
+    public ObservableCollection<ConnectionProfile> ConnectionProfiles { get; } = new();
+
+    private void RefreshConnectionProfiles()
+    {
+        ConnectionProfiles.Clear();
+        foreach (var profile in _profileStore.Load())
+        {
+            ConnectionProfiles.Add(profile);
+        }
+
+        ProfilesPanel.Visibility = ConnectionProfiles.Count > 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void OnConnectProfile(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not ConnectionProfile profile)
+        {
+            return;
+        }
+
+        var password = profile.PasswordIsVaulted
+            ? _profilePasswords.Retrieve(profile.Server, profile.UserId)
+            : null;
+
+        ViewModel.Connection.ApplyProfile(profile, password);
+        ViewModel.NotifyConnectionChanged();
+    }
 
     public IReadOnlyList<AntiPatternInfo> AntiPatterns => AntiPatternLibrary.All;
 
@@ -311,6 +347,7 @@ public sealed partial class MainPage : Page
         }
 
         view.Commit();
+        RefreshConnectionProfiles();
         ViewModel.NotifyConnectionChanged();
     }
 
@@ -336,6 +373,7 @@ public sealed partial class MainPage : Page
         }
 
         view.Commit();
+        RefreshConnectionProfiles();
         await ViewModel.CaptureAsync(view.Query, view.Mode);
     }
 

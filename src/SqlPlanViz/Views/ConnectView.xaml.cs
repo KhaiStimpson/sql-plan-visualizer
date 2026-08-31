@@ -338,16 +338,16 @@ public sealed partial class ConnectView : UserControl
 
     /// <summary>Snapshots the just-committed <see cref="_settings"/> as a named profile (no password).</summary>
     private ConnectionProfile BuildProfile(string name) => new(
-        Name: name,
-        Server: _settings.Server,
-        Database: _settings.Database,
-        Auth: _settings.Auth,
-        UserId: _settings.UserId,
-        Encrypt: _settings.Encrypt,
-        TrustServerCertificate: _settings.TrustServerCertificate,
-        PasswordIsVaulted: _settings.Auth == AuthMode.SqlLogin && RememberPasswordBox.IsChecked == true,
-        IsRawConnectionString: _settings.UseConnectionString,
-        RawConnectionString: _settings.RawConnectionString);
+        name,
+        _settings.Server,
+        _settings.Database,
+        _settings.Auth,
+        _settings.UserId,
+        _settings.Encrypt,
+        _settings.TrustServerCertificate,
+        _settings.Auth == AuthMode.SqlLogin && RememberPasswordBox.IsChecked == true,
+        _settings.UseConnectionString,
+        _settings.RawConnectionString);
 
     private async void OnTestConnection(object sender, RoutedEventArgs e)
     {

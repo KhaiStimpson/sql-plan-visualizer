@@ -389,9 +389,19 @@ One-click reconnect to a named server config. The "reassess" item from the brain
       colliding name); `OnDeleteProfile` deletes the selected profile; both `RefreshProfiles()` and
       report via `ProfileResult`. Store-level rename/delete/collision behaviour already exercised
       in the t2 isolation run. Build green, app launches clean.)*
-- [ ] Show saved profiles as one-click connect entries in the empty-state panel (the button
+- [x] Show saved profiles as one-click connect entries in the empty-state panel (the button
       stack around `MainPage.xaml:501`). Clicking one connects without opening the dialog.
       Manually verify.
+      *(`ProfilesPanel` (an "Or connect to a saved profile" label + an `ItemsControl` of buttons)
+      added under the empty-state button row, bound to a new
+      `MainPage.ConnectionProfiles` `ObservableCollection<ConnectionProfile>`. `RefreshConnectionProfiles()`
+      reloads it (ctor + after every Connect/Capture dialog commit) and shows/hides the panel by
+      count. `OnConnectProfile` resolves the button's `DataContext`, pulls the vaulted password via
+      `PasswordVaultStore` when `PasswordIsVaulted`, calls new `ConnectionSettings.ApplyProfile(profile,
+      password)` then `ViewModel.NotifyConnectionChanged()` — no dialog. `ConnectionProfile` had to
+      become a mutable class (was a positional record) so the WinUI XAML type-info generator, which
+      assigns each property, compiles. Build green, app launches clean; store `Load` round-trip
+      re-exercised.)*
 - [ ] Manually verify end to end: create a prod (Entra MFA) profile and a local (SQL auth +
       remembered password) profile, relaunch, connect to each from both the dialog picker and the
       empty-state list.

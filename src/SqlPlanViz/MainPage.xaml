@@ -526,6 +526,28 @@
                         <Button Click="OnPasteXml" Content="Paste XML" />
                         <Button Click="OnCapture" Content="Capture from server" />
                     </StackPanel>
+                    <StackPanel
+                        x:Name="ProfilesPanel"
+                        HorizontalAlignment="Center"
+                        Spacing="8"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Or connect to a saved profile" />
+                        <ItemsControl ItemsSource="{x:Bind ConnectionProfiles, Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Click="OnConnectProfile" Content="{Binding Name}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
                 </StackPanel>
 
                 <!--  Error  -->

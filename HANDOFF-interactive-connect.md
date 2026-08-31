@@ -261,12 +261,27 @@ Phase 6 is explicitly droppable/deferrable per the plan.
   the selected profile to `ProfileNameBox`'s text (surfaces a failure message on a colliding
   name); `OnDeleteProfile` deletes it; both refresh the picker and report via `ProfileResult`.
   Build green, launches clean.
-- **t5:** not started.
-- **t6:** purely live-server end-to-end — will go on the pending list.
+- **t5 DONE:** `ProfilesPanel` (label + `ItemsControl` of buttons) in the empty-state panel,
+  bound to `MainPage.ConnectionProfiles` (`ObservableCollection<ConnectionProfile>`).
+  `RefreshConnectionProfiles()` reloads it on ctor and after every Connect/Capture dialog commit,
+  toggling panel visibility by count. `OnConnectProfile` reads the button's `DataContext`, pulls
+  the vaulted password when `PasswordIsVaulted`, calls new
+  `ConnectionSettings.ApplyProfile(profile, password)` + `NotifyConnectionChanged()` — no dialog.
+  **`ConnectionProfile` is now a mutable class, not a positional record** — the WinUI XAML
+  type-info generator assigns each property and cannot target init-only members. Build green,
+  launches clean.
+- **t6:** purely live-server end-to-end — on the pending list.
 
 ### Phase 6 — Live-server verification pending (user runs before merge)
 - **P6 t2/t3:** "Save as profile" with a real form → profile persists, reloads after relaunch,
   and picking it from `ProfileBox` restores every field (and the password when vaulted).
+- **P6 t4:** rename a profile (type new name in the profile-name box, click Rename) and delete a
+  profile from the picker; both survive relaunch.
+- **P6 t5:** with saved profiles, the empty-state panel shows one button per profile; clicking
+  one connects (Query Store browser goes live) without opening the dialog; a profile carrying a
+  vaulted password connects with SQL auth silently.
+- **P6 t6:** create a prod (Entra MFA) profile and a local (SQL auth + remembered password)
+  profile, relaunch, connect to each from both the dialog picker and the empty-state list.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.
