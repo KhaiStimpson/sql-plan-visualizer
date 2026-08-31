@@ -41,7 +41,7 @@ Build green at every task. No live-server testing was done (see below).
 - **t6:** readout shows `· Windows` vs `· SQL login`; captured-plan `SourceName` still reads
   sensibly (now carries the auth label).
 
-## Phase 2 — Microsoft Entra MFA (7 tasks, at the ceiling) — IN PROGRESS
+## Phase 2 — Microsoft Entra MFA (7 tasks) — PART-DONE (t1-4,7 ticked; t5-6 live-only, on pending list)
 - **t1 DONE:** `AuthMode.EntraMfa` added with deferral comment; `Describe()` maps it to
   "Microsoft Entra MFA". Build green.
 - **t2 DONE:** `BuildConnectionString` auth branch is now a `switch`; `EntraMfa` sets
@@ -66,12 +66,26 @@ Build green at every task. No live-server testing was done (see below).
   exact version already pulled transitively via `Azure.Identity` 1.14.2, so **no new subtree**,
   just a promotion to direct. Build green; `dotnet run` launches clean (provider registration at
   startup does not throw). Live-server steps on the pending list.
-- Task 7 is build-gate / visual UI and can be done by the loop.
+- **t7 DONE:** `ConnectView` `InfoBar` reworded to "Credentials are used for this connection only
+  and are never written to disk, though Microsoft Entra sign-in tokens stay cached in memory until
+  the app closes." One sentence. Build green, app launches clean.
 
-Current Phase 2 state: **tasks 1–4 ticked, build green. Tasks 5–6 need a live Entra target
-(pending list). Task 7 (InfoBar copy) is build-gate + visual, doable by the loop.**
-- Task 6 records observed MFA re-prompt behaviour as a comment near `AuthMode` — decides
-  whether the persistent-token-cache Open question becomes a phase.
+## Phase 2 — FINAL STATUS (part-done, as far as the loop can take it)
+- **Ticked: t1, t2, t3, t4, t7** — build green at every step, app launches clean.
+- **NOT ticked: t5, t6** — both are *purely* live-Entra-target verification with no code
+  component the loop can do. They stay on the pending list below. Per the plan's Phase 2 preamble
+  this is the expected "hands off part-done" outcome when no live target is available.
+- **t6** additionally needs a one-line comment recorded near `AuthMode` in `ConnectionSettings.cs`
+  once the re-prompt behaviour is observed — that comment decides whether the persistent MSAL
+  token-cache Open question becomes its own phase.
+
+## What Phase 3 needs (connection-string mode — do NOT start it here)
+Phase 3 is independent of the outstanding t5/t6 live checks. It adds `RawConnectionString` to
+`ConnectionSettings`, an "Enter details / Paste connection string" toggle in `ConnectView`, a
+branch in `PlanCaptureService.BuildConnectionString` for the raw string, and makes `Describe()`
+parse `DataSource`/`InitialCatalog` out of it. `SqlConnectionStringBuilder` (already used) parses
+and validates. No new packages. Build-gate + non-server checks per the same option-B posture;
+the "known-good Entra/SQL string connects" checks go on the pending list.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.

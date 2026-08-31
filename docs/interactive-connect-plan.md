@@ -213,9 +213,12 @@ hands off part-done.
       cache), and record the observed behaviour as a comment near `AuthMode` in
       `ConnectionSettings.cs`. This is what decides whether the persistent-token-cache item in
       Open questions becomes a phase.
-- [ ] Update the `ConnectView` `InfoBar` copy so it does not claim credentials are unused beyond
+- [x] Update the `ConnectView` `InfoBar` copy so it does not claim credentials are unused beyond
       the connection in a way that misleads for the interactive flow (tokens are cached in memory
       by MSAL for the session). Keep it one sentence. Build gate + visual check.
+      *(Done — now "Credentials are used for this connection only and are never written to disk,
+      though Microsoft Entra sign-in tokens stay cached in memory until the app closes." One
+      sentence. Build green, app launches clean.)*
 
 ## Phase 3 — Connection-string mode
 
