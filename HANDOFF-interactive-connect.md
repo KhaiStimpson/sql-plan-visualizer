@@ -2,44 +2,52 @@
 
 Branch: `claude/interactive-connect`, cut off `main`. PR targets `main`.
 
-## Manual verification posture (decided — do not re-ask)
-Option B: loop ticks on green build + any non-server check possible; all live-server
-verification is batched into the list below for the user to run at each phase boundary.
-Recorded in the plan's Ground rules.
+## Phase 1 — COMPLETE (all 6 tasks ticked)
+Connecting and capturing are now separate:
+- `ConnectView.ConnectOnly` collapses the query box + mode picker.
+- `MainPage.OnConnect` (connect-only dialog, "Connect" button) → `view.Commit()` +
+  `MainViewModel.NotifyConnectionChanged()`, no capture. `OnCapture` keeps the old capture flow.
+- Command-strip button relabelled **Connect** → `OnConnect`; empty-state "Capture from server"
+  → `OnCapture`.
+- Command-strip `ConnectionReadout` TextBlock bound to `MainViewModel.ConnectionDescription`
+  (→ `Connection.Describe()`); `DisconnectButton` shows only while `IsConnected`.
+- `ConnectionSettings.Reset()` + `MainViewModel.Disconnect()` (clears Query Store plans,
+  object context, message).
+- `Describe()` names the auth mode: `server · db · Windows` / `server · db · SQL login`,
+  `Not connected` after reset.
 
-## Live-server verification pending (user runs at phase boundary)
-- **Phase 1 task 2:** launch, click command-strip **Connect**, fill a real server, Connect;
-  open the Query Store browser — confirm it is enabled and lists plans with no plan captured.
-- **Phase 1 task 3:** command-strip **Connect** button opens the connect-only dialog (no query
-  box / mode picker); empty-state **Capture from server** opens the full capture dialog; both
-  complete a real connection. (App confirmed to launch clean.)
-- **Phase 1 task 4:** command-strip readout shows "Not connected" at start; after Connect it
-  shows `server · db`; after capture-from-server against a *different* server it updates again.
-- **Phase 1 task 5:** connect, open Query Store (populates), click **Disconnect** — readout
-  reverts to "Not connected", Disconnect button hides, Query Store / Re-run disable, Query
-  Store list clears.
-- **Phase 1 task 6:** readout reads `server · db · Windows` on a Windows-auth connection,
-  `server · db · SQL login` on a SQL-auth connection, `Not connected` after Disconnect. Also
-  spot-check the captured-plan `SourceName` still reads sensibly (now includes the auth label).
+Build green at every task. No live-server testing was done (see below).
 
-## State
-- Plan rewritten against `main` (2026-09-01); catalog/editor wiring deferred (see plan Open
-  questions).
-- Phase 1 task 1 done: `ConnectView.ConnectOnly`.
-- Phase 1 task 2 done: `OnCapture`/`OnConnect` split + `MainViewModel.NotifyConnectionChanged()`.
-  Build green. Live-server check pending (above).
-- Next: Phase 1 task 3 — swap command-strip "Capture" button to "Connect" wired to `OnConnect`;
-  leave empty-state button on `OnCapture`.
+## Live-server verification pending (user runs before merge)
+- **t2:** command-strip Connect → fill real server → Connect; Query Store browser enables and
+  lists plans with no plan captured.
+- **t3:** Connect button opens connect-only dialog (no query box/mode picker); empty-state
+  "Capture from server" opens the full capture dialog; both complete a real connection.
+- **t4:** readout "Not connected" → `server · db` after Connect → updates again after
+  capture-from-server against a *different* server.
+- **t5:** connect, populate Query Store, Disconnect → readout "Not connected", button hides,
+  Query Store/Re-run disable, list clears.
+- **t6:** readout shows `· Windows` vs `· SQL login`; captured-plan `SourceName` still reads
+  sensibly (now carries the auth label).
+
+## Next: Phase 2 — Microsoft Entra MFA (7 tasks, at the ceiling)
+- Tasks 1–3 and 7 are build-gate / non-server UI and can be done by the loop.
+- **Tasks 4–5 need a real Entra-secured Azure SQL / Managed Instance** for the MFA popup and
+  end-to-end auth. If that target is unavailable, the phase hands off part-done after task 3
+  (+ 6/7 where possible) with 4–5 on the pending list.
+- Task 6 records observed MFA re-prompt behaviour as a comment near `AuthMode` — decides
+  whether the persistent-token-cache Open question becomes a phase.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.
 - No test project — build is the gate.
-- Manual verification posture: option B (above).
-- Entra via `Microsoft.Data.SqlClient` `Authentication`, no hand-rolled MSAL, no new package.
+- Manual verification posture: option B — tick on green build + any non-server check;
+  live-server steps batched into the list above for the phase boundary. (In Ground rules.)
+- Entra via `Microsoft.Data.SqlClient` `Authentication` / `SqlAuthenticationMethod`, no
+  hand-rolled MSAL, no new package.
 - `MainViewModel.Connection` is get-only; Disconnect uses `ConnectionSettings.Reset()`.
-- Catalog-completion / editor integration out of scope here.
+- Catalog-completion / editor integration out of scope here (deferred — plan Open questions).
 
 ## Open questions
 - Unpackaged WinUI 3 storage APIs (blocks Phase 4 t1 / Phase 5 t2) — resolve inside the task.
 - Persistent MSAL token cache — decided by Phase 2 task 6.
-- Entra MFA manual steps (Phase 2) need a real Entra-secured Azure SQL / Managed Instance.
