@@ -185,7 +185,7 @@ hands off part-done.
       switch back to SQL auth, they return; Windows still shows neither.
       *(3rd ComboBoxItem added; `AuthToIndex`/`IndexToAuth` helpers replace the two-way ternaries.
       Build green, app launches clean. Interactive field-toggle check pending in handoff.)*
-- [ ] Add a custom `SqlAuthenticationProvider` (`src/SqlPlanViz/Capture/InteractiveAuthProvider.cs`)
+- [x] Add a custom `SqlAuthenticationProvider` (`src/SqlPlanViz/Capture/InteractiveAuthProvider.cs`)
       for `SqlAuthenticationMethod.ActiveDirectoryInteractive` that calls MSAL directly:
       `PublicClientApplicationBuilder.Create(parameters.ClientId)` (fall back to the documented
       SqlClient client id `2fd908ad-0664-4344-b9be-cd3e8b574c38` / `a94f9c62-97fe-4d19-b06d-472bed8d2bcf`
@@ -200,6 +200,12 @@ hands off part-done.
       Entra-secured target the popup appears anchored to the app window and "Test connection"
       succeeds. **If MSAL is not directly referenceable and adding the package pulls a large new
       subtree, or the provider signature differs from the above, stop and ask.**
+      *(Done — `InteractiveAuthProvider` as specced; registered in `App.OnLaunched` via
+      `InteractiveAuthProvider.Register(() => App.WindowHandle)`. `SqlAuthenticationParameters`
+      has no `ClientId` in 6.1.2 so the documented SqlClient app id is always used. Explicit
+      `Microsoft.Identity.Client` 4.73.1 ref = the version already transitive via `Azure.Identity`
+      1.14.2, no new subtree. Build green, launches clean. Live-target popup-anchor check pending
+      in handoff.)*
 - [ ] Manually verify each path end to end against the real target: Entra MFA connect from the
       new command-strip Connect button makes the Query Store browser live; capture-from-server
       with Entra MFA still produces a plan.

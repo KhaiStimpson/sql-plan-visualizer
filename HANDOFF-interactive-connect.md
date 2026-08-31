@@ -23,8 +23,9 @@ Build green at every task. No live-server testing was done (see below).
   capture (Windows auth and SQL-login) against a live server still produces a plan.
 - **P2 t3 (UI, non-server):** open Connect, switch auth to "Microsoft Entra MFA" → login/password
   fields hide; switch back to "SQL Server Authentication" → they return; "Windows" shows neither.
-- **P2 t4:** against a real Entra-secured Azure SQL / MI target, the MFA popup appears anchored to
-  the app window and "Test connection" succeeds.
+- **P2 t4:** against a real Entra-secured Azure SQL / MI target, the MFA popup (driven by the
+  custom `InteractiveAuthProvider`) appears anchored to the app window and "Test connection"
+  succeeds; a second connect in the same session is silent (MSAL in-memory cache).
 - **P2 t5:** Entra MFA connect from the command-strip Connect button makes the Query Store browser
   live; capture-from-server with Entra MFA still produces a plan.
 - **P2 t6:** repeat connects within one session do not re-prompt for MFA (MSAL in-memory cache);
@@ -49,52 +50,26 @@ Build green at every task. No live-server testing was done (see below).
   `SqlAuthPanel` still shows only for index 1 (SqlLogin). Build green, app launches clean.
 - Task 7 is build-gate / visual UI and can be done by the loop.
 
-### Phase 2 task 4 — package bump DONE; popup anchoring BLOCKED (premise was wrong)
+- **t4 DONE:** `Microsoft.Data.SqlClient` 5.2.2 → **6.1.2** (commit `e7a3afd`), plus a custom
+  `SqlAuthenticationProvider` — `src/SqlPlanViz/Capture/InteractiveAuthProvider.cs` — that calls
+  MSAL directly to anchor the Entra MFA popup. The bundled `ActiveDirectoryAuthenticationProvider`
+  has **no** parent-window hook at any version (reflection-verified over 6.1.2 and 7.0.1), so the
+  "no hand-rolled MSAL" rule was lifted (recorded in the plan's Ground rules). Provider:
+  `PublicClientApplicationBuilder.Create(<SqlClient public app id>)` — `SqlAuthenticationParameters`
+  carries no `ClientId` in 6.1.2, so the documented id `2fd908ad-0664-4344-b9be-cd3e8b574c38` is
+  always used — `.WithAuthority(parameters.Authority).WithRedirectUri("http://localhost")`, then
+  `AcquireTokenSilent` → on `MsalUiRequiredException` `AcquireTokenInteractive(scopes)`
+  `.WithParentActivityOrWindow(() => hwnd)` `.WithLoginHint(parameters.UserId)` (hint only when
+  non-empty), scopes `{ parameters.Resource.TrimEnd('/') + "/.default" }`. Registered once in
+  `App.OnLaunched` via `InteractiveAuthProvider.Register(() => App.WindowHandle)` after the HWND
+  is captured. Added an explicit `Microsoft.Identity.Client` `PackageReference` at **4.73.1** — the
+  exact version already pulled transitively via `Azure.Identity` 1.14.2, so **no new subtree**,
+  just a promotion to direct. Build green; `dotnet run` launches clean (provider registration at
+  startup does not throw). Live-server steps on the pending list.
+- Task 7 is build-gate / visual UI and can be done by the loop.
 
-**Bump done & verified.** `Microsoft.Data.SqlClient` 5.2.2 → **6.1.2** (latest 6.x in the local
-nuget cache) in `SqlPlanViz.csproj`. Build green; `dotnet run` launches the app clean on the new
-major version (no crash, no stderr). Ordinary-capture regression check against a live server is
-on the live-server pending list.
-
-**Anchoring blocked — the parent-window hook does not exist in 6.x or 7.x either.** The rewritten
-task 4 (and the earlier handoff) assumed `ActiveDirectoryAuthenticationProvider` gained
-`SetParentActivityOrWindowFunc` / a `Func<object>` parent-window ctor in 6.0. It did not.
-Reflection over `microsoft.data.sqlclient/6.1.2/lib/net8.0/Microsoft.Data.SqlClient.dll` shows
-the full public surface of `ActiveDirectoryAuthenticationProvider` is:
-
-- ctors: `()`, `(string applicationClientId)`, `(Func<DeviceCodeResult,Task>, string)`
-- methods: `AcquireTokenAsync`, `ClearUserTokenCache`, `IsSupported`, `BeforeLoad`,
-  `BeforeUnload`, `SetAcquireAuthorizationCodeAsyncCallback`, `SetDeviceCodeFlowCallback`
-
-No parent-window/activity member anywhere. The 7.0.1 XML doc confirms the same (no `parent*`
-member on the type). So bumping the package — the thing the user approved — does **not** unlock
-window anchoring.
-
-Options now (unchanged in substance from before, minus the "just upgrade" one which is disproven):
-  1. **Drop the anchoring requirement.** Ship `ActiveDirectoryInteractive` as wired in task 2.
-     The MSAL popup still appears (system browser / embedded WebView2), just not owned by the app
-     window. On Windows desktop it comes to the foreground on its own; the practical cost is low.
-     Task 4 becomes "won't-fix, documented" and the package bump is kept for its own sake.
-  2. **Hand-rolled `SqlAuthenticationProvider`** whose `AcquireTokenAsync` calls MSAL
-     (`Microsoft.Identity.Client`, transitive) directly with
-     `.WithParentActivityOrWindow(App.WindowHandle)`. This is the "no hand-rolled MSAL" that the
-     do-not-relitigate list rules out — needs the user to lift that.
-  3. **`SetAcquireAuthorizationCodeAsyncCallback`** — supply our own browser step and host it in
-     an owned window. More code than 2, same rule tension, and we'd be reimplementing the auth-code
-     redirect listener.
-
-Recommendation: **option 1.** Keep the 6.1.2 bump (already done, green), document anchoring as
-won't-fix, move on to tasks 5–7. Only option 2/3 give a truly parented popup and both need a
-ruling on the hand-rolled-MSAL line.
-
-**User: choose 1, 2, or 3.**
-
-Current Phase 2 state: **tasks 1–3 ticked, build green. Task 4 — package bump done (uncommitted
-pending this decision / committed as a partial step), anchoring blocked on the choice above.
-Tasks 5–7 not started.**
-- **Tasks 4–5 need a real Entra-secured Azure SQL / Managed Instance** for the MFA popup and
-  end-to-end auth. If that target is unavailable, the phase hands off part-done after task 3
-  (+ 6/7 where possible) with 4–5 on the pending list.
+Current Phase 2 state: **tasks 1–4 ticked, build green. Tasks 5–6 need a live Entra target
+(pending list). Task 7 (InfoBar copy) is build-gate + visual, doable by the loop.**
 - Task 6 records observed MFA re-prompt behaviour as a comment near `AuthMode` — decides
   whether the persistent-token-cache Open question becomes a phase.
 
