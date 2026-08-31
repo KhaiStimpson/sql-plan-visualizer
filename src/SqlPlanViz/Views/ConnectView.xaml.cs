@@ -263,6 +263,41 @@ public sealed partial class ConnectView : UserControl
         ProfileResult.Text = $"Saved “{name}”.";
     }
 
+    private void OnRenameProfile(object sender, RoutedEventArgs e)
+    {
+        if (ProfileBox.SelectedItem is not string current)
+        {
+            ProfileResult.Text = "Select a profile to rename.";
+            return;
+        }
+
+        var newName = ProfileNameBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            ProfileResult.Text = "Type the new name in the profile-name box first.";
+            return;
+        }
+
+        _profiles.Rename(current, newName);
+        RefreshProfiles();
+        ProfileResult.Text = _profiles.Get(newName) is not null
+            ? $"Renamed “{current}” to “{newName}”."
+            : "Rename failed — that name is already in use.";
+    }
+
+    private void OnDeleteProfile(object sender, RoutedEventArgs e)
+    {
+        if (ProfileBox.SelectedItem is not string current)
+        {
+            ProfileResult.Text = "Select a profile to delete.";
+            return;
+        }
+
+        _profiles.Delete(current);
+        RefreshProfiles();
+        ProfileResult.Text = $"Deleted “{current}”.";
+    }
+
     private void OnProfileSelected(object sender, SelectionChangedEventArgs e)
     {
         if (ProfileBox.SelectedItem is not string name)

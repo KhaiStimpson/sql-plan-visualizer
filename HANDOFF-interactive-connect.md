@@ -257,7 +257,11 @@ Phase 6 is explicitly droppable/deferrable per the plan.
   raw-string profile into connection-string mode, else details mode with all fields set, and
   pulls the vaulted password via `TryPrefillPassword` when `PasswordIsVaulted`. Build green,
   launches clean.
-- **t4-t5:** not started.
+- **t4 DONE:** inline "Rename" / "Delete" buttons under `ProfileBox`. `OnRenameProfile` renames
+  the selected profile to `ProfileNameBox`'s text (surfaces a failure message on a colliding
+  name); `OnDeleteProfile` deletes it; both refresh the picker and report via `ProfileResult`.
+  Build green, launches clean.
+- **t5:** not started.
 - **t6:** purely live-server end-to-end — will go on the pending list.
 
 ### Phase 6 — Live-server verification pending (user runs before merge)

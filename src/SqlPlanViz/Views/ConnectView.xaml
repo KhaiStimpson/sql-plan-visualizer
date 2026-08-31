@@ -16,6 +16,18 @@
             PlaceholderText="(none)"
             SelectionChanged="OnProfileSelected" />
 
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button
+                x:Name="RenameProfileButton"
+                Click="OnRenameProfile"
+                Content="Rename"
+                ToolTipService.ToolTip="Rename the selected profile to the text in the profile-name box." />
+            <Button
+                x:Name="DeleteProfileButton"
+                Click="OnDeleteProfile"
+                Content="Delete" />
+        </StackPanel>
+
         <ComboBox
             x:Name="EntryModeBox"
             HorizontalAlignment="Stretch"

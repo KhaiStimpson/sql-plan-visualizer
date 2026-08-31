@@ -382,8 +382,13 @@ One-click reconnect to a named server config. The "reassess" item from the brain
       profile into connection-string mode, else switches to details mode and sets
       Server/Database/Login/Encrypt/Trust/Auth, calls `ApplyEntryMode()`, and when
       `PasswordIsVaulted` calls `TryPrefillPassword`. Build green, app launches clean.)*
-- [ ] Add rename + delete for profiles (inline list or a small secondary dialog). Manually verify
+- [x] Add rename + delete for profiles (inline list or a small secondary dialog). Manually verify
       rename and delete.
+      *(Inline "Rename" / "Delete" buttons under `ProfileBox`. `OnRenameProfile` renames the
+      selected profile to the text in `ProfileNameBox` (reports failure when the store rejects a
+      colliding name); `OnDeleteProfile` deletes the selected profile; both `RefreshProfiles()` and
+      report via `ProfileResult`. Store-level rename/delete/collision behaviour already exercised
+      in the t2 isolation run. Build green, app launches clean.)*
 - [ ] Show saved profiles as one-click connect entries in the empty-state panel (the button
       stack around `MainPage.xaml:501`). Clicking one connects without opening the dialog.
       Manually verify.
