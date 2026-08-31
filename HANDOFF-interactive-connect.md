@@ -252,11 +252,17 @@ Phase 6 is explicitly droppable/deferrable per the plan.
   `Commit()`s, then `_profiles.Save(BuildProfile(name))`. `BuildProfile` snapshots `_settings`
   (`PasswordIsVaulted` = SqlLogin + Remember-password checked; raw-string flags from entry mode).
   Build green, launches clean. Store exercised in isolation (all CRUD + rename + edge cases pass).
-- **t3-t5:** not started.
+- **t3 DONE:** `ProfileBox` ComboBox ("Load a saved profile") at the top of `ConnectView`,
+  populated by `RefreshProfiles()` (ctor + after each save). `OnProfileSelected` loads a
+  raw-string profile into connection-string mode, else details mode with all fields set, and
+  pulls the vaulted password via `TryPrefillPassword` when `PasswordIsVaulted`. Build green,
+  launches clean.
+- **t4-t5:** not started.
 - **t6:** purely live-server end-to-end — will go on the pending list.
 
 ### Phase 6 — Live-server verification pending (user runs before merge)
-- **P6 t2:** "Save as profile" with a real form → profile persists and reloads after relaunch.
+- **P6 t2/t3:** "Save as profile" with a real form → profile persists, reloads after relaunch,
+  and picking it from `ProfileBox` restores every field (and the password when vaulted).
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.

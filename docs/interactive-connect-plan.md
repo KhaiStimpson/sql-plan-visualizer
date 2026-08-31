@@ -375,8 +375,13 @@ One-click reconnect to a named server config. The "reassess" item from the brain
       clean. `ConnectionProfileStore` exercised in isolation: empty-load, save, name-ordered load,
       case-insensitive Get + enum round-trip, save-replaces-by-name, rename, rename-collision-noop,
       delete, blank-name-ignored all pass.)*
-- [ ] Add a profile picker to `ConnectView` — selecting a profile loads every field, pulling the
+- [x] Add a profile picker to `ConnectView` — selecting a profile loads every field, pulling the
       vaulted password when the flag is set. Manually verify a saved profile round-trips.
+      *(`ProfileBox` ComboBox ("Load a saved profile") at the top of the view, populated by
+      `RefreshProfiles()` in the ctor and after each save. `OnProfileSelected` loads a raw-string
+      profile into connection-string mode, else switches to details mode and sets
+      Server/Database/Login/Encrypt/Trust/Auth, calls `ApplyEntryMode()`, and when
+      `PasswordIsVaulted` calls `TryPrefillPassword`. Build green, app launches clean.)*
 - [ ] Add rename + delete for profiles (inline list or a small secondary dialog). Manually verify
       rename and delete.
 - [ ] Show saved profiles as one-click connect entries in the empty-state panel (the button

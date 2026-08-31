@@ -10,6 +10,13 @@
     <StackPanel Width="620" Spacing="12">
 
         <ComboBox
+            x:Name="ProfileBox"
+            HorizontalAlignment="Stretch"
+            Header="Load a saved profile"
+            PlaceholderText="(none)"
+            SelectionChanged="OnProfileSelected" />
+
+        <ComboBox
             x:Name="EntryModeBox"
             HorizontalAlignment="Stretch"
             Header="Connection input"

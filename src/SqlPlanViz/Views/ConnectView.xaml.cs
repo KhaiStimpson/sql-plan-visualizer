@@ -34,7 +34,11 @@ public sealed partial class ConnectView : UserControl
         EntryModeBox.SelectedIndex = settings.UseConnectionString ? 1 : 0;
         ApplyEntryMode();
         TryPrefillPassword(settings.Server, settings.UserId);
+        RefreshProfiles();
     }
+
+    private void RefreshProfiles() => ProfileBox.ItemsSource =
+        _profiles.Load().Select(p => p.Name).ToList();
 
     /// <summary>
     /// If Windows Credential Manager holds a password for this server + login, fill
@@ -255,7 +259,46 @@ public sealed partial class ConnectView : UserControl
 
         Commit();
         _profiles.Save(BuildProfile(name));
+        RefreshProfiles();
         ProfileResult.Text = $"Saved “{name}”.";
+    }
+
+    private void OnProfileSelected(object sender, SelectionChangedEventArgs e)
+    {
+        if (ProfileBox.SelectedItem is not string name)
+        {
+            return;
+        }
+
+        var profile = _profiles.Get(name);
+        if (profile is null)
+        {
+            return;
+        }
+
+        if (profile.IsRawConnectionString)
+        {
+            EntryModeBox.SelectedIndex = 1;
+            ConnectionStringBox.Text = profile.RawConnectionString;
+            ApplyEntryMode();
+            return;
+        }
+
+        EntryModeBox.SelectedIndex = 0;
+        ServerBox.Text = profile.Server;
+        DatabaseBox.Text = profile.Database;
+        UserBox.Text = profile.UserId;
+        EncryptBox.IsChecked = profile.Encrypt;
+        TrustCertBox.IsChecked = profile.TrustServerCertificate;
+        AuthBox.SelectedIndex = AuthToIndex(profile.Auth);
+        ApplyEntryMode();
+
+        if (profile.PasswordIsVaulted)
+        {
+            TryPrefillPassword(profile.Server, profile.UserId);
+        }
+
+        UpdateForgetPasswordState();
     }
 
     /// <summary>Snapshots the just-committed <see cref="_settings"/> as a named profile (no password).</summary>
