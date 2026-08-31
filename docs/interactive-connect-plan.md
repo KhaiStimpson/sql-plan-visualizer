@@ -165,9 +165,10 @@ block and the phase should hand off part-done.
       modes are deliberately deferred to the connection-string path. Build gate only.
       *(`AuthMode.EntraMfa` added with the deferral comment; `Describe()` `AuthLabel` maps it to
       "Microsoft Entra MFA". Build green.)*
-- [ ] Wire `EntraMfa` into `PlanCaptureService.BuildConnectionString`: set
+- [x] Wire `EntraMfa` into `PlanCaptureService.BuildConnectionString`: set
       `SqlConnectionStringBuilder.Authentication = SqlAuthenticationMethod.ActiveDirectoryInteractive`,
       and do not populate `UserID` / `Password`. Build gate only.
+      *(Auth `if/else` converted to a `switch`; `EntraMfa` sets `Authentication` only. Build green.)*
 - [ ] Add a "Microsoft Entra MFA" item to `AuthBox` in `ConnectView.xaml`; fix `OnAuthChanged`,
       `Commit()`, and the constructor's index↔`AuthMode` mapping for three items, so `SqlAuthPanel`
       shows only for `SqlLogin`. Manually verify: switch to Entra MFA, login/password fields hide;

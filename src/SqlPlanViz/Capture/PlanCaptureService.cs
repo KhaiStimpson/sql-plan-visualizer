@@ -193,14 +193,22 @@ public sealed class PlanCaptureService
             builder.InitialCatalog = settings.Database.Trim();
         }
 
-        if (settings.Auth == AuthMode.Windows)
+        switch (settings.Auth)
         {
-            builder.IntegratedSecurity = true;
-        }
-        else
-        {
-            builder.UserID = settings.UserId;
-            builder.Password = settings.Password;
+            case AuthMode.Windows:
+                builder.IntegratedSecurity = true;
+                break;
+
+            case AuthMode.EntraMfa:
+                // Active Directory Interactive drives the browser/popup MFA flow. No
+                // UserID / Password — MSAL (bundled with Microsoft.Data.SqlClient) prompts.
+                builder.Authentication = SqlAuthenticationMethod.ActiveDirectoryInteractive;
+                break;
+
+            default:
+                builder.UserID = settings.UserId;
+                builder.Password = settings.Password;
+                break;
         }
 
         return builder.ConnectionString;
