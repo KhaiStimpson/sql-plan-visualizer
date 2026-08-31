@@ -226,10 +226,15 @@ Paste a full ADO.NET string and connect verbatim — parity with "it works in SS
 string", and the escape hatch for every auth/option combo the form does not model. **Deliberately
 a short phase (4 tasks) — not padded.**
 
-- [ ] Add `RawConnectionString` to `ConnectionSettings` and a mode toggle to `ConnectView`
+- [x] Add `RawConnectionString` to `ConnectionSettings` and a mode toggle to `ConnectView`
       ("Enter details" / "Paste connection string") that swaps the form grid for a single
       multiline `ConnectionStringBox`. Constructor prefills it; `Commit()` persists the string and
       which mode is active. Manually verify the toggle shows/hides the right controls.
+      *(`ConnectionSettings.RawConnectionString` + `UseConnectionString` (both cleared by
+      `Reset()`). `ConnectView`: `EntryModeBox` ComboBox toggles `DetailsPanel` (wraps the form
+      controls) vs `ConnectionStringBox` (collapsed multiline TextBox) via `ApplyEntryMode()`;
+      constructor prefills both and calls `ApplyEntryMode()`; `Commit()` persists string + mode.
+      Build green, app launches clean. Interactive toggle show/hide check pending in handoff.)*
 - [ ] Branch `PlanCaptureService.BuildConnectionString`: when `RawConnectionString` is non-empty,
       build `new SqlConnectionStringBuilder(raw)` (this validates and normalises), inject
       `ApplicationName` / `ConnectTimeout` only if absent, and return it; a parse failure becomes

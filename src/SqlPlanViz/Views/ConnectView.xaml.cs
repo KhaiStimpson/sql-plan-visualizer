@@ -24,6 +24,9 @@ public sealed partial class ConnectView : UserControl
         EncryptBox.IsChecked = settings.Encrypt;
         TrustCertBox.IsChecked = settings.TrustServerCertificate;
         AuthBox.SelectedIndex = AuthToIndex(settings.Auth);
+        ConnectionStringBox.Text = settings.RawConnectionString;
+        EntryModeBox.SelectedIndex = settings.UseConnectionString ? 1 : 0;
+        ApplyEntryMode();
     }
 
     /// <summary>
@@ -48,6 +51,20 @@ public sealed partial class ConnectView : UserControl
 
     public CaptureMode Mode =>
         ModeButtons.SelectedIndex == 1 ? CaptureMode.EstimatedOnly : CaptureMode.Actual;
+
+    private void OnEntryModeChanged(object sender, SelectionChangedEventArgs e) => ApplyEntryMode();
+
+    private void ApplyEntryMode()
+    {
+        if (DetailsPanel is null || ConnectionStringBox is null)
+        {
+            return;
+        }
+
+        var useRaw = EntryModeBox.SelectedIndex == 1;
+        DetailsPanel.Visibility = useRaw ? Visibility.Collapsed : Visibility.Visible;
+        ConnectionStringBox.Visibility = useRaw ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     private void OnAuthChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -84,6 +101,8 @@ public sealed partial class ConnectView : UserControl
         _settings.Password = PasswordBox.Password;
         _settings.Encrypt = EncryptBox.IsChecked == true;
         _settings.TrustServerCertificate = TrustCertBox.IsChecked == true;
+        _settings.RawConnectionString = ConnectionStringBox.Text.Trim();
+        _settings.UseConnectionString = EntryModeBox.SelectedIndex == 1;
     }
 
     private async void OnTestConnection(object sender, RoutedEventArgs e)

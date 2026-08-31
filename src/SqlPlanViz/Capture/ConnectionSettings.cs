@@ -40,6 +40,15 @@ public sealed class ConnectionSettings
 
     public int CommandTimeoutSeconds { get; set; } = 60;
 
+    /// <summary>
+    /// A full ADO.NET connection string pasted verbatim. When <see cref="UseConnectionString"/>
+    /// is set this is authoritative and the individual form fields are ignored.
+    /// </summary>
+    public string RawConnectionString { get; set; } = string.Empty;
+
+    /// <summary>True when the pasted <see cref="RawConnectionString"/> is the active input.</summary>
+    public bool UseConnectionString { get; set; }
+
     /// <summary>Tears the connection back down to its defaults (the Disconnect action).</summary>
     public void Reset()
     {
@@ -48,6 +57,8 @@ public sealed class ConnectionSettings
         UserId = string.Empty;
         Password = string.Empty;
         Auth = AuthMode.Windows;
+        RawConnectionString = string.Empty;
+        UseConnectionString = false;
     }
 
     public string Describe()

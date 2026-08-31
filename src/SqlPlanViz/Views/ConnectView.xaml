@@ -9,55 +9,79 @@
 
     <StackPanel Width="620" Spacing="12">
 
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBox
-                x:Name="ServerBox"
-                Header="Server"
-                PlaceholderText="localhost\SQLEXPRESS" />
-            <TextBox
-                x:Name="DatabaseBox"
-                Grid.Column="1"
-                Header="Database"
-                PlaceholderText="(default)" />
-        </Grid>
-
         <ComboBox
-            x:Name="AuthBox"
+            x:Name="EntryModeBox"
             HorizontalAlignment="Stretch"
-            Header="Authentication"
-            SelectionChanged="OnAuthChanged">
-            <ComboBoxItem Content="Windows Authentication" />
-            <ComboBoxItem Content="SQL Server Authentication" />
-            <ComboBoxItem Content="Microsoft Entra MFA" />
+            Header="Connection input"
+            SelectionChanged="OnEntryModeChanged">
+            <ComboBoxItem Content="Enter details" />
+            <ComboBoxItem Content="Paste connection string" />
         </ComboBox>
 
-        <Grid
-            x:Name="SqlAuthPanel"
-            ColumnSpacing="12"
-            Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBox x:Name="UserBox" Header="Login" />
-            <PasswordBox
-                x:Name="PasswordBox"
-                Grid.Column="1"
-                Header="Password" />
-        </Grid>
+        <StackPanel x:Name="DetailsPanel" Spacing="12">
 
-        <StackPanel Orientation="Horizontal" Spacing="16">
-            <CheckBox x:Name="EncryptBox" Content="Encrypt connection" IsChecked="True" />
-            <CheckBox
-                x:Name="TrustCertBox"
-                Content="Trust server certificate"
-                IsChecked="True"
-                ToolTipService.ToolTip="Needed for a dev instance using a self-signed certificate." />
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="ServerBox"
+                    Header="Server"
+                    PlaceholderText="localhost\SQLEXPRESS" />
+                <TextBox
+                    x:Name="DatabaseBox"
+                    Grid.Column="1"
+                    Header="Database"
+                    PlaceholderText="(default)" />
+            </Grid>
+
+            <ComboBox
+                x:Name="AuthBox"
+                HorizontalAlignment="Stretch"
+                Header="Authentication"
+                SelectionChanged="OnAuthChanged">
+                <ComboBoxItem Content="Windows Authentication" />
+                <ComboBoxItem Content="SQL Server Authentication" />
+                <ComboBoxItem Content="Microsoft Entra MFA" />
+            </ComboBox>
+
+            <Grid
+                x:Name="SqlAuthPanel"
+                ColumnSpacing="12"
+                Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="UserBox" Header="Login" />
+                <PasswordBox
+                    x:Name="PasswordBox"
+                    Grid.Column="1"
+                    Header="Password" />
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <CheckBox x:Name="EncryptBox" Content="Encrypt connection" IsChecked="True" />
+                <CheckBox
+                    x:Name="TrustCertBox"
+                    Content="Trust server certificate"
+                    IsChecked="True"
+                    ToolTipService.ToolTip="Needed for a dev instance using a self-signed certificate." />
+            </StackPanel>
+
         </StackPanel>
+
+        <TextBox
+            x:Name="ConnectionStringBox"
+            AcceptsReturn="True"
+            FontFamily="Cascadia Mono, Consolas"
+            FontSize="12"
+            Header="Connection string"
+            Height="120"
+            PlaceholderText="Server=tcp:host,1433;Database=mydb;Authentication=Active Directory Interactive;Encrypt=True;"
+            TextWrapping="Wrap"
+            Visibility="Collapsed" />
 
         <TextBox
             x:Name="QueryBox"

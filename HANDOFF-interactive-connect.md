@@ -79,13 +79,28 @@ Build green at every task. No live-server testing was done (see below).
   once the re-prompt behaviour is observed — that comment decides whether the persistent MSAL
   token-cache Open question becomes its own phase.
 
-## What Phase 3 needs (connection-string mode — do NOT start it here)
-Phase 3 is independent of the outstanding t5/t6 live checks. It adds `RawConnectionString` to
-`ConnectionSettings`, an "Enter details / Paste connection string" toggle in `ConnectView`, a
-branch in `PlanCaptureService.BuildConnectionString` for the raw string, and makes `Describe()`
-parse `DataSource`/`InitialCatalog` out of it. `SqlConnectionStringBuilder` (already used) parses
-and validates. No new packages. Build-gate + non-server checks per the same option-B posture;
-the "known-good Entra/SQL string connects" checks go on the pending list.
+## Phase 3 — Connection-string mode (4 tasks) — IN PROGRESS
+- **t1 DONE:** `ConnectionSettings.RawConnectionString` + `UseConnectionString` added (both
+  cleared by `Reset()`). `ConnectView` gains an `EntryModeBox` ComboBox ("Enter details" /
+  "Paste connection string"); `ApplyEntryMode()` toggles `DetailsPanel` (a new StackPanel
+  wrapping the server/db grid, `AuthBox`, `SqlAuthPanel`, encrypt/trust panel) against a
+  collapsed multiline `ConnectionStringBox`. Constructor prefills text + mode and calls
+  `ApplyEntryMode()`; `Commit()` persists both. Build green, `dotnet run` launches clean.
+- **t2 (next):** branch `PlanCaptureService.BuildConnectionString` for the raw string —
+  `new SqlConnectionStringBuilder(raw)` to validate/normalise, inject `ApplicationName` /
+  `ConnectTimeout` only if absent, parse failure → `PlanCaptureException`. Build gate only.
+- **t3:** make connection-string mode authoritative — `Commit()` records only
+  `RawConnectionString` when active; `Describe()` shows `DataSource`/`InitialCatalog` parsed
+  from it.
+- **t4:** entirely live-server manual verification → goes on the pending list.
+
+## Phase 3 — Live-server verification pending (user runs before merge)
+- **P3 t1 (UI, non-server):** open Connect, switch input mode to "Paste connection string" →
+  the details form (server/db/auth/sql-auth/encrypt) hides and a single multiline connection-
+  string box shows; switch back to "Enter details" → the form returns.
+- **P3 t4:** a known-good Entra string and a known-good SQL-auth string both connect via "Test
+  connection"; a malformed string shows a clear error; toggling back to details mode restores
+  form editing.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.
