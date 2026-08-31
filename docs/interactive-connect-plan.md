@@ -284,9 +284,16 @@ Stop retyping the server every session. First write of connection info to disk.
       `Commit()` ends with `_recent.Record(new RecentConnection(Server, Database, UserId, Auth))`
       (no-ops on blank server, caps at 10). Connection-string mode returns early before the
       Record call — comment notes the pasted string may embed a password. Build green.)*
-- [ ] Change `ServerBox` and `DatabaseBox` from `TextBox` to `AutoSuggestBox`, sourced from the
+- [x] Change `ServerBox` and `DatabaseBox` from `TextBox` to `AutoSuggestBox`, sourced from the
       store and loaded when the dialog opens; selecting a suggestion prefills Database, Login, and
       Auth from the matching entry. Manually verify suggestions appear and prefill.
+      *(Both boxes are now `AutoSuggestBox` (`.Text` API unchanged, so `Commit()` is untouched).
+      Constructor calls `_recent.Load()` into `_recentConnections` and seeds `ServerBox.ItemsSource`.
+      `OnServerTextChanged`/`OnDatabaseTextChanged` refilter on `UserInput` (`DistinctServers` /
+      `DistinctDatabases`, the latter narrowed to the typed server). `OnServerSuggestionChosen`
+      looks up the matching `RecentConnection` and prefills Database + Login + Auth. Build green,
+      app launches clean. Real suggestion/prefill round-trip on the pending list — needs entries
+      written by an actual connect.)*
 - [ ] Reword the `ConnectView` `InfoBar` to state what is now true — recent servers and logins
       are remembered on this PC, passwords are not. Build gate + visual check.
 - [ ] Manually verify: connect to two different servers, relaunch the app, open Connect, both

@@ -25,15 +25,18 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBox
+                <AutoSuggestBox
                     x:Name="ServerBox"
                     Header="Server"
-                    PlaceholderText="localhost\SQLEXPRESS" />
-                <TextBox
+                    PlaceholderText="localhost\SQLEXPRESS"
+                    SuggestionChosen="OnServerSuggestionChosen"
+                    TextChanged="OnServerTextChanged" />
+                <AutoSuggestBox
                     x:Name="DatabaseBox"
                     Grid.Column="1"
                     Header="Database"
-                    PlaceholderText="(default)" />
+                    PlaceholderText="(default)"
+                    TextChanged="OnDatabaseTextChanged" />
             </Grid>
 
             <ComboBox

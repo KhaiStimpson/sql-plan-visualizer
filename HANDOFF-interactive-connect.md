@@ -132,12 +132,21 @@ live-server manual verification with no code component — the plan's "hand off 
   with `_recent.Record(new RecentConnection(Server, Database, UserId, Auth))`. Connection-string
   mode returns before that (pasted string may embed a password). Build green.
 
+- **t3 DONE:** `ServerBox` + `DatabaseBox` are now `AutoSuggestBox` (`.Text` API unchanged).
+  Constructor loads `_recentConnections` and seeds server suggestions; `OnServer/DatabaseTextChanged`
+  refilter on user input; `OnServerSuggestionChosen` prefills Database/Login/Auth from the matching
+  entry. Build green, app launches clean.
+
 ### Phase 4 — remaining tasks
-- t3: `ServerBox`/`DatabaseBox` `TextBox` → `AutoSuggestBox` sourced from the store; selecting a
-  suggestion prefills Database/Login/Auth. Non-server UI check.
 - t4: reword `ConnectView` `InfoBar` — recent servers/logins remembered on this PC, passwords
   never; keep it one sentence, consistent with Phase 2 task 7's copy.
 - t5: purely live-server — goes on the pending list.
+
+### Phase 4 — Live-server verification pending (user runs before merge)
+- **P4 t3/t5:** connect to two different servers for real, relaunch, open Connect — both appear
+  as `ServerBox` suggestions and picking one prefills server/database/login/auth. (The store
+  read/write/dedup/cap-10 path itself is exercised by connecting; only the "written by a real
+  connect" round-trip is unverified by the loop.)
 
 ## Phase boundary — STOP after Phase 3
 Phase 3 code is complete (t1-3 ticked, t4 live-only). Do NOT start Phase 4.

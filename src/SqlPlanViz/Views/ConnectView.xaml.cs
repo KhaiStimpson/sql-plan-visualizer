@@ -13,11 +13,14 @@ public sealed partial class ConnectView : UserControl
     private readonly ConnectionSettings _settings;
     private readonly PlanCaptureService _capture = new();
     private readonly RecentConnectionsStore _recent = new();
+    private readonly IReadOnlyList<RecentConnection> _recentConnections;
 
     public ConnectView(ConnectionSettings settings)
     {
         InitializeComponent();
         _settings = settings;
+        _recentConnections = _recent.Load();
+        ServerBox.ItemsSource = DistinctServers(string.Empty);
 
         ServerBox.Text = settings.Server;
         DatabaseBox.Text = settings.Database;
@@ -54,6 +57,67 @@ public sealed partial class ConnectView : UserControl
         ModeButtons.SelectedIndex == 1 ? CaptureMode.EstimatedOnly : CaptureMode.Actual;
 
     private void OnEntryModeChanged(object sender, SelectionChangedEventArgs e) => ApplyEntryMode();
+
+    // --- Recent-connection suggestions -------------------------------------------------
+
+    private void OnServerTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            sender.ItemsSource = DistinctServers(sender.Text);
+        }
+    }
+
+    private void OnDatabaseTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            sender.ItemsSource = DistinctDatabases(ServerBox.Text, sender.Text);
+        }
+    }
+
+    private void OnServerSuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+    {
+        if (args.SelectedItem is not string server)
+        {
+            return;
+        }
+
+        var match = _recentConnections.FirstOrDefault(
+            c => string.Equals(c.Server, server, StringComparison.OrdinalIgnoreCase));
+        if (match is null)
+        {
+            return;
+        }
+
+        DatabaseBox.Text = match.Database;
+        UserBox.Text = match.UserId;
+        AuthBox.SelectedIndex = AuthToIndex(match.Auth);
+    }
+
+    private List<string> DistinctServers(string? term)
+    {
+        var needle = term?.Trim() ?? string.Empty;
+        return _recentConnections
+            .Select(c => c.Server)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(s => needle.Length == 0 || s.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private List<string> DistinctDatabases(string? server, string? term)
+    {
+        var host = server?.Trim() ?? string.Empty;
+        var needle = term?.Trim() ?? string.Empty;
+        return _recentConnections
+            .Where(c => host.Length == 0 || string.Equals(c.Server, host, StringComparison.OrdinalIgnoreCase))
+            .Select(c => c.Database)
+            .Where(d => !string.IsNullOrWhiteSpace(d))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(d => needle.Length == 0 || d.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
 
     private void ApplyEntryMode()
     {
