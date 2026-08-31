@@ -245,10 +245,16 @@ a short phase (4 tasks) — not padded.**
       wrapped in try/catch (`ArgumentException`/`FormatException`/`KeyNotFoundException` →
       `PlanCaptureException`). `ApplicationName`/`ConnectTimeout` set only when
       `builder.ContainsKey` is false. Build green.)*
-- [ ] Make connection-string mode authoritative when active: `Commit()` records only
+- [x] Make connection-string mode authoritative when active: `Commit()` records only
       `RawConnectionString`, and `Describe()` shows the `DataSource` / `InitialCatalog` parsed
       from it. Manually verify the status readout shows the right server/db after connecting via a
       pasted string.
+      *(`ConnectView.Commit()` in raw mode now calls `_settings.Reset()` then sets only
+      `UseConnectionString` + `RawConnectionString`; details mode clears both. `Describe()` gains
+      `DescribeRawConnectionString()` — parses via `SqlConnectionStringBuilder`, returns
+      `DataSource · InitialCatalog · connection string` (or "Connection string" on parse
+      failure / no DataSource). Build green, app launches clean. Readout-after-connect check
+      pending in handoff.)*
 - [ ] Manually verify: a known-good Entra string and a known-good SQL-auth string both connect
       via "Test connection"; a malformed string shows a clear error; toggling back to details
       mode restores form editing.

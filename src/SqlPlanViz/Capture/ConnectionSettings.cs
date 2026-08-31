@@ -1,3 +1,5 @@
+using Microsoft.Data.SqlClient;
+
 namespace SqlPlanViz.Capture;
 
 public enum AuthMode
@@ -63,6 +65,11 @@ public sealed class ConnectionSettings
 
     public string Describe()
     {
+        if (UseConnectionString && !string.IsNullOrWhiteSpace(RawConnectionString))
+        {
+            return DescribeRawConnectionString();
+        }
+
         if (string.IsNullOrWhiteSpace(Server))
         {
             return "Not connected";
@@ -70,6 +77,27 @@ public sealed class ConnectionSettings
 
         var database = string.IsNullOrWhiteSpace(Database) ? string.Empty : " · " + Database;
         return $"{Server}{database} · {AuthLabel(Auth)}";
+    }
+
+    private string DescribeRawConnectionString()
+    {
+        try
+        {
+            var builder = new SqlConnectionStringBuilder(RawConnectionString);
+            if (string.IsNullOrWhiteSpace(builder.DataSource))
+            {
+                return "Connection string";
+            }
+
+            var database = string.IsNullOrWhiteSpace(builder.InitialCatalog)
+                ? string.Empty
+                : " · " + builder.InitialCatalog;
+            return $"{builder.DataSource}{database} · connection string";
+        }
+        catch
+        {
+            return "Connection string";
+        }
     }
 
     private static string AuthLabel(AuthMode auth) => auth switch

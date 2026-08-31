@@ -79,7 +79,10 @@ Build green at every task. No live-server testing was done (see below).
   once the re-prompt behaviour is observed — that comment decides whether the persistent MSAL
   token-cache Open question becomes its own phase.
 
-## Phase 3 — Connection-string mode (4 tasks) — IN PROGRESS
+## Phase 3 — Connection-string mode (4 tasks) — CODE COMPLETE (t1-3 ticked; t4 live-only)
+Phase boundary reached. All code tasks done on green builds; the only remaining task is
+live-server manual verification with no code component — the plan's "hand off part-done" case.
+
 - **t1 DONE:** `ConnectionSettings.RawConnectionString` + `UseConnectionString` added (both
   cleared by `Reset()`). `ConnectView` gains an `EntryModeBox` ComboBox ("Enter details" /
   "Paste connection string"); `ApplyEntryMode()` toggles `DetailsPanel` (a new StackPanel
@@ -88,21 +91,38 @@ Build green at every task. No live-server testing was done (see below).
   `ApplyEntryMode()`; `Commit()` persists both. Build green, `dotnet run` launches clean.
 - **t2 DONE:** `BuildConnectionString` now short-circuits to `BuildFromRawConnectionString(raw)`
   when `RawConnectionString` is non-empty — parses via `new SqlConnectionStringBuilder(raw)`
-  (try/catch → `PlanCaptureException`), sets `ApplicationName`/`ConnectTimeout` only when not
-  already present. Build green.
-- **t3 (next):** make connection-string mode authoritative — `Commit()` records only
-  `RawConnectionString` when active (clear the field values, or leave them — plan says "records
-  only `RawConnectionString`"); `Describe()` shows `DataSource`/`InitialCatalog` parsed from it.
-  Note `Commit()` currently always writes both; `t1` added `UseConnectionString` for this.
-- **t4:** entirely live-server manual verification → goes on the pending list.
+  (try/catch on `ArgumentException`/`FormatException`/`KeyNotFoundException` →
+  `PlanCaptureException`), sets `ApplicationName`/`ConnectTimeout` only when not already
+  present. Build green.
+- **t3 DONE:** connection-string mode is authoritative. `ConnectView.Commit()` in raw mode
+  calls `_settings.Reset()` then sets only `UseConnectionString` + `RawConnectionString`;
+  details mode clears both. `ConnectionSettings.Describe()` → `DescribeRawConnectionString()`
+  when raw mode active: parses via `SqlConnectionStringBuilder` and returns
+  `DataSource · InitialCatalog · connection string` ("Connection string" on parse failure or
+  missing DataSource). `Reset()` still yields "Not connected". Build green, app launches clean.
+- **t4 NOT ticked:** purely live-server manual verification (known-good Entra + SQL-auth
+  strings connect via Test connection; malformed string shows a clear error; toggling back to
+  details mode restores form editing). On the pending list below.
 
 ## Phase 3 — Live-server verification pending (user runs before merge)
 - **P3 t1 (UI, non-server):** open Connect, switch input mode to "Paste connection string" →
   the details form (server/db/auth/sql-auth/encrypt) hides and a single multiline connection-
   string box shows; switch back to "Enter details" → the form returns.
+- **P3 t3 (UI + server):** connect via a pasted string; the command-strip status readout shows
+  the right `server · db · connection string`.
 - **P3 t4:** a known-good Entra string and a known-good SQL-auth string both connect via "Test
   connection"; a malformed string shows a clear error; toggling back to details mode restores
   form editing.
+
+## Phase boundary — STOP after Phase 3
+Phase 3 code is complete (t1-3 ticked, t4 live-only). Do NOT start Phase 4.
+**Phase 4 task 1 has a blocking open question:** unpackaged WinUI 3 storage APIs —
+`ApplicationData.Current` throws for an unpackaged app (`WindowsPackageType=None`). Phase 4
+assumes a plain `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)` + app-subfolder
+JSON file instead; Phase 5 task 2 must likewise confirm `PasswordVault` works unpackaged or
+fall back to DPAPI. Resolve inside the task, do not guess silently. Phase 4 also does the first
+write of connection info to disk, so the `ConnectView` `InfoBar` copy needs rewording as it
+lands.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.

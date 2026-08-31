@@ -94,6 +94,16 @@ public sealed partial class ConnectView : UserControl
     /// <summary>Pushes the form back into the shared settings object.</summary>
     public void Commit()
     {
+        if (EntryModeBox.SelectedIndex == 1)
+        {
+            // Connection-string mode is authoritative: record only the pasted string and
+            // leave the form fields cleared so nothing stale feeds the connection.
+            _settings.Reset();
+            _settings.UseConnectionString = true;
+            _settings.RawConnectionString = ConnectionStringBox.Text.Trim();
+            return;
+        }
+
         _settings.Server = ServerBox.Text.Trim();
         _settings.Database = DatabaseBox.Text.Trim();
         _settings.Auth = IndexToAuth(AuthBox.SelectedIndex);
@@ -101,8 +111,8 @@ public sealed partial class ConnectView : UserControl
         _settings.Password = PasswordBox.Password;
         _settings.Encrypt = EncryptBox.IsChecked == true;
         _settings.TrustServerCertificate = TrustCertBox.IsChecked == true;
-        _settings.RawConnectionString = ConnectionStringBox.Text.Trim();
-        _settings.UseConnectionString = EntryModeBox.SelectedIndex == 1;
+        _settings.RawConnectionString = string.Empty;
+        _settings.UseConnectionString = false;
     }
 
     private async void OnTestConnection(object sender, RoutedEventArgs e)
