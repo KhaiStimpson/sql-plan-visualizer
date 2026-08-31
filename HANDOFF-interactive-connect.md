@@ -195,7 +195,11 @@ Phase 5 = optional SQL-auth password storage, strictly opt-in, OS-backed, revoca
 - **t3 DONE:** `ConnectView.TryPrefillPassword(server, userId)` — on a vault hit sets
   `PasswordBox.Password` and ticks `RememberPasswordBox`. Called from the constructor and from
   `OnServerSuggestionChosen`. Build green.
-- **t4-t6:** not started.
+- **t4 DONE:** `ForgetPasswordButton` beside `RememberPasswordBox`, disabled by default.
+  `UpdateForgetPasswordState()` (`_passwords.Has(server, userId)`) runs on server/login text
+  changes and after a prefill. `OnForgetPassword` removes the vault entry, clears `PasswordBox`,
+  unchecks the box. Build green.
+- **t5-t6:** not started (t5 = InfoBar reword, build+visual; t6 = live-only).
 
 ### Phase 5 — Live-server verification pending (user runs before merge)
 - **P5 t3/t6:** check "Remember password", connect for real, relaunch, pick the server from

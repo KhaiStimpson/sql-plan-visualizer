@@ -58,17 +58,22 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="UserBox" Header="Login" />
+                    <TextBox x:Name="UserBox" Header="Login" TextChanged="OnUserTextChanged" />
                     <PasswordBox
                         x:Name="PasswordBox"
                         Grid.Column="1"
                         Header="Password" />
                 </Grid>
-                <StackPanel Orientation="Horizontal" Spacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <CheckBox
                         x:Name="RememberPasswordBox"
                         Content="Remember password"
                         ToolTipService.ToolTip="Stores the password for this server and login in Windows Credential Manager. Opt-in and revocable." />
+                    <Button
+                        x:Name="ForgetPasswordButton"
+                        Content="Forget saved password"
+                        Click="OnForgetPassword"
+                        IsEnabled="False" />
                 </StackPanel>
             </StackPanel>
 

@@ -331,9 +331,14 @@ The one piece that reverses "nothing persisted" — strictly opt-in, OS-backed, 
       `RememberPasswordBox` so a re-commit keeps the entry. Called from the constructor (with the
       incoming `settings`) and from `OnServerSuggestionChosen` (with the matched `RecentConnection`).
       Build green. Prefill-after-real-relaunch on the live-server pending list.)*
-- [ ] Add a "Forget saved password" button beside the checkbox, enabled only when a credential
+- [x] Add a "Forget saved password" button beside the checkbox, enabled only when a credential
       exists for the current `Server` + `UserId`, that removes it from the vault. Manually verify
       the next launch no longer prefills.
+      *(`ForgetPasswordButton` added next to `RememberPasswordBox`, `IsEnabled="False"` by default.
+      `UpdateForgetPasswordState()` sets `IsEnabled = _passwords.Has(ServerBox.Text, UserBox.Text)`
+      and is called from `OnServerTextChanged`, the new `OnUserTextChanged`, and after a prefill
+      hit. `OnForgetPassword` calls `_passwords.Remove`, clears `PasswordBox`, unchecks the box,
+      re-evaluates. Build green. No-prefill-after-relaunch on the live pending list.)*
 - [ ] Reword the `ConnectView` `InfoBar` once more to cover the opt-in stored-password case.
       Build gate + visual check.
 - [ ] Manually verify end to end: check "Remember password", connect, relaunch, pick the server

@@ -49,6 +49,28 @@ public sealed partial class ConnectView : UserControl
 
         PasswordBox.Password = stored;
         RememberPasswordBox.IsChecked = true;
+        UpdateForgetPasswordState();
+    }
+
+    /// <summary>Enables "Forget saved password" only when a vault entry exists for the current key.</summary>
+    private void UpdateForgetPasswordState()
+    {
+        if (ForgetPasswordButton is null)
+        {
+            return;
+        }
+
+        ForgetPasswordButton.IsEnabled = _passwords.Has(ServerBox.Text, UserBox.Text);
+    }
+
+    private void OnUserTextChanged(object sender, TextChangedEventArgs e) => UpdateForgetPasswordState();
+
+    private void OnForgetPassword(object sender, RoutedEventArgs e)
+    {
+        _passwords.Remove(ServerBox.Text, UserBox.Text);
+        PasswordBox.Password = string.Empty;
+        RememberPasswordBox.IsChecked = false;
+        UpdateForgetPasswordState();
     }
 
     /// <summary>
@@ -84,6 +106,8 @@ public sealed partial class ConnectView : UserControl
         {
             sender.ItemsSource = DistinctServers(sender.Text);
         }
+
+        UpdateForgetPasswordState();
     }
 
     private void OnDatabaseTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
