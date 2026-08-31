@@ -365,8 +365,16 @@ One-click reconnect to a named server config. The "reassess" item from the brain
       (name-ordered, never throws), `Get(name)`, `Save(profile)` (replace-by-name), `Rename(old,new)`
       (no-ops on missing source / blank / colliding name), `Delete(name)`; all writes swallow
       IO failures. Explicit-path ctor overload. Build green.)*
-- [ ] Add a "Save as…" affordance to `ConnectView` that prompts for a profile name and writes the
+- [x] Add a "Save as…" affordance to `ConnectView` that prompts for a profile name and writes the
       current form (or raw string) as a profile. Manually verify a profile is saved.
+      *(`ProfileNameBox` TextBox + "Save as profile" button (`OnSaveProfile`) added above the
+      InfoBar, with a `ProfileResult` status TextBlock. `OnSaveProfile` requires a non-blank name,
+      calls `Commit()` then `_profiles.Save(BuildProfile(name))`. `BuildProfile` snapshots the
+      just-committed `_settings` — `PasswordIsVaulted` = SqlLogin + "Remember password" checked,
+      `IsRawConnectionString`/`RawConnectionString` from the entry mode. Build green, app launches
+      clean. `ConnectionProfileStore` exercised in isolation: empty-load, save, name-ordered load,
+      case-insensitive Get + enum round-trip, save-replaces-by-name, rename, rename-collision-noop,
+      delete, blank-name-ignored all pass.)*
 - [ ] Add a profile picker to `ConnectView` — selecting a profile loads every field, pulling the
       vaulted password when the flag is set. Manually verify a saved profile round-trips.
 - [ ] Add rename + delete for profiles (inline list or a small secondary dialog). Manually verify

@@ -247,8 +247,16 @@ Phase 6 is explicitly droppable/deferrable per the plan.
   and never-throws, `Get(name)`, `Save(profile)` replace-by-name, `Rename(old,new)` (no-ops on
   missing/blank/collision), `Delete(name)`; writes swallow IO failures. Explicit-path ctor
   overload for loop exercising. Build green.
-- **t2-t5:** not started.
+- **t2 DONE:** `ConnectView` gains `ProfileNameBox` + "Save as profile" button (`OnSaveProfile`)
+  above the InfoBar, plus a `ProfileResult` status line. `OnSaveProfile` demands a non-blank name,
+  `Commit()`s, then `_profiles.Save(BuildProfile(name))`. `BuildProfile` snapshots `_settings`
+  (`PasswordIsVaulted` = SqlLogin + Remember-password checked; raw-string flags from entry mode).
+  Build green, launches clean. Store exercised in isolation (all CRUD + rename + edge cases pass).
+- **t3-t5:** not started.
 - **t6:** purely live-server end-to-end — will go on the pending list.
+
+### Phase 6 — Live-server verification pending (user runs before merge)
+- **P6 t2:** "Save as profile" with a real form → profile persists and reloads after relaunch.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.

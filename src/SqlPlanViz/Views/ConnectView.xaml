@@ -125,6 +125,24 @@
                 TextWrapping="NoWrap" />
         </StackPanel>
 
+        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <TextBox
+                x:Name="ProfileNameBox"
+                PlaceholderText="Profile name"
+                Width="220" />
+            <Button
+                x:Name="SaveProfileButton"
+                Click="OnSaveProfile"
+                Content="Save as profile" />
+            <TextBlock
+                x:Name="ProfileResult"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap" />
+        </StackPanel>
+
         <InfoBar
             IsClosable="False"
             IsOpen="True"

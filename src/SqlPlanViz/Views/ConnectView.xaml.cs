@@ -14,6 +14,7 @@ public sealed partial class ConnectView : UserControl
     private readonly PlanCaptureService _capture = new();
     private readonly RecentConnectionsStore _recent = new();
     private readonly PasswordVaultStore _passwords = new();
+    private readonly ConnectionProfileStore _profiles = new();
     private readonly IReadOnlyList<RecentConnection> _recentConnections;
 
     public ConnectView(ConnectionSettings settings)
@@ -240,6 +241,35 @@ public sealed partial class ConnectView : UserControl
             _passwords.Remove(_settings.Server, _settings.UserId);
         }
     }
+
+    // --- Named connection profiles (Phase 6) ------------------------------------------
+
+    private void OnSaveProfile(object sender, RoutedEventArgs e)
+    {
+        var name = ProfileNameBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            ProfileResult.Text = "Enter a profile name.";
+            return;
+        }
+
+        Commit();
+        _profiles.Save(BuildProfile(name));
+        ProfileResult.Text = $"Saved “{name}”.";
+    }
+
+    /// <summary>Snapshots the just-committed <see cref="_settings"/> as a named profile (no password).</summary>
+    private ConnectionProfile BuildProfile(string name) => new(
+        Name: name,
+        Server: _settings.Server,
+        Database: _settings.Database,
+        Auth: _settings.Auth,
+        UserId: _settings.UserId,
+        Encrypt: _settings.Encrypt,
+        TrustServerCertificate: _settings.TrustServerCertificate,
+        PasswordIsVaulted: _settings.Auth == AuthMode.SqlLogin && RememberPasswordBox.IsChecked == true,
+        IsRawConnectionString: _settings.UseConnectionString,
+        RawConnectionString: _settings.RawConnectionString);
 
     private async void OnTestConnection(object sender, RoutedEventArgs e)
     {
