@@ -106,7 +106,13 @@ this section.
 - **Already decided, do not re-litigate:**
   - Entra auth goes through `Microsoft.Data.SqlClient`'s existing `Authentication` /
     `SqlAuthenticationMethod` support — **not** a hand-rolled MSAL integration. MSAL is already in
-    the dependency graph transitively via `Microsoft.Data.SqlClient` 5.2.2; no new package.
+    the dependency graph transitively via `Microsoft.Data.SqlClient`.
+  - **`Microsoft.Data.SqlClient` is upgraded 5.2.2 → 6.x** (decided 2026-09-01) — the pinned
+    5.2.2 has no parent-window hook for the interactive-auth popup;
+    `ActiveDirectoryAuthenticationProvider(Func<object>)` / `SetParentActivityOrWindowFunc`
+    arrived in 6.0. This is a version bump of an existing package, not a new dependency. Phase 2
+    task 4 does the bump as its first step and smoke-tests ordinary capture against the new
+    major version.
   - Nothing is persisted today. Phase 4 (recent connections) is the first write of connection
     info to disk; Phase 5 (remembered password) is the first secret written anywhere. Both are
     deliberately in scope, both strictly opt-in where a secret is involved, and Phase 5 uses
@@ -155,10 +161,11 @@ built until connecting and capturing are separate. ~6 tasks; task 1 already land
 
 ## Phase 2 — Microsoft Entra MFA
 
-The headline auth requirement. No new package — one `SqlAuthenticationMethod` value and a parent
-window handle for the popup. **This phase is at the 7-task ceiling** and its manual steps need a
-real Entra-secured Azure SQL / Managed Instance target; if that target is unavailable, tasks 4–5
-block and the phase should hand off part-done.
+The headline auth requirement. One `SqlAuthenticationMethod` value, a `Microsoft.Data.SqlClient`
+5.2.2 → 6.x bump (decided 2026-09-01 — see Ground rules), and a parent window handle for the
+popup. **This phase is at the 7-task ceiling** and its manual steps need a real Entra-secured
+Azure SQL / Managed Instance target; if that target is unavailable, tasks 4–5 block and the phase
+should hand off part-done.
 
 - [x] Extend the `AuthMode` enum (`src/SqlPlanViz/Capture/ConnectionSettings.cs`) with `EntraMfa`
       (Active Directory Interactive). Add a comment that Password / Integrated / device-code
@@ -175,11 +182,15 @@ block and the phase should hand off part-done.
       switch back to SQL auth, they return; Windows still shows neither.
       *(3rd ComboBoxItem added; `AuthToIndex`/`IndexToAuth` helpers replace the two-way ternaries.
       Build green, app launches clean. Interactive field-toggle check pending in handoff.)*
-- [ ] Anchor the MFA popup to the app window — pass the app `HWND` (from `MainWindow`) into the
-      interactive auth flow (`WithParentActivityOrWindow` via a custom `SqlAuthenticationProvider`
-      registration, or the provider's parent-window hook). Manually verify against a real
-      Entra-secured target: the popup appears anchored to the app window and auth succeeds via
-      "Test connection".
+- [ ] Bump `Microsoft.Data.SqlClient` 5.2.2 → 6.x in `src/SqlPlanViz/SqlPlanViz.csproj` (6.1.2
+      or 7.0.1 are already in the local nuget cache — pick the latest 6.x), build, and launch the
+      app to confirm it starts clean. Then anchor the MFA popup to the app window: register an
+      `ActiveDirectoryAuthenticationProvider` built with the app `HWND` (from `MainWindow`) via
+      `SqlAuthenticationProvider.SetProvider(SqlAuthenticationMethod.ActiveDirectoryInteractive, …)`
+      using the `Func<object>` parent-window ctor or `SetParentActivityOrWindowFunc`. Build gate +
+      clean launch; append to the handoff pending list: against a real Entra-secured target the
+      popup appears anchored and "Test connection" succeeds. **If the 6.x bump breaks the build or
+      ordinary capture in a way that is not a quick fix, stop and ask.**
 - [ ] Manually verify each path end to end against the real target: Entra MFA connect from the
       new command-strip Connect button makes the Query Store browser live; capture-from-server
       with Entra MFA still produces a plan.
