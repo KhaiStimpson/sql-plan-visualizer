@@ -353,10 +353,18 @@ The one piece that reverses "nothing persisted" — strictly opt-in, OS-backed, 
 One-click reconnect to a named server config. The "reassess" item from the brainstorm — Phases
 1–5 are the core; this can be dropped or deferred without stranding anything.
 
-- [ ] Add a `ConnectionProfileStore` (separate persistence from the recent list) for user-named
+- [x] Add a `ConnectionProfileStore` (separate persistence from the recent list) for user-named
       profiles holding the full config: Server, Database, Auth (incl. `EntraMfa`), Encrypt,
       TrustServerCertificate, UserId, and flags for "password is vaulted" and "is a raw
       connection string". Build gate only.
+      *(`src/SqlPlanViz/Capture/ConnectionProfileStore.cs` — `ConnectionProfile` record
+      (Name, Server, Database, Auth, UserId, Encrypt, TrustServerCertificate, PasswordIsVaulted,
+      IsRawConnectionString, RawConnectionString — no password) + `ConnectionProfileStore`. JSON at
+      `%LOCALAPPDATA%\SqlPlanViz\connection-profiles.json` via
+      `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)`, enum as string. `Load()`
+      (name-ordered, never throws), `Get(name)`, `Save(profile)` (replace-by-name), `Rename(old,new)`
+      (no-ops on missing source / blank / colliding name), `Delete(name)`; all writes swallow
+      IO failures. Explicit-path ctor overload. Build green.)*
 - [ ] Add a "Save as…" affordance to `ConnectView` that prompts for a profile name and writes the
       current form (or raw string) as a profile. Manually verify a profile is saved.
 - [ ] Add a profile picker to `ConnectView` — selecting a profile loads every field, pulling the

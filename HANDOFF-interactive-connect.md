@@ -238,8 +238,17 @@ is set); rename/delete; one-click profile entries in the empty-state panel (arou
 `MainPage.xaml:501`). `PasswordVaultStore` and `RecentConnectionsStore` are reusable as-is.
 Phase 6 is explicitly droppable/deferrable per the plan.
 
-## Phase boundary — STOP after Phase 5
-Phase 5 code is complete (t1-5 ticked, t6 live-only). Do NOT start Phase 6.
+## Phase 6 — Named connection profiles (6 tasks) — IN PROGRESS
+- **t1 DONE:** `src/SqlPlanViz/Capture/ConnectionProfileStore.cs`. `ConnectionProfile` record
+  (Name, Server, Database, Auth incl. `EntraMfa`, UserId, Encrypt, TrustServerCertificate,
+  `PasswordIsVaulted`, `IsRawConnectionString`, RawConnectionString — no password) +
+  `ConnectionProfileStore`. JSON at `%LOCALAPPDATA%\SqlPlanViz\connection-profiles.json`
+  (`LocalApplicationData`, no `ApplicationData.Current`), enum as string. `Load()` name-ordered
+  and never-throws, `Get(name)`, `Save(profile)` replace-by-name, `Rename(old,new)` (no-ops on
+  missing/blank/collision), `Delete(name)`; writes swallow IO failures. Explicit-path ctor
+  overload for loop exercising. Build green.
+- **t2-t5:** not started.
+- **t6:** purely live-server end-to-end — will go on the pending list.
 
 ## Do not re-litigate
 - Branch off `main`, PR targets `main`.
