@@ -290,7 +290,7 @@ public sealed partial class MainPage : Page
         var editor = ViewModel.Editor;
         SqlEditor.IsReadOnly = editor.IsBusy;
         ReplanButton.IsEnabled = editor.CanReplan;
-        RunActualButton.IsEnabled = editor.CanReplan && !string.IsNullOrWhiteSpace(ViewModel.Connection.Server);
+        RunActualButton.IsEnabled = editor.CanReplan && ViewModel.Connection.HasTarget;
 
         var (line, column) = SqlEditor.Document.PositionOf(SqlEditor.CaretOffset);
         var parts = new List<string> { $"Ln {line + 1}, Col {column + 1}" };
@@ -365,6 +365,7 @@ public sealed partial class MainPage : Page
 
         ViewModel.Connection.ApplyProfile(profile, password);
         ViewModel.NotifyConnectionChanged();
+        _ = RefreshCatalogAsync(forceRefresh: false);
     }
 
     public IReadOnlyList<AntiPatternInfo> AntiPatterns => AntiPatternLibrary.All;
@@ -639,9 +640,26 @@ public sealed partial class MainPage : Page
         view.Commit();
         RefreshConnectionProfiles();
         ViewModel.NotifyConnectionChanged();
+
+        // Connecting without capturing is still a connection: the editor's completion and the
+        // parser dialect are derived from the server, not from the plan, so they refresh here
+        // exactly as they do on the capture path.
+        await RefreshCatalogAsync(forceRefresh: false);
     }
 
-    private void OnDisconnect(object sender, RoutedEventArgs e) => ViewModel.Disconnect();
+    private void OnDisconnect(object sender, RoutedEventArgs e)
+    {
+        ViewModel.Disconnect();
+
+        // ViewModel.Disconnect() drops its own snapshot; the providers hold their own copy of
+        // it, so they have to be pushed back to empty or completion keeps offering the old
+        // server's tables. The dialect stays where it is — the newest parser is the fallback
+        // an unconnected editor uses anyway.
+        _catalogProvider.Snapshot = CatalogSnapshot.Empty;
+        _tuningProvider.Snapshot = CatalogSnapshot.Empty;
+        ApplyTableTypeShapes();
+        UpdateEditorStatus();
+    }
 
     private async void OnCapture(object sender, RoutedEventArgs e)
     {

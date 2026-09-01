@@ -88,6 +88,48 @@ public sealed class ConnectionSettings
         Password = vaultedPassword ?? string.Empty;
     }
 
+    /// <summary>
+    /// The server this settings object actually points at, whichever entry mode is active.
+    /// In connection-string mode <see cref="Server"/> is deliberately left blank — the pasted
+    /// string is authoritative — so every "are we connected / which server is it" test has to
+    /// go through here rather than reading <see cref="Server"/> directly, or connection-string
+    /// mode reads as disconnected everywhere.
+    /// </summary>
+    public string EffectiveServer =>
+        UseConnectionString ? RawConnectionStringPart(b => b.DataSource) : Server;
+
+    /// <summary>The database this settings object points at, in either entry mode.</summary>
+    public string EffectiveDatabase =>
+        UseConnectionString ? RawConnectionStringPart(b => b.InitialCatalog) : Database;
+
+    /// <summary>
+    /// True when there is a connection target at all. In connection-string mode a pasted
+    /// string counts even when it names no server (a "Data Source=" alias, say) — the string
+    /// is the target, and only an attempt can prove it wrong.
+    /// </summary>
+    public bool HasTarget => UseConnectionString
+        ? !string.IsNullOrWhiteSpace(RawConnectionString)
+        : !string.IsNullOrWhiteSpace(Server);
+
+    private string RawConnectionStringPart(Func<SqlConnectionStringBuilder, string> part)
+    {
+        if (string.IsNullOrWhiteSpace(RawConnectionString))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return part(new SqlConnectionStringBuilder(RawConnectionString)) ?? string.Empty;
+        }
+        catch
+        {
+            // A malformed string is reported where it is used to connect; here it just means
+            // we cannot name the server yet.
+            return string.Empty;
+        }
+    }
+
     public string Describe()
     {
         if (UseConnectionString && !string.IsNullOrWhiteSpace(RawConnectionString))

@@ -217,7 +217,7 @@ public sealed class CatalogMetadataService
         bool forceRefresh = false,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(settings.Server))
+        if (!settings.HasTarget)
         {
             return CatalogSnapshot.Empty;
         }
@@ -235,13 +235,17 @@ public sealed class CatalogMetadataService
 
     /// <summary>The cached snapshot without touching the network, or empty if there is none.</summary>
     public CatalogSnapshot Peek(ConnectionSettings settings) =>
-        string.IsNullOrWhiteSpace(settings.Server)
+        !settings.HasTarget
             ? CatalogSnapshot.Empty
             : _cache.GetValueOrDefault(CacheKey(settings), CatalogSnapshot.Empty);
 
     public void Invalidate(ConnectionSettings settings) => _cache.Remove(CacheKey(settings));
 
-    private static string CacheKey(ConnectionSettings settings) => $"{settings.Server}|{settings.Database}";
+    // Keyed on the effective target, not the form fields: in connection-string mode
+    // Server is blank, so keying on it would collide every pasted string onto one
+    // cache entry and hand one server's schema to another.
+    private static string CacheKey(ConnectionSettings settings) =>
+        $"{settings.EffectiveServer}|{settings.EffectiveDatabase}";
 
     private static async Task<CatalogSnapshot> LoadAsync(ConnectionSettings settings, CancellationToken cancellationToken)
     {
@@ -354,8 +358,8 @@ public sealed class CatalogMetadataService
 
         return new CatalogSnapshot
         {
-            Server = settings.Server,
-            Database = settings.Database,
+            Server = settings.EffectiveServer,
+            Database = settings.EffectiveDatabase,
             Schemas = schemas,
             Tables = [.. tables.Values.Select(t => t.Build())],
             TableTypes = [.. tableTypes.Values.Select(t => t.Build())],

@@ -113,7 +113,7 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoadingCatalog;
 
-    public bool CanRefreshCatalog => !string.IsNullOrWhiteSpace(Connection.Server) && !IsLoadingCatalog;
+    public bool CanRefreshCatalog => Connection.HasTarget && !IsLoadingCatalog;
 
     /// <summary>
     /// Reads the connected database's schema for the completion providers
@@ -122,7 +122,7 @@ public sealed partial class MainViewModel : ObservableObject
     /// </summary>
     public async Task LoadCatalogAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(Connection.Server))
+        if (!Connection.HasTarget)
         {
             CatalogSnapshot = CatalogSnapshot.Empty;
             CatalogMessage = "Connect to a server to complete real tables and columns.";
@@ -167,19 +167,19 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Command-strip readout of the live connection; raised by <see cref="NotifyConnectionChanged"/>.</summary>
     public string ConnectionDescription => Connection.Describe();
 
-    public bool IsConnected => !string.IsNullOrWhiteSpace(Connection.Server);
+    public bool IsConnected => Connection.HasTarget;
 
     public bool HasSessionPlans => SessionPlans.Count > 0;
 
     public bool CanCompare => SessionPlans.Count >= 2;
 
     public bool CanRerun => !string.IsNullOrWhiteSpace(_lastCapturedQuery)
-                            && !string.IsNullOrWhiteSpace(Connection.Server)
+                            && Connection.HasTarget
                             && !IsBusy;
 
     public bool HasDiff => CurrentDiff is not null;
 
-    public bool CanBrowseQueryStore => !string.IsNullOrWhiteSpace(Connection.Server);
+    public bool CanBrowseQueryStore => Connection.HasTarget;
 
     public bool HasQueryStorePlans => QueryStorePlans.Count > 0;
 
@@ -297,11 +297,21 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanBrowseQueryStore));
         OnPropertyChanged(nameof(ConnectionDescription));
         OnPropertyChanged(nameof(IsConnected));
+        OnPropertyChanged(nameof(CanRefreshCatalog));
     }
 
     /// <summary>Disconnect: reset the connection and drop every surface derived from it.</summary>
     public void Disconnect()
     {
+        // The catalog is one of those surfaces: it is a snapshot of the schema on the server
+        // we are dropping, so it goes with the connection. Leaving it would let the editor
+        // keep completing tables from a server the app is no longer attached to. The cache
+        // entry goes too, so reconnecting to the same server re-reads rather than resurrecting
+        // a snapshot taken an unknown amount of time ago.
+        _catalog.Invalidate(Connection);
+        CatalogSnapshot = CatalogSnapshot.Empty;
+        CatalogMessage = "Connect to a server to complete real tables and columns.";
+
         Connection.Reset();
         QueryStorePlans.Clear();
         SelectedObjectContext = null;
@@ -511,7 +521,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Connection.Server))
+        if (!Connection.HasTarget)
         {
             Editor.ApplyError("Connect to a server before re-planning. Highlighting, completions and parameters work offline; compiling does not.");
             return;
@@ -769,10 +779,10 @@ public sealed partial class MainViewModel : ObservableObject
         SelectedObjectContext = null;
         ObjectContextMessage = node?.ObjectName is null
             ? "This operator is not tied to a database object."
-            : string.IsNullOrWhiteSpace(Connection.Server)
+            : !Connection.HasTarget
                 ? "Capture a plan from a live connection to load object context."
                 : null;
-        if (node?.ObjectName is null || string.IsNullOrWhiteSpace(Connection.Server))
+        if (node?.ObjectName is null || !Connection.HasTarget)
         {
             IsLoadingObjectContext = false;
             return;
@@ -819,7 +829,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Connection.Server))
+        if (!Connection.HasTarget)
         {
             foreach (var item in MissingIndexes)
             {
