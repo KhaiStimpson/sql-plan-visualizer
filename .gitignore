@@ -45,3 +45,5 @@ secrets.json
 .claude/
 .flow/
 HANDOFF-*.md
+# Agent loop drivers — process tooling, not part of the build
+scripts/
