@@ -13,6 +13,7 @@
             <local:BoolToVisibilityConverter x:Key="BoolToVisibility" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
             <local:SeverityToBrushConverter x:Key="SeverityToBrush" />
+            <local:DivergenceForegroundConverter x:Key="DivergenceForeground" />
 
             <!-- Card surface used by the detail panel sections. -->
             <Style x:Key="CardBorder" TargetType="Border">

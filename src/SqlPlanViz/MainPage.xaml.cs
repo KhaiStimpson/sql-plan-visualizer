@@ -8,6 +8,7 @@ using SqlPlanViz.Model;
 using SqlPlanViz.Sql;
 using SqlPlanViz.ViewModels;
 using SqlPlanViz.Views;
+using System.Collections.ObjectModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -41,9 +42,44 @@ public sealed partial class MainPage : Page
         SizeChanged += (_, _) => SetSqlViewHeight(_sqlViewHeight);
 
         UpdateMetricAvailability();
+        RefreshConnectionProfiles();
     }
 
     public MainViewModel ViewModel { get; }
+
+    private readonly ConnectionProfileStore _profileStore = new();
+    private readonly PasswordVaultStore _profilePasswords = new();
+
+    /// <summary>Saved connection profiles offered as one-click connect buttons in the empty state.</summary>
+    public ObservableCollection<ConnectionProfile> ConnectionProfiles { get; } = new();
+
+    private void RefreshConnectionProfiles()
+    {
+        ConnectionProfiles.Clear();
+        foreach (var profile in _profileStore.Load())
+        {
+            ConnectionProfiles.Add(profile);
+        }
+
+        ProfilesPanel.Visibility = ConnectionProfiles.Count > 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void OnConnectProfile(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not ConnectionProfile profile)
+        {
+            return;
+        }
+
+        var password = profile.PasswordIsVaulted
+            ? _profilePasswords.Retrieve(profile.Server, profile.UserId)
+            : null;
+
+        ViewModel.Connection.ApplyProfile(profile, password);
+        ViewModel.NotifyConnectionChanged();
+    }
 
     public IReadOnlyList<AntiPatternInfo> AntiPatterns => AntiPatternLibrary.All;
 
@@ -293,6 +329,32 @@ public sealed partial class MainPage : Page
 
     private async void OnConnect(object sender, RoutedEventArgs e)
     {
+        var view = new ConnectView(ViewModel.Connection) { ConnectOnly = true };
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = "Connect to a SQL Server",
+            Content = view,
+            PrimaryButtonText = "Connect",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        view.Commit();
+        RefreshConnectionProfiles();
+        ViewModel.NotifyConnectionChanged();
+    }
+
+    private void OnDisconnect(object sender, RoutedEventArgs e) => ViewModel.Disconnect();
+
+    private async void OnCapture(object sender, RoutedEventArgs e)
+    {
         var view = new ConnectView(ViewModel.Connection);
 
         var dialog = new ContentDialog
@@ -311,6 +373,7 @@ public sealed partial class MainPage : Page
         }
 
         view.Commit();
+        RefreshConnectionProfiles();
         await ViewModel.CaptureAsync(view.Query, view.Mode);
     }
 
@@ -379,6 +442,13 @@ public sealed partial class MainPage : Page
     {
         var show = OperatorListPane.Visibility != Visibility.Visible;
         OperatorListPane.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void OnToggleFlameView(object sender, RoutedEventArgs e)
+    {
+        var show = Flame.Visibility != Visibility.Visible;
+        Flame.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
     }
 
@@ -492,6 +562,22 @@ public sealed partial class MainPage : Page
         VerbosityButton.Content = ViewModel.ExplanationVerbosity == ExplanationVerbosity.Expansive
             ? "Detailed"
             : "Terse";
+    }
+
+    private void OnToggleLabelDetail(object sender, RoutedEventArgs e)
+    {
+        Canvas.LabelDetail = Canvas.LabelDetail switch
+        {
+            LabelDetail.Full => LabelDetail.Standard,
+            LabelDetail.Standard => LabelDetail.Minimal,
+            _ => LabelDetail.Full,
+        };
+        LabelDetailButton.Content = Canvas.LabelDetail switch
+        {
+            LabelDetail.Full => "Detail: Full",
+            LabelDetail.Standard => "Detail: Standard",
+            _ => "Detail: Minimal",
+        };
     }
 
     private void OnCollapseAll(object sender, RoutedEventArgs e)

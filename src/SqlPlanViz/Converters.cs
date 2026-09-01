@@ -46,3 +46,18 @@ public sealed partial class SeverityToBrushConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language) =>
         throw new NotSupportedException();
 }
+
+/// <summary>Highlights a cost-model divergence row that crosses the flagging threshold (hot-path-plan.md Phase 2).</summary>
+public sealed partial class DivergenceForegroundConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        var key = value is true ? "SystemFillColorCautionBrush" : "TextFillColorTertiaryBrush";
+        return Application.Current.Resources.TryGetValue(key, out var brush)
+            ? brush
+            : new SolidColorBrush(Microsoft.UI.Colors.Gray);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+        throw new NotSupportedException();
+}

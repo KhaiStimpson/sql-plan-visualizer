@@ -40,6 +40,9 @@ public sealed partial class PlanCanvas : UserControl
     private const float TextLeftPad = AccentWidth + 12f;
     private const float TextRightPad = 12f;
     private const float LodTextThreshold = 0.45f;
+
+    /// <summary>Below this zoom, nodes show the operator name only (hot-path-plan.md Phase 1) — above §8.7's all-text-off threshold but too dense for the full card.</summary>
+    private const float LodDetailThreshold = 0.75f;
     private const float MinScale = 0.05f;
     private const float MaxScale = 3.0f;
 
@@ -211,6 +214,19 @@ public sealed partial class PlanCanvas : UserControl
     {
         get => (ColorMode)GetValue(ColorModeProperty);
         set => SetValue(ColorModeProperty, value);
+    }
+
+    public static readonly DependencyProperty LabelDetailProperty = DependencyProperty.Register(
+        nameof(LabelDetail),
+        typeof(LabelDetail),
+        typeof(PlanCanvas),
+        new PropertyMetadata(LabelDetail.Full, (d, _) => ((PlanCanvas)d).Redraw()));
+
+    /// <summary>User-selected text density, capped further by zoom (hot-path-plan.md Phase 1).</summary>
+    public LabelDetail LabelDetail
+    {
+        get => (LabelDetail)GetValue(LabelDetailProperty);
+        set => SetValue(LabelDetailProperty, value);
     }
 
     #endregion
@@ -685,6 +701,7 @@ public sealed partial class PlanCanvas : UserControl
         _pendingFit = true;
         _userAdjusted = false;
         RecomputeBlame();
+        RecomputeVerdicts();
         ColorMode = _blame.Count > 0 ? ColorMode.Blame : ColorMode.Metric;
         RebuildLayout(preserveView: false);
         FitToView();
@@ -711,6 +728,31 @@ public sealed partial class PlanCanvas : UserControl
         }
 
         _blame = map;
+    }
+
+    private Dictionary<int, Diagnostics.PlanFinding> _verdicts = new();
+
+    /// <summary>
+    /// Highest-ranked finding touching each node, for the verdict line (hot-path-plan.md
+    /// Phase 1). <see cref="Diagnostics.RuleEngine.Analyse"/> already ranks
+    /// <see cref="Diagnostics.PlanStatement.Findings"/> by severity, then impact, then
+    /// confidence, so the first finding seen per node in that order is its best one.
+    /// </summary>
+    private void RecomputeVerdicts()
+    {
+        var map = new Dictionary<int, Diagnostics.PlanFinding>();
+        if (Statement is not null)
+        {
+            foreach (var finding in Statement.Findings)
+            {
+                foreach (var node in finding.Nodes)
+                {
+                    map.TryAdd(node.NodeId, finding);
+                }
+            }
+        }
+
+        _verdicts = map;
     }
 
     private void OnMetricChanged()
@@ -1166,8 +1208,45 @@ public sealed partial class PlanCanvas : UserControl
         || node.LogicalOp.Contains(filter, StringComparison.OrdinalIgnoreCase)
         || (node.ObjectName?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false)
         || (node.Predicate?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false)
+        || (Diagnostics.NodeLabeller.DescribeSources(node)?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false)
         || node.OutputList.Any(o => o.Contains(filter, StringComparison.OrdinalIgnoreCase))
         || node.Warnings.Any(w => w.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>The more restrictive of the user's <see cref="LabelDetail"/> and the zoom-driven density (hot-path-plan.md Phase 1).</summary>
+    private Controls.LabelDetail EffectiveDetail()
+    {
+        if (_scale < LodDetailThreshold || LabelDetail == Controls.LabelDetail.Minimal)
+        {
+            return Controls.LabelDetail.Minimal;
+        }
+
+        return LabelDetail == Controls.LabelDetail.Full ? Controls.LabelDetail.Full : Controls.LabelDetail.Standard;
+    }
+
+    /// <summary>
+    /// Node subtitle in order of preference: this node's own object, a derived source
+    /// description (join sides plus keys, when parseable), then the logical op as a last
+    /// resort (hot-path-plan.md Phase 1). Long object names truncate from the left so the
+    /// distinguishing suffix survives.
+    /// </summary>
+    private static string? DescribeSubtitle(PlanNode node)
+    {
+        if (!string.IsNullOrEmpty(node.ObjectName))
+        {
+            return Diagnostics.NodeLabeller.TruncateObjectName(node.ObjectName);
+        }
+
+        var sources = Diagnostics.NodeLabeller.DescribeSources(node);
+        if (sources is not null)
+        {
+            var joinKeys = Diagnostics.NodeLabeller.DescribeJoinKeys(node);
+            return joinKeys is null ? sources : $"{sources} {joinKeys}";
+        }
+
+        return string.IsNullOrEmpty(node.LogicalOp) || node.LogicalOp == node.PhysicalOp
+            ? null
+            : node.LogicalOp;
+    }
 
     private void DrawNode(CanvasDrawingSession ds, NodeLayout nl, bool dimmed, bool drawText)
     {
@@ -1263,6 +1342,16 @@ public sealed partial class PlanCanvas : UserControl
         var secondary = dimmed ? _palette.Fade(_palette.TextSecondary, 0.45) : _palette.TextSecondary;
         var tertiary = dimmed ? _palette.Fade(_palette.TextTertiary, 0.45) : _palette.TextTertiary;
 
+        var detail = EffectiveDetail();
+
+        if (detail == Controls.LabelDetail.Minimal)
+        {
+            // §8.7 companion tier: still zoomed in enough to read text, but the card reads
+            // as operator name plus heat only — no subtitle, badges, or metric lines.
+            ds.DrawText(node.PhysicalOp, new Rect(textLeft, 9, Math.Max(10, textWidth), 18), primary, _titleFormat);
+            return;
+        }
+
         // Reserve room on the title row for the severity glyph and the parallel marker.
         // Phase 4.7: the glyph fires on either a Showplan warning or a blame finding, so a
         // node the rule engine flagged is visibly marked even without a plan warning.
@@ -1284,17 +1373,44 @@ public sealed partial class PlanCanvas : UserControl
             primary,
             _titleFormat);
 
-        var subtitle = node.ObjectName
-                       ?? (string.IsNullOrEmpty(node.LogicalOp) || node.LogicalOp == node.PhysicalOp
-                           ? null
-                           : node.LogicalOp);
+        var cursorY = 28f;
+
+        var subtitle = DescribeSubtitle(node);
         if (!string.IsNullOrEmpty(subtitle))
         {
-            ds.DrawText(subtitle, new Rect(textLeft, 28, textWidth, 16), secondary, _subtitleFormat);
+            ds.DrawText(subtitle, new Rect(textLeft, cursorY, textWidth, 16), secondary, _subtitleFormat);
+            cursorY += 19f;
         }
 
-        DrawRowsLine(ds, node, textLeft, textWidth, secondary, tertiary, dimmed);
-        DrawCostLine(ds, node, textLeft, textWidth, tertiary);
+        if (detail == Controls.LabelDetail.Full
+            && _verdicts.TryGetValue(node.NodeId, out var verdict))
+        {
+            ds.DrawLine(textLeft, cursorY, textLeft + textWidth, cursorY, _palette.Fade(tertiary, 0.5f), hairline);
+            cursorY += 5f;
+            ds.DrawText(
+                verdict.Title,
+                new Rect(textLeft, cursorY, textWidth, 15),
+                dimmed ? _palette.Fade(_palette.FindingAccent(verdict.Severity), 0.45) : _palette.FindingAccent(verdict.Severity),
+                _metaFormat);
+            cursorY += 18f;
+        }
+
+        cursorY = DrawRowsLine(ds, node, textLeft, textWidth, cursorY, secondary, tertiary, dimmed);
+
+        if (node.HasRuntimeStats
+            && Statement?.Summary.QueryElapsedMs is double queryElapsedMs
+            && queryElapsedMs > 0)
+        {
+            var share = Math.Clamp((node.SelfTimeMs ?? 0) / queryElapsedMs, 0, 1);
+            ds.DrawText(
+                $"self {Format.Milliseconds(node.SelfTimeMs ?? 0)} · {Format.Percent(share)} of query",
+                new Rect(textLeft, cursorY, textWidth, 15),
+                tertiary,
+                _metaFormat);
+            cursorY += 17f;
+        }
+
+        DrawCostLine(ds, node, textLeft, textWidth, cursorY, tertiary);
 
         var badgeX = w - TextRightPad;
         if (node.Parallel)
@@ -1320,11 +1436,12 @@ public sealed partial class PlanCanvas : UserControl
         }
     }
 
-    private void DrawRowsLine(
+    private float DrawRowsLine(
         CanvasDrawingSession ds,
         PlanNode node,
         float textLeft,
         float textWidth,
+        float y,
         Color secondary,
         Color tertiary,
         bool dimmed)
@@ -1349,7 +1466,8 @@ public sealed partial class PlanCanvas : UserControl
             color = tertiary;
         }
 
-        ds.DrawText(rowsText, new Rect(textLeft, 46, textWidth, 15), color, _metaFormat);
+        ds.DrawText(rowsText, new Rect(textLeft, y, textWidth, 15), color, _metaFormat);
+        return y + 17f;
     }
 
     private void DrawCostLine(
@@ -1357,6 +1475,7 @@ public sealed partial class PlanCanvas : UserControl
         PlanNode node,
         float textLeft,
         float textWidth,
+        float y,
         Color tertiary)
     {
         var share = _metricMax <= 0 ? 0 : MetricValue(node) / _metricMax;
@@ -1378,7 +1497,7 @@ public sealed partial class PlanCanvas : UserControl
                 $"subtree {Format.Cost(node.EstimatedSubtreeCost)} · {Format.Percent(share)}",
         };
 
-        ds.DrawText(text, new Rect(textLeft, 63, textWidth, 15), tertiary, _metaFormat);
+        ds.DrawText(text, new Rect(textLeft, y, textWidth, 15), tertiary, _metaFormat);
     }
 
     private void DrawParallelMarker(CanvasDrawingSession ds, float x, float y, Color color)
