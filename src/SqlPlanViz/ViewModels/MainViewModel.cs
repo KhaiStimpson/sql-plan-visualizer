@@ -4,6 +4,8 @@ using SqlPlanViz.Capture;
 using SqlPlanViz.Common;
 using SqlPlanViz.Controls;
 using SqlPlanViz.Diagnostics;
+using SqlPlanViz.Diagnostics.Rules;
+using SqlPlanViz.Editing;
 using SqlPlanViz.Model;
 using SqlPlanViz.Parsing;
 
@@ -18,9 +20,18 @@ public sealed partial class MainViewModel : ObservableObject
     private Dictionary<string, FixTriageState> _triage = new(StringComparer.OrdinalIgnoreCase);
     private string? _planSourcePath;
     private readonly DatabaseContextService _databaseContext = new();
+    private readonly CatalogMetadataService _catalog = new();
     private CancellationTokenSource? _objectContextCancellation;
     private string? _lastCapturedQuery;
     private CaptureMode _lastCaptureMode;
+    private CancellationTokenSource? _replanCancellation;
+
+    /// <summary>
+    /// False only while activating a plan the editor itself produced. Selecting a statement
+    /// normally loads its text into the editor; a re-plan must not, or it would clobber the
+    /// edit that caused it.
+    /// </summary>
+    private bool _syncEditorText = true;
 
     [ObservableProperty]
     private ExecutionPlan? _plan;
@@ -42,6 +53,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private ExplanationVerbosity _explanationVerbosity = ExplanationVerbosity.Expansive;
+
+    [ObservableProperty]
+    private bool _rankOperatorsByDivergence;
 
     [ObservableProperty]
     private string? _busyMessage;
@@ -74,27 +88,98 @@ public sealed partial class MainViewModel : ObservableObject
 
     public ObservableCollection<OperatorRankItem> RankedOperators { get; } = [];
 
+    public string RankedOperatorsTitle => RankOperatorsByDivergence
+        ? "Operators ranked by cost-model divergence"
+        : "Operators ranked by self time";
+
     public ObservableCollection<SessionPlanItem> SessionPlans { get; } = [];
 
     public ObservableCollection<PlanDeltaItem> DiffDeltas { get; } = [];
 
     public ObservableCollection<QueryStorePlanEntry> QueryStorePlans { get; } = [];
 
+    /// <summary>The editor pane's state (live-plan-editor-plan.md Phase 4).</summary>
+    public SqlEditorViewModel Editor { get; } = new();
+
+    /// <summary>Pinned baseline and the diff every Phase 5 surface reads from.</summary>
+    public TuningSession TuningSession { get; } = new();
+
+    [ObservableProperty]
+    private CatalogSnapshot _catalogSnapshot = CatalogSnapshot.Empty;
+
+    [ObservableProperty]
+    private string? _catalogMessage;
+
+    [ObservableProperty]
+    private bool _isLoadingCatalog;
+
+    public bool CanRefreshCatalog => Connection.HasTarget && !IsLoadingCatalog;
+
+    /// <summary>
+    /// Reads the connected database's schema for the completion providers
+    /// (live-plan-editor-plan.md Phase 6). One round trip, cached per connection; the manual
+    /// refresh exists because schemas change under a long-lived session.
+    /// </summary>
+    public async Task LoadCatalogAsync(bool forceRefresh = false, CancellationToken cancellationToken = default)
+    {
+        if (!Connection.HasTarget)
+        {
+            CatalogSnapshot = CatalogSnapshot.Empty;
+            CatalogMessage = "Connect to a server to complete real tables and columns.";
+            return;
+        }
+
+        IsLoadingCatalog = true;
+        OnPropertyChanged(nameof(CanRefreshCatalog));
+        try
+        {
+            CatalogSnapshot = await _catalog.GetAsync(Connection, forceRefresh, cancellationToken).ConfigureAwait(true);
+            CatalogMessage = CatalogSnapshot.IsEmpty
+                ? "The connected database reported no user tables."
+                : $"{CatalogSnapshot.Tables.Count} tables and views, {CatalogSnapshot.TableTypes.Count} table types.";
+        }
+        catch (PlanCaptureException ex)
+        {
+            // The catalog is an enhancement: without it the keyword and plan providers still
+            // work, so a failure is a message and not an error bar.
+            CatalogMessage = ex.Message;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsLoadingCatalog = false;
+            OnPropertyChanged(nameof(CanRefreshCatalog));
+        }
+    }
+
+    /// <summary>The columns of a user table type, for a table-valued parameter's row grid (Phase 6).</summary>
+    public IReadOnlyList<TvpColumn> TableTypeColumns(string tableTypeName) =>
+        CatalogSnapshot.FindTableType(tableTypeName) is { } type
+            ? [.. type.Columns.Select(c => new TvpColumn { Name = c.Name, DataType = c.DataType })]
+            : [];
+
     public ConnectionSettings Connection { get; } = new();
 
     public bool HasPlan => Plan is not null;
+
+    /// <summary>Command-strip readout of the live connection; raised by <see cref="NotifyConnectionChanged"/>.</summary>
+    public string ConnectionDescription => Connection.Describe();
+
+    public bool IsConnected => Connection.HasTarget;
 
     public bool HasSessionPlans => SessionPlans.Count > 0;
 
     public bool CanCompare => SessionPlans.Count >= 2;
 
     public bool CanRerun => !string.IsNullOrWhiteSpace(_lastCapturedQuery)
-                            && !string.IsNullOrWhiteSpace(Connection.Server)
+                            && Connection.HasTarget
                             && !IsBusy;
 
     public bool HasDiff => CurrentDiff is not null;
 
-    public bool CanBrowseQueryStore => !string.IsNullOrWhiteSpace(Connection.Server);
+    public bool CanBrowseQueryStore => Connection.HasTarget;
 
     public bool HasQueryStorePlans => QueryStorePlans.Count > 0;
 
@@ -202,6 +287,39 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Call after the connection settings change without a capture (the standalone Connect
+    /// flow), so the connection-derived surfaces re-evaluate against the new server.
+    /// </summary>
+    public void NotifyConnectionChanged()
+    {
+        OnPropertyChanged(nameof(CanRerun));
+        OnPropertyChanged(nameof(CanBrowseQueryStore));
+        OnPropertyChanged(nameof(ConnectionDescription));
+        OnPropertyChanged(nameof(IsConnected));
+        OnPropertyChanged(nameof(CanRefreshCatalog));
+    }
+
+    /// <summary>Disconnect: reset the connection and drop every surface derived from it.</summary>
+    public void Disconnect()
+    {
+        // The catalog is one of those surfaces: it is a snapshot of the schema on the server
+        // we are dropping, so it goes with the connection. Leaving it would let the editor
+        // keep completing tables from a server the app is no longer attached to. The cache
+        // entry goes too, so reconnecting to the same server re-reads rather than resurrecting
+        // a snapshot taken an unknown amount of time ago.
+        _catalog.Invalidate(Connection);
+        CatalogSnapshot = CatalogSnapshot.Empty;
+        CatalogMessage = "Connect to a server to complete real tables and columns.";
+
+        Connection.Reset();
+        QueryStorePlans.Clear();
+        SelectedObjectContext = null;
+        QueryStoreMessage = null;
+        OnPropertyChanged(nameof(HasQueryStorePlans));
+        NotifyConnectionChanged();
+    }
+
     public async Task CaptureAsync(string query, CaptureMode mode, CancellationToken cancellationToken = default)
     {
         ErrorMessage = null;
@@ -218,6 +336,8 @@ public sealed partial class MainViewModel : ObservableObject
             _lastCaptureMode = mode;
             SetPlan(plan, sourcePath: null);
             OnPropertyChanged(nameof(CanRerun));
+            OnPropertyChanged(nameof(ConnectionDescription));
+            OnPropertyChanged(nameof(IsConnected));
         }
         catch (PlanCaptureException ex)
         {
@@ -302,7 +422,15 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanCompare));
     }
 
-    public void ActivateSessionPlan(SessionPlanItem item)
+    public void ActivateSessionPlan(SessionPlanItem item) => ActivateSessionPlan(item, null, null);
+
+    /// <summary>
+    /// Activates a plan, optionally keeping the caret on the statement the user was looking
+    /// at. A re-plan of the same batch produces the same statements in the same order, so the
+    /// index is usually right; the fingerprint is checked first because an edit that adds a
+    /// statement would shift every index below it (Phase 4).
+    /// </summary>
+    public void ActivateSessionPlan(SessionPlanItem item, string? preferredFingerprint, int? preferredIndex)
     {
         CurrentDiff = null;
         var plan = item.Plan;
@@ -317,11 +445,7 @@ public sealed partial class MainViewModel : ObservableObject
             Statements.Add(s);
         }
 
-        // Open on the statement that actually costs something — in a batch of ten, nine
-        // are usually trivial and the tenth is why you opened the plan.
-        SelectedStatement = plan.Statements
-            .OrderByDescending(s => s.Summary.TotalSubtreeCost)
-            .First();
+        SelectedStatement = ChooseStatement(plan, preferredFingerprint, preferredIndex);
 
         OnPropertyChanged(nameof(HasPlan));
         OnPropertyChanged(nameof(HasNoPlan));
@@ -332,6 +456,179 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanUseRegressionBaseline));
         OnPropertyChanged(nameof(AnnotationHint));
     }
+
+    /// <summary>
+    /// Picks which statement to open on. Falling back to the costliest is the original rule:
+    /// in a batch of ten, nine are usually trivial and the tenth is why you opened the plan.
+    /// </summary>
+    private static PlanStatement ChooseStatement(ExecutionPlan plan, string? preferredFingerprint, int? preferredIndex)
+    {
+        if (preferredFingerprint is { Length: > 0 })
+        {
+            var match = plan.Statements.FirstOrDefault(s =>
+                string.Equals(s.Fingerprint, preferredFingerprint, StringComparison.Ordinal));
+            if (match is not null)
+            {
+                return match;
+            }
+        }
+
+        if (preferredIndex is int index && index >= 0 && index < plan.Statements.Count)
+        {
+            return plan.Statements[index];
+        }
+
+        return plan.Statements.OrderByDescending(s => s.Summary.TotalSubtreeCost).First();
+    }
+
+    /// <summary>
+    /// Compiles the edited batch and swaps in the plan it produces
+    /// (live-plan-editor-plan.md Phase 4).
+    ///
+    /// Estimated only: SET SHOWPLAN_XML compiles without executing, so an edited DELETE is
+    /// safe to press Ctrl+Enter on. The actual run is Phase 7 and is gated behind its own
+    /// confirmation.
+    /// </summary>
+    public Task ReplanAsync(CancellationToken cancellationToken = default) =>
+        CaptureFromEditorAsync(CaptureMode.EstimatedOnly, cancellationToken);
+
+    /// <summary>
+    /// Runs the edited batch and captures its actual plan
+    /// (live-plan-editor-plan.md Phase 7). Reuses the Phase 4 pipeline unchanged — the
+    /// difference between this and Ctrl+Enter is the capture mode and the confirmation the
+    /// caller is required to have obtained first.
+    /// </summary>
+    public Task RunActualAsync(CancellationToken cancellationToken = default) =>
+        CaptureFromEditorAsync(CaptureMode.Actual, cancellationToken);
+
+    /// <summary>
+    /// Classifies what the batch would do if executed. The caller shows this to the user and
+    /// gets a deliberate confirmation before <see cref="RunActualAsync"/>.
+    /// </summary>
+    public BatchSafetyReport AnalyseBatchSafety()
+    {
+        var batch = Editor.Compose();
+
+        // Classify the composed batch, prelude included: the DECLARE statements are part of
+        // what will run, and a table-valued parameter's generated INSERTs are real INSERTs.
+        return BatchSafetyAnalyzer.Analyse(batch.Text, Editor.ParserVersion);
+    }
+
+    private async Task CaptureFromEditorAsync(CaptureMode mode, CancellationToken cancellationToken)
+    {
+        if (!Editor.CanReplan)
+        {
+            return;
+        }
+
+        if (!Connection.HasTarget)
+        {
+            Editor.ApplyError("Connect to a server before re-planning. Highlighting, completions and parameters work offline; compiling does not.");
+            return;
+        }
+
+        var batch = Editor.Compose();
+        if (!batch.IsValid)
+        {
+            Editor.ApplyError(string.Join(Environment.NewLine, batch.Errors));
+            return;
+        }
+
+        // The statement the user is looking at, so the same one can be reselected afterwards.
+        var preferredFingerprint = SelectedStatement?.Fingerprint;
+        var preferredIndex = SelectedStatement is null ? null : (int?)Statements.IndexOf(SelectedStatement);
+
+        _replanCancellation?.Cancel();
+        _replanCancellation?.Dispose();
+        _replanCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var token = _replanCancellation.Token;
+
+        Editor.ClearError();
+        Editor.IsBusy = true;
+        Editor.StatusMessage = mode == CaptureMode.Actual
+            ? "Running the edited batch and capturing its actual plan…"
+            : "Compiling the edited batch…";
+        ErrorMessage = null;
+        OnPropertyChanged(nameof(CanCancelReplan));
+
+        try
+        {
+            var plan = await _capture
+                .CaptureAsync(Connection, batch.Text, mode, token)
+                .ConfigureAwait(true);
+
+            _lastCapturedQuery = batch.Text;
+            _lastCaptureMode = mode;
+
+            // Straight through the session-plan machinery, so a re-plan is a first-class
+            // entry in history and stays inspectable and comparable like any other.
+            var sessionItem = new SessionPlanItem { Plan = plan, SourcePath = null };
+            SessionPlans.Add(sessionItem);
+
+            // The editor's text is the source of this plan, not a thing to be overwritten by
+            // it — activating normally would replace what the user just typed with the
+            // statement text SQL Server echoed back.
+            _syncEditorText = false;
+            try
+            {
+                ActivateSessionPlan(sessionItem, preferredFingerprint, preferredIndex);
+            }
+            finally
+            {
+                _syncEditorText = true;
+            }
+            OnPropertyChanged(nameof(HasSessionPlans));
+            OnPropertyChanged(nameof(CanCompare));
+
+            Editor.MarkCaptured(Editor.Text);
+            TuningSession.IsStale = false;
+            TuningSession.SetCurrent(SelectedStatement);
+
+            // The canvas already knows how to recolour by diff; this is the wire-up the plan
+            // says is "mostly free", and it is.
+            CurrentDiff = TuningSession.Diff;
+        }
+        catch (PlanCaptureException ex)
+        {
+            Editor.ApplyCaptureError(ex, batch);
+        }
+        catch (ShowplanParseException ex)
+        {
+            Editor.ApplyError($"SQL Server returned a plan that could not be parsed: {ex.Message}");
+        }
+        catch (OperationCanceledException)
+        {
+            Editor.StatusMessage = mode == CaptureMode.Actual ? "Run cancelled." : "Re-plan cancelled.";
+        }
+        finally
+        {
+            Editor.IsBusy = false;
+            OnPropertyChanged(nameof(CanRerun));
+            OnPropertyChanged(nameof(CanCancelReplan));
+        }
+    }
+
+    public bool CanCancelReplan => Editor.IsBusy;
+
+    /// <summary>Re-anchors the comparison to the plan on screen, banking an improvement.</summary>
+    public void PinBaseline()
+    {
+        TuningSession.PinCurrent();
+        CurrentDiff = TuningSession.Diff;
+    }
+
+    /// <summary>
+    /// Per-line impacts for the editor's gutter and annotations. Returns nothing when the
+    /// text has moved on from the plan: marks pointing at lines that have since been edited
+    /// are worse than no marks.
+    /// </summary>
+    public IReadOnlyList<LineImpact> EditorLineImpacts() =>
+        Editor.IsStale
+            ? []
+            : SqlDeltaMapper.Map(Editor.Text, TuningSession.Diff, Editor.ParserVersion);
+
+    /// <summary>Cancels an in-flight re-plan. The plan explicitly requires captures to be cancellable.</summary>
+    public void CancelReplan() => _replanCancellation?.Cancel();
 
     public void CompareLatestPlans()
     {
@@ -370,10 +667,23 @@ public sealed partial class MainViewModel : ObservableObject
     {
         SelectedNode = null;
 
+        // Parameter types and the plan-object completions always follow the selected
+        // statement; the text does so only when the plan did not come from the editor.
+        Editor.SetSourceStatement(value, replaceText: _syncEditorText);
+
+        // Opening a plan starts a tuning session anchored on it, so the very first re-plan
+        // already has something to be better or worse than.
+        if (_syncEditorText)
+        {
+            TuningSession.Reset();
+        }
+
+        TuningSession.SetCurrent(value);
+
         MissingIndexes.Clear();
         Warnings.Clear();
         Findings.Clear();
-        RankedOperators.Clear();
+        RebuildRankedOperators(value);
 
         if (value is not null)
         {
@@ -390,13 +700,6 @@ public sealed partial class MainViewModel : ObservableObject
             foreach (var finding in value.Findings)
             {
                 Findings.Add(CreateFindingItem(finding, value, ExplanationVerbosity));
-            }
-
-            var rank = 1;
-            foreach (var node in value.AllNodes
-                         .OrderByDescending(n => n.SelfTimeMs ?? n.EstimatedOperatorCost))
-            {
-                RankedOperators.Add(new OperatorRankItem { Rank = rank++, Node = node });
             }
 
             _ = VerifyIndexSuggestionsAsync();
@@ -423,6 +726,37 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(Narrative));
     }
 
+    /// <summary>
+    /// Ranks by self time (or estimated operator cost on an estimated plan) by default; by
+    /// absolute cost-model divergence when <see cref="RankOperatorsByDivergence"/> is set
+    /// (hot-path-plan.md Phase 2) — the "sorted by absolute delta" view onto the same list.
+    /// </summary>
+    private void RebuildRankedOperators(PlanStatement? statement)
+    {
+        RankedOperators.Clear();
+        if (statement is null)
+        {
+            return;
+        }
+
+        var orderedNodes = RankOperatorsByDivergence
+            ? statement.AllNodes.OrderByDescending(n =>
+                CostModelDivergenceRule.ComputeShares(n, statement)?.Delta ?? -1)
+            : statement.AllNodes.OrderByDescending(n => n.SelfTimeMs ?? n.EstimatedOperatorCost);
+
+        var rank = 1;
+        foreach (var node in orderedNodes)
+        {
+            RankedOperators.Add(new OperatorRankItem { Rank = rank++, Node = node, Statement = statement });
+        }
+    }
+
+    partial void OnRankOperatorsByDivergenceChanged(bool value)
+    {
+        RebuildRankedOperators(SelectedStatement);
+        OnPropertyChanged(nameof(RankedOperatorsTitle));
+    }
+
     partial void OnSelectedNodeChanged(PlanNode? value)
     {
         SelectedAnnotation = value is not null && _annotations.TryGetValue(value.NodeId, out var annotation)
@@ -445,10 +779,10 @@ public sealed partial class MainViewModel : ObservableObject
         SelectedObjectContext = null;
         ObjectContextMessage = node?.ObjectName is null
             ? "This operator is not tied to a database object."
-            : string.IsNullOrWhiteSpace(Connection.Server)
+            : !Connection.HasTarget
                 ? "Capture a plan from a live connection to load object context."
                 : null;
-        if (node?.ObjectName is null || string.IsNullOrWhiteSpace(Connection.Server))
+        if (node?.ObjectName is null || !Connection.HasTarget)
         {
             IsLoadingObjectContext = false;
             return;
@@ -495,7 +829,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Connection.Server))
+        if (!Connection.HasTarget)
         {
             foreach (var item in MissingIndexes)
             {

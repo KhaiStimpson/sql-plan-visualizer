@@ -107,7 +107,14 @@ public sealed class PlanLayoutEngine
 {
     public double NodeWidth { get; init; } = 212;
 
-    public double NodeHeight { get; init; } = 84;
+    /// <summary>
+    /// 84 sized the original title/subtitle/rows/cost card. hot-path-plan.md Phase 1 adds an
+    /// optional verdict line and an optional self-time-share line beneath rows, so this now
+    /// fits the worst case (both present) with room to spare; nodes that don't need every
+    /// line just leave the card's own bottom margin a little taller, they don't shrink it —
+    /// see <c>PlanCanvas.DrawNode</c>'s cursor-based text layout.
+    /// </summary>
+    public double NodeHeight { get; init; } = 124;
 
     /// <summary>Gap between adjacent siblings (and between adjacent subtrees).</summary>
     public double SiblingGap { get; init; } = 26;

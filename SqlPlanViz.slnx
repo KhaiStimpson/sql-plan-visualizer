@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SqlPlanViz.Baseline/SqlPlanViz.Baseline.csproj" />
+    <Project Path="src/SqlPlanViz/SqlPlanViz.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SqlPlanViz.Tests/SqlPlanViz.Tests.csproj" />
+  </Folder>
+</Solution>
