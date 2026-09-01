@@ -1,6 +1,6 @@
 # Live Plan Editor
 
-**Status:** Plan v1 — no code written yet
+**Status:** Implemented — all seven phases complete
 **Author:** Khai
 **Companion to:** [tdd.md](tdd.md) (the viewer) and [tuning-roadmap.md](tuning-roadmap.md) (the tuning
 tool). This document defines the *editor*: the loop that lets you change the SQL and watch the plan
@@ -60,22 +60,22 @@ the riskiest component, so it ships standalone and gets judged before anything d
 Text input goes through `CoreTextEditContext` rather than raw key events, so IME composition, dead
 keys, and touch keyboards work correctly. That single detail separates a real editor from a toy.
 
-- [ ] `Editing/SqlDocument.cs` — text buffer, line index, change events
-- [ ] `SqlDocument` undo/redo stack, coalescing consecutive typing into one unit
-- [ ] Add `Microsoft.SqlServer.TransactSql.ScriptDom` 180.78.1 to `SqlPlanViz.csproj`
-- [ ] `Editing/TSqlTokenizer.cs` — wrap `TSql160Parser.GetTokenStream`, classified spans with offsets
-- [ ] Incremental re-tokenize: only the dirty line range on each edit, not the whole document
-- [ ] `Editing/SqlSyntaxTheme.cs` — token class → brush, theme-aware, shaped like `PlanPalette`
-- [ ] `Controls/SqlEditorControl.cs` — Win2D `CanvasControl` host, `CanvasTextLayout` line rendering
-- [ ] Viewport virtualization: draw only visible lines (the plan canvas already sets this precedent)
-- [ ] Caret rendering, blink, and keyboard navigation (arrows, Home/End, Ctrl+arrows, page keys)
-- [ ] Selection: mouse drag, shift+navigation, double-click word, triple-click line
-- [ ] Clipboard: cut / copy / paste, plain text only
-- [ ] `CoreTextEditContext` wiring for IME and composition input
-- [ ] Line-number column and an empty gutter column reserved for Phase 5 marks
-- [ ] Vertical and horizontal scrolling, mouse wheel, and scroll-to-caret
-- [ ] `AutomationPeer` exposing the text pattern, so screen readers see a text control
-- [ ] Tab / Shift+Tab indent and outdent on a selection
+- [x] `Editing/SqlDocument.cs` — text buffer, line index, change events
+- [x] `SqlDocument` undo/redo stack, coalescing consecutive typing into one unit
+- [x] Add `Microsoft.SqlServer.TransactSql.ScriptDom` 180.78.1 to `SqlPlanViz.csproj`
+- [x] `Editing/TSqlTokenizer.cs` — wrap `TSql160Parser.GetTokenStream`, classified spans with offsets
+- [x] Incremental re-tokenize: only the dirty line range on each edit, not the whole document
+- [x] `Editing/SqlSyntaxTheme.cs` — token class → brush, theme-aware, shaped like `PlanPalette`
+- [x] `Controls/SqlEditorControl.cs` — Win2D `CanvasControl` host, `CanvasTextLayout` line rendering
+- [x] Viewport virtualization: draw only visible lines (the plan canvas already sets this precedent)
+- [x] Caret rendering, blink, and keyboard navigation (arrows, Home/End, Ctrl+arrows, page keys)
+- [x] Selection: mouse drag, shift+navigation, double-click word, triple-click line
+- [x] Clipboard: cut / copy / paste, plain text only
+- [x] `CoreTextEditContext` wiring for IME and composition input
+- [x] Line-number column and an empty gutter column reserved for Phase 5 marks
+- [x] Vertical and horizontal scrolling, mouse wheel, and scroll-to-caret
+- [x] `AutomationPeer` exposing the text pattern, so screen readers see a text control
+- [x] Tab / Shift+Tab indent and outdent on a selection
 
 **Deliverable:** a control you can type T-SQL into, with correct highlighting and working undo,
 hosted in a scratch page. Not yet wired into `MainPage`.
@@ -98,16 +98,16 @@ could not compile-check.
 Context comes from the AST, not from string matching: after `FROM` offer tables, after an alias and a
 dot offer that alias's columns, inside a `SELECT` list offer columns from tables already in scope.
 
-- [ ] `Editing/Completion/CompletionItem.cs` — label, insert text, kind, detail, sort rank
-- [ ] `Editing/Completion/ICompletionProvider.cs` — provider contract, each independently disableable
-- [ ] `Editing/Completion/CompletionContext.cs` — caret position → enclosing clause, aliases in scope
-- [ ] `Editing/Completion/CompletionEngine.cs` — fan out to providers, merge, rank, filter
-- [ ] `Editing/Completion/KeywordProvider.cs` — T-SQL keywords, built-in functions, clause snippets
-- [ ] `Editing/Completion/PlanObjectProvider.cs` — tables, indexes, columns harvested from the loaded plan
-- [ ] `Controls/CompletionPopup.cs` — native WinUI `Popup` + `ListView`, positioned from the caret rect
-- [ ] Keyboard model: `Ctrl+Space` invoke, arrows navigate, Tab/Enter accept, Esc dismiss
-- [ ] Type-ahead filtering as characters arrive, with prefix matches ranked above substring matches
-- [ ] Dismiss correctly on caret move, selection change, focus loss, and document reload
+- [x] `Editing/Completion/CompletionItem.cs` — label, insert text, kind, detail, sort rank
+- [x] `Editing/Completion/ICompletionProvider.cs` — provider contract, each independently disableable
+- [x] `Editing/Completion/CompletionContext.cs` — caret position → enclosing clause, aliases in scope
+- [x] `Editing/Completion/CompletionEngine.cs` — fan out to providers, merge, rank, filter
+- [x] `Editing/Completion/KeywordProvider.cs` — T-SQL keywords, built-in functions, clause snippets
+- [x] `Editing/Completion/PlanObjectProvider.cs` — tables, indexes, columns harvested from the loaded plan
+- [x] `Controls/CompletionPopup.cs` — native WinUI `Popup` + `ListView`, positioned from the caret rect
+- [x] Keyboard model: `Ctrl+Space` invoke, arrows navigate, Tab/Enter accept, Esc dismiss
+- [x] Type-ahead filtering as characters arrive, with prefix matches ranked above substring matches
+- [x] Dismiss correctly on caret move, selection change, focus loss, and document reload
 
 **Deliverable:** completions from keywords and from the loaded plan's own objects, working on a
 `.sqlplan` file opened with no server connection.
@@ -132,19 +132,19 @@ declares; what remains is what the user must supply. Types are inferred from the
 `ParameterList` first, then from comparison context in the AST, then defaulted with the type left
 editable.
 
-- [ ] `Editing/SqlParameterExtractor.cs` — `TSqlFragmentVisitor` collecting `VariableReference`
-- [ ] Subtract `DeclareVariableStatement` and procedure parameters already in the batch
-- [ ] Type inference: plan `ParameterList` → AST comparison context → editable default
-- [ ] `ViewModels/ParameterBindingItem.cs` — name, type, value, `IsNull`, validation state
-- [ ] Prefill from `ParameterCompiledValue` / `ParameterRuntimeValue` (parser already reads both)
-- [ ] Scalar type editors: numeric, string, date/time, `uniqueidentifier`, `bit`, binary
-- [ ] `NULL` handling as an explicit per-parameter toggle, distinct from empty string
-- [ ] Table-valued parameters: detect the user table type, render a row grid shaped by its columns
-- [ ] `Editing/SqlBatchComposer.cs` — build the `DECLARE` prelude, prepend to user text
-- [ ] TVP composition: `DECLARE @t AS dbo.Type` plus generated `INSERT` rows
-- [ ] Offset map from composed batch back to editor lines (prelude length must not shift error lines)
-- [ ] Literal escaping and quoting per type, so a value containing `'` cannot break the batch
-- [ ] `Views/ParameterStrip.xaml` — the strip under the editor, collapsible when there are none
+- [x] `Editing/SqlParameterExtractor.cs` — `TSqlFragmentVisitor` collecting `VariableReference`
+- [x] Subtract `DeclareVariableStatement` and procedure parameters already in the batch
+- [x] Type inference: plan `ParameterList` → AST comparison context → editable default
+- [x] `ViewModels/ParameterBindingItem.cs` — name, type, value, `IsNull`, validation state
+- [x] Prefill from `ParameterCompiledValue` / `ParameterRuntimeValue` (parser already reads both)
+- [x] Scalar type editors: numeric, string, date/time, `uniqueidentifier`, `bit`, binary
+- [x] `NULL` handling as an explicit per-parameter toggle, distinct from empty string
+- [x] Table-valued parameters: detect the user table type, render a row grid shaped by its columns
+- [x] `Editing/SqlBatchComposer.cs` — build the `DECLARE` prelude, prepend to user text
+- [x] TVP composition: `DECLARE @t AS dbo.Type` plus generated `INSERT` rows
+- [x] Offset map from composed batch back to editor lines (prelude length must not shift error lines)
+- [x] Literal escaping and quoting per type, so a value containing `'` cannot break the batch
+- [x] `Views/ParameterStrip.xaml` — the strip under the editor, collapsible when there are none
 
 **Deliverable:** open a parameterised plan, see its parameters listed with values from the plan, edit
 them, and get a correct composed batch — verified by inspection, since capture is Phase 4.
@@ -163,16 +163,16 @@ two are where correctness bugs will hide. Tick checkboxes as they land.
 
 **Goal:** `Ctrl+Enter` produces a new plan on the canvas.
 
-- [ ] `ViewModels/SqlEditorViewModel.cs` — text, parameters, busy, error, staleness
-- [ ] `MainViewModel.ReplanAsync` — compose batch, capture estimated, parse, activate
-- [ ] Route each re-plan through the existing `SessionPlans` machinery so history is preserved
-- [ ] Surface SQL error line and column from `SqlException` instead of flattening to a message
-- [ ] Translate error positions through the Phase 3 offset map to editor lines
-- [ ] Render compile errors as inline squiggles in the editor, plus a message on the status bar
-- [ ] Keep the selected statement stable across re-plans by statement index plus fingerprint
-- [ ] Disable editing while a capture is in flight; keep the request cancellable
-- [ ] Stale tracking: mark the plan stale as soon as the text diverges from the captured batch
-- [ ] `Ctrl+Enter` accelerator, plus a toolbar button with the same command
+- [x] `ViewModels/SqlEditorViewModel.cs` — text, parameters, busy, error, staleness
+- [x] `MainViewModel.ReplanAsync` — compose batch, capture estimated, parse, activate
+- [x] Route each re-plan through the existing `SessionPlans` machinery so history is preserved
+- [x] Surface SQL error line and column from `SqlException` instead of flattening to a message
+- [x] Translate error positions through the Phase 3 offset map to editor lines
+- [x] Render compile errors as inline squiggles in the editor, plus a message on the status bar
+- [x] Keep the selected statement stable across re-plans by statement index plus fingerprint
+- [x] Disable editing while a capture is in flight; keep the request cancellable
+- [x] Stale tracking: mark the plan stale as soon as the text diverges from the captured batch
+- [x] `Ctrl+Enter` accelerator, plus a toolbar button with the same command
 
 **Deliverable:** edit the SQL, press `Ctrl+Enter`, and the canvas shows the plan for the edited query.
 
@@ -193,21 +193,21 @@ deliberately gated. Tick checkboxes as they land.
 The headline cost bar needs no text mapping at all — just `PlanDiff` against the pinned baseline — so
 it lands before anything that depends on inference.
 
-- [ ] `Diagnostics/TuningSession.cs` — pinned baseline, current plan, diff between them
-- [ ] Auto-pin the plan the session started from; "Pin current as baseline" re-anchors
-- [ ] Cost delta bar above the editor: baseline cost → current, percent change, direction
-- [ ] Name the shape changes in the bar ("Key Lookup added", "Index Seek → Index Scan")
-- [ ] Label the unit as *estimated* cost, and mark when the plan is estimated-only
-- [ ] Stale state in the bar when the text has changed since the last capture
-- [ ] Wire `Canvas.SetDiff(TuningSession.Diff)` — canvas node highlighting, mostly free
-- [ ] Rewrite `SqlNodeMapper` spans on ScriptDom AST offsets instead of string search
-- [ ] `Diagnostics/SqlDeltaMapper.cs` — fold node deltas into per-line `LineImpact` records
-- [ ] Confidence threshold on `LineImpact`; below it, render nothing rather than a wrong arrow
-- [ ] Gutter marks: improved / regressed / added, drawn in the Phase 1 gutter column
-- [ ] Inline end-of-line annotations naming the delta and its cause
-- [ ] Toggle for inline annotations, since they are the noisiest of the four surfaces
-- [ ] Click a gutter mark → select the responsible operator on the canvas
-- [ ] `MainPage.xaml` — splitter, resizable editor pane, collapse/restore, replacing the 190px strip
+- [x] `Diagnostics/TuningSession.cs` — pinned baseline, current plan, diff between them
+- [x] Auto-pin the plan the session started from; "Pin current as baseline" re-anchors
+- [x] Cost delta bar above the editor: baseline cost → current, percent change, direction
+- [x] Name the shape changes in the bar ("Key Lookup added", "Index Seek → Index Scan")
+- [x] Label the unit as *estimated* cost, and mark when the plan is estimated-only
+- [x] Stale state in the bar when the text has changed since the last capture
+- [x] Wire `Canvas.SetDiff(TuningSession.Diff)` — canvas node highlighting, mostly free
+- [x] Rewrite `SqlNodeMapper` spans on ScriptDom AST offsets instead of string search
+- [x] `Diagnostics/SqlDeltaMapper.cs` — fold node deltas into per-line `LineImpact` records
+- [x] Confidence threshold on `LineImpact`; below it, render nothing rather than a wrong arrow
+- [x] Gutter marks: improved / regressed / added, drawn in the Phase 1 gutter column
+- [x] Inline end-of-line annotations naming the delta and its cause
+- [x] Toggle for inline annotations, since they are the noisiest of the four surfaces
+- [x] Click a gutter mark → select the responsible operator on the canvas
+- [x] `MainPage.xaml` — splitter, resizable editor pane, collapse/restore, replacing the 190px strip
 
 **Deliverable:** an edit that adds a Key Lookup shows red in the bar, red in the gutter on the
 responsible line, and a recolored node on the canvas — all against the pinned baseline.
@@ -228,17 +228,17 @@ confidence is low, render nothing. Tick checkboxes as they land.
 **Goal:** completions that know the real schema, and completions that know what is wrong with the
 plan.
 
-- [ ] `Capture/CatalogMetadataService.cs` — one bulk read on connect, cached per session
-- [ ] Read `sys.schemas`, `sys.tables`, `sys.views`, `sys.columns`, `sys.indexes`, `sys.table_types`
-- [ ] Manual refresh command, since schemas change under a long-lived session
-- [ ] `Editing/Completion/CatalogProvider.cs` — schema-qualified objects, alias-aware columns
-- [ ] Detail text on catalog items: data type, nullability, index membership
-- [ ] Feed `sys.table_types` columns into the Phase 3 TVP row grid
-- [ ] `Editing/Completion/TuningProvider.cs` — suggestions drawn from the diagnostics layer
-- [ ] Offer covering-index columns from an active missing-index finding
-- [ ] Offer a SARGable rewrite of the predicate under the caret (`non-sargable-predicate` rule)
-- [ ] Offer an explicit column list to replace `SELECT *`
-- [ ] Rank tuning suggestions above generic matches, and mark them visually as suggestions
+- [x] `Capture/CatalogMetadataService.cs` — one bulk read on connect, cached per session
+- [x] Read `sys.schemas`, `sys.tables`, `sys.views`, `sys.columns`, `sys.indexes`, `sys.table_types`
+- [x] Manual refresh command, since schemas change under a long-lived session
+- [x] `Editing/Completion/CatalogProvider.cs` — schema-qualified objects, alias-aware columns
+- [x] Detail text on catalog items: data type, nullability, index membership
+- [x] Feed `sys.table_types` columns into the Phase 3 TVP row grid
+- [x] `Editing/Completion/TuningProvider.cs` — suggestions drawn from the diagnostics layer
+- [x] Offer covering-index columns from an active missing-index finding
+- [x] Offer a SARGable rewrite of the predicate under the caret (`non-sargable-predicate` rule)
+- [x] Offer an explicit column list to replace `SELECT *`
+- [x] Rank tuning suggestions above generic matches, and mark them visually as suggestions
 
 **Deliverable:** connected, the editor completes real tables and columns; with a missing-index
 finding active, it offers the index's columns where they belong.
@@ -259,14 +259,14 @@ do not query per keystroke. Tick checkboxes as they land.
 
 The mistake this exists to prevent is running a dev query against production.
 
-- [ ] `Editing/BatchSafetyAnalyzer.cs` — classify statements via ScriptDom
-- [ ] Detect `INSERT`, `UPDATE`, `DELETE`, `MERGE`, `TRUNCATE`, and all DDL
-- [ ] `Views/ConfirmRunDialog.xaml` — names every modifying statement it found
-- [ ] State the connected server and database prominently in that dialog
-- [ ] Require a deliberate second click; never make running the default action
-- [ ] `MainViewModel.RunActualAsync` — `CaptureMode.Actual`, reusing the Phase 4 pipeline
-- [ ] Enable the runtime-only metrics (rows, elapsed, self time, efficiency, skew) after an actual run
-- [ ] Cost bar switches to actual measurements and says so, replacing the estimated-cost caveat
+- [x] `Editing/BatchSafetyAnalyzer.cs` — classify statements via ScriptDom
+- [x] Detect `INSERT`, `UPDATE`, `DELETE`, `MERGE`, `TRUNCATE`, and all DDL
+- [x] `Views/ConfirmRunDialog.xaml` — names every modifying statement it found
+- [x] State the connected server and database prominently in that dialog
+- [x] Require a deliberate second click; never make running the default action
+- [x] `MainViewModel.RunActualAsync` — `CaptureMode.Actual`, reusing the Phase 4 pipeline
+- [x] Enable the runtime-only metrics (rows, elapsed, self time, efficiency, skew) after an actual run
+- [x] Cost bar switches to actual measurements and says so, replacing the estimated-cost caveat
 
 **Deliverable:** a guarded "Run for actual plan" action that produces runtime row counts, with a
 confirmation no one clicks through by accident.
@@ -283,10 +283,10 @@ friction, not too little. Tick checkboxes as they land.
 
 ## Documentation to update alongside the code
 
-- [ ] `docs/tuning-roadmap.md` — add this as Phase 10; add the `Editing/` layer to its state table
-- [ ] `docs/tdd.md` §5 — add ScriptDom to the tech-stack table
-- [ ] `docs/tdd.md` §6 — add the editor as a third plan-capture path beside file import and live capture
-- [ ] `README.md` — the SQL pane no longer only "maps a selected operator back to the SQL clause it most likely represents"; that stops being true at Phase 5
+- [x] `docs/tuning-roadmap.md` — add this as Phase 10; add the `Editing/` layer to its state table
+- [x] `docs/tdd.md` §5 — add ScriptDom to the tech-stack table
+- [x] `docs/tdd.md` §6 — add the editor as a third plan-capture path beside file import and live capture
+- [x] `README.md` — the SQL pane no longer only "maps a selected operator back to the SQL clause it most likely represents"; that stops being true at Phase 5
 
 ---
 

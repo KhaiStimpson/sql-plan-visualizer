@@ -36,6 +36,9 @@
     <!-- Explicit reference for the custom InteractiveAuthProvider; version matches the one
          Azure.Identity 1.14.2 already brings in transitively via Microsoft.Data.SqlClient. -->
     <PackageReference Include="Microsoft.Identity.Client" Version="4.73.1" />
+    <!-- The parser SSMS and SqlPackage use. Powers editor highlighting, completion context,
+         parameter discovery and the batch safety analyzer (docs/live-plan-editor-plan.md). -->
+    <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.78.1" />
   </ItemGroup>
 
 </Project>
