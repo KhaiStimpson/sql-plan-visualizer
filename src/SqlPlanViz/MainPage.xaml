@@ -654,175 +654,238 @@
                     Style="{StaticResource GaugeGhostButton}"
                     Visibility="Collapsed" />
 
-                <Border
+                <!--
+                    The rail's other three views fill the centre: a pane header (the rail does
+                    the navigating, so no "Back to tree"), then a Gauge table.
+                -->
+                <Grid
                     x:Name="OperatorListPane"
                     Grid.Row="1"
-                    Margin="14"
-                    Padding="12"
-                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
+                    Background="{ThemeResource GaugeBg0Brush}"
                     Visibility="Collapsed">
-                    <Grid RowSpacing="8">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource GaugePaneHeader}">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource GaugePaneTitle}" Text="{x:Bind ViewModel.RankedOperatorsTitle, Mode=OneWay}" />
                             <TextBlock
-                                FontSize="16"
-                                FontWeight="SemiBold"
-                                Text="{x:Bind ViewModel.RankedOperatorsTitle, Mode=OneWay}" />
-                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
-                                <ToggleButton
-                                    Content="Sort by divergence"
-                                    IsChecked="{x:Bind ViewModel.RankOperatorsByDivergence, Mode=TwoWay}"
-                                    ToolTipService.ToolTip="Sort by |estimated cost share − actual time share| instead of self time" />
-                                <Button Click="OnBackToTree" Content="Back to tree" />
-                            </StackPanel>
+                                Grid.Column="1"
+                                Style="{StaticResource GaugeFacts}"
+                                Text="Select a row to show the operator in the plan" />
+                            <ToggleButton
+                                Grid.Column="2"
+                                Content="Sort by divergence"
+                                FontSize="12.5"
+                                IsChecked="{x:Bind ViewModel.RankOperatorsByDivergence, Mode=TwoWay}"
+                                ToolTipService.ToolTip="Sort by |estimated cost share − actual time share| instead of self time" />
                         </Grid>
-                        <ListView
-                            Grid.Row="1"
-                            ItemsSource="{x:Bind ViewModel.RankedOperators, Mode=OneWay}">
-                            <ListView.ItemTemplate>
+                    </Border>
+                    <Grid
+                        Grid.Row="1"
+                        Padding="14,6"
+                        Background="{ThemeResource GaugeBg2Brush}"
+                        ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="96" />
+                            <ColumnDefinition Width="80" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource GaugeTableHeaderText}" Text="#" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource GaugeTableHeaderText}" Text="Operator" />
+                        <TextBlock Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource GaugeTableHeaderText}" Text="Self time / cost" />
+                        <TextBlock Grid.Column="3" HorizontalAlignment="Right" Style="{StaticResource GaugeTableHeaderText}" Text="Rows" />
+                    </Grid>
+                    <ScrollViewer Grid.Row="2">
+                        <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.RankedOperators, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:OperatorRankItem">
                                     <Button
-                                        Margin="0,0,0,4"
-                                        Padding="10,8"
-                                        HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Stretch"
-                                        Background="Transparent"
-                                        BorderThickness="0"
+                                        AutomationProperties.Name="{x:Bind Title}"
                                         Click="OnJumpToRankedOperator"
+                                        Style="{StaticResource GaugeRowButton}"
                                         Tag="{x:Bind Node}">
-                                        <Grid ColumnSpacing="12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="42" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock
-                                                FontSize="14"
-                                                FontWeight="SemiBold"
-                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                Text="{x:Bind RankText}" />
-                                            <StackPanel Grid.Column="1" Spacing="2">
-                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" />
+                                        <Grid
+                                            Background="{x:Bind themes:GaugeBrushes.RowFill(IsSelected), Mode=OneWay}"
+                                            BorderBrush="{ThemeResource GaugeLineBrush}"
+                                            BorderThickness="0,0,0,1">
+                                            <Rectangle
+                                                Width="2"
+                                                HorizontalAlignment="Left"
+                                                Fill="{x:Bind themes:GaugeBrushes.RowEdge(IsSelected), Mode=OneWay}" />
+                                            <Grid Padding="14,6" ColumnSpacing="14">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="96" />
+                                                    <ColumnDefinition Width="80" />
+                                                </Grid.ColumnDefinitions>
                                                 <TextBlock
-                                                    FontSize="11"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Text="{x:Bind Subtitle}"
-                                                    TextTrimming="CharacterEllipsis" />
+                                                    Foreground="{x:Bind themes:GaugeBrushes.RowMeta(IsSelected), Mode=OneWay}"
+                                                    Text="{x:Bind Rank}" />
+                                                <StackPanel Grid.Column="1" Spacing="1">
+                                                    <TextBlock
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{x:Bind themes:GaugeBrushes.RowText(IsSelected), Mode=OneWay}"
+                                                        Text="{x:Bind Title}" />
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="{x:Bind themes:GaugeBrushes.RowMeta(IsSelected), Mode=OneWay}"
+                                                        Text="{x:Bind Subtitle}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="{x:Bind themes:GaugeBrushes.RowMeta(IsSelected), Mode=OneWay}"
+                                                        Text="{x:Bind DivergenceText}"
+                                                        Visibility="{x:Bind HasDivergence, Converter={StaticResource BoolToVisibility}}" />
+                                                </StackPanel>
                                                 <TextBlock
-                                                    FontSize="11"
-                                                    Foreground="{x:Bind DivergenceExceedsThreshold, Converter={StaticResource DivergenceForeground}}"
-                                                    Text="{x:Bind DivergenceText}"
-                                                    Visibility="{x:Bind HasDivergence, Converter={StaticResource BoolToVisibility}}" />
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-                                                <TextBlock HorizontalAlignment="Right" Text="{x:Bind PrimaryMetric}" />
-                                                <TextBlock
+                                                    Grid.Column="2"
                                                     HorizontalAlignment="Right"
-                                                    FontSize="11"
-                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                    Text="{x:Bind RowsText}" />
-                                            </StackPanel>
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{x:Bind themes:GaugeBrushes.RowText(IsSelected), Mode=OneWay}"
+                                                    Text="{x:Bind MetricValue}" />
+                                                <TextBlock
+                                                    Grid.Column="3"
+                                                    HorizontalAlignment="Right"
+                                                    Foreground="{x:Bind themes:GaugeBrushes.RowBody(IsSelected), Mode=OneWay}"
+                                                    Text="{x:Bind RowsValue}" />
+                                            </Grid>
                                         </Grid>
                                     </Button>
                                 </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </Grid>
-                </Border>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
 
-                <Border
+                <Grid
                     x:Name="QueryStorePane"
                     Grid.Row="1"
-                    Margin="14"
-                    Padding="12"
-                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
+                    Background="{ThemeResource GaugeBg0Brush}"
                     Visibility="Collapsed">
-                    <Grid RowSpacing="8">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Grid>
-                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="Query Store plan history" />
-                            <Button HorizontalAlignment="Right" Click="OnBackToTree" Content="Back to tree" />
-                        </Grid>
-                        <Grid Grid.Row="1">
-                            <ProgressRing IsActive="{x:Bind ViewModel.IsLoadingQueryStore, Mode=OneWay}" />
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource GaugePaneHeader}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Style="{StaticResource GaugePaneTitle}" Text="Query Store history" />
+                            <TextBlock Style="{StaticResource GaugeFacts}" Text="Plans Query Store kept on the connected database; open one to inspect it" />
+                            <ProgressRing
+                                Width="16"
+                                Height="16"
+                                Foreground="{ThemeResource GaugeAccentBrush}"
+                                IsActive="{x:Bind ViewModel.IsLoadingQueryStore, Mode=OneWay}"
+                                Visibility="{x:Bind ViewModel.IsLoadingQueryStore, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Row="1">
+                        <StackPanel>
                             <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Margin="14,14,14,0"
+                                Foreground="{ThemeResource GaugeFg2Brush}"
                                 Text="{x:Bind ViewModel.QueryStoreMessage, Mode=OneWay}"
                                 TextWrapping="Wrap" />
-                            <ListView ItemsSource="{x:Bind ViewModel.QueryStorePlans, Mode=OneWay}">
-                                <ListView.ItemTemplate>
+                            <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.QueryStorePlans, Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="capture:QueryStorePlanEntry">
                                         <Button
-                                            Margin="0,0,0,4"
-                                            Padding="10,8"
-                                            HorizontalAlignment="Stretch"
-                                            HorizontalContentAlignment="Stretch"
-                                            Background="Transparent"
-                                            BorderThickness="0"
+                                            AutomationProperties.Name="{x:Bind Title}"
                                             Click="OnOpenQueryStorePlan"
+                                            Style="{StaticResource GaugeRowButton}"
                                             Tag="{x:Bind}">
-                                            <StackPanel Spacing="2">
-                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Title}" TextWrapping="Wrap" />
-                                                <TextBlock FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind Detail}" />
+                                            <StackPanel
+                                                Padding="14,7"
+                                                BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                BorderThickness="0,0,0,1"
+                                                Spacing="2">
+                                                <TextBlock
+                                                    FontFamily="{StaticResource GaugeMono}"
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource GaugeFg0Brush}"
+                                                    Text="{x:Bind Title}"
+                                                    TextWrapping="Wrap" />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource GaugeFg2Brush}"
+                                                    Text="{x:Bind Detail}" />
                                             </StackPanel>
                                         </Button>
                                     </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <Border
-                    x:Name="AntiPatternPane"
-                    Grid.Row="1"
-                    Margin="14"
-                    Padding="12"
-                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Visibility="Collapsed">
-                    <Grid RowSpacing="8">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Grid>
-                            <TextBlock FontSize="16" FontWeight="SemiBold" Text="Plan anti-pattern library" />
-                            <Button HorizontalAlignment="Right" Click="OnBackToTree" Content="Back to tree" />
-                        </Grid>
-                        <ScrollViewer Grid.Row="1">
-                            <ItemsControl ItemsSource="{x:Bind AntiPatterns}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="diag:AntiPatternInfo">
-                                        <Expander Margin="0,0,0,8" Header="{x:Bind Name}">
-                                            <StackPanel Padding="0,8,0,4" Spacing="6">
-                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Summary}" TextWrapping="Wrap" />
-                                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind Explanation}" TextWrapping="Wrap" />
-                                                <TextBlock FontFamily="{StaticResource GaugeMono}" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="{x:Bind RuleId}" />
-                                            </StackPanel>
-                                        </Expander>
-                                    </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <Grid
+                    x:Name="AntiPatternPane"
+                    Grid.Row="1"
+                    Background="{ThemeResource GaugeBg0Brush}"
+                    Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource GaugePaneHeader}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Style="{StaticResource GaugePaneTitle}" Text="Anti-pattern library" />
+                            <TextBlock Style="{StaticResource GaugeFacts}" Text="Every pattern the diagnosis rules can name, and what to do about it" />
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl IsTabStop="False" ItemsSource="{x:Bind AntiPatterns}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="diag:AntiPatternInfo">
+                                    <StackPanel BorderBrush="{ThemeResource GaugeLineBrush}" BorderThickness="0,0,0,1">
+                                        <ToggleButton
+                                            Margin="14,8"
+                                            AutomationProperties.Name="{x:Bind Name}"
+                                            Click="OnToggleLibraryEntry"
+                                            Style="{StaticResource GaugeDisclosureToggle}">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <FontIcon
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Segoe Fluent Icons"
+                                                    FontSize="10"
+                                                    Glyph="&#xE76C;" />
+                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
+                                                <TextBlock
+                                                    FontSize="12.5"
+                                                    Foreground="{ThemeResource GaugeFg2Brush}"
+                                                    Text="{x:Bind Summary}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </ToggleButton>
+                                        <StackPanel
+                                            Padding="32,0,14,12"
+                                            Spacing="6"
+                                            Visibility="Collapsed">
+                                            <TextBlock
+                                                Foreground="{ThemeResource GaugeFg1Brush}"
+                                                Text="{x:Bind Explanation}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                FontFamily="{StaticResource GaugeMono}"
+                                                FontSize="12"
+                                                Foreground="{ThemeResource GaugeFg2Brush}"
+                                                Text="{x:Bind RuleId}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
 
                 <!--
                     Empty state: an 18px heading, the ways in (Open is the view's one primary),

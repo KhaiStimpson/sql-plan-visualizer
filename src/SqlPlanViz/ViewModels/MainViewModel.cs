@@ -836,7 +836,7 @@ public sealed partial class MainViewModel : ObservableObject
         var rank = 1;
         foreach (var node in orderedNodes)
         {
-            RankedOperators.Add(new OperatorRankItem { Rank = rank++, Node = node, Statement = statement });
+            RankedOperators.Add(new OperatorRankItem { Rank = rank++, Node = node, Statement = statement, IsSelected = ReferenceEquals(node, SelectedNode) });
         }
 
         OnPropertyChanged(nameof(RankedOperatorCountText));
@@ -850,6 +850,11 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnSelectedNodeChanged(PlanNode? value)
     {
+        foreach (var ranked in RankedOperators)
+        {
+            ranked.IsSelected = ReferenceEquals(ranked.Node, value);
+        }
+
         SelectedAnnotation = value is not null && _annotations.TryGetValue(value.NodeId, out var annotation)
             ? annotation
             : string.Empty;

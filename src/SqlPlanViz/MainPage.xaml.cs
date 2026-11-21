@@ -48,6 +48,11 @@ public sealed partial class MainPage : Page
             {
                 finding.RefreshTheme();
             }
+
+            foreach (var ranked in ViewModel.RankedOperators)
+            {
+                ranked.RefreshTheme();
+            }
         };
 
         // Start on the canvas rather than letting the first title-bar control take focus.
@@ -1052,6 +1057,20 @@ public sealed partial class MainPage : Page
         if (sender is FrameworkElement { Tag: FindingItem item })
         {
             ViewModel.SetFindingTriage(item, state);
+        }
+    }
+
+    /// <summary>A library entry is a plain collapsible section: the toggle shows its body below it.</summary>
+    private void OnToggleLibraryEntry(object sender, RoutedEventArgs e)
+    {
+        if (sender is Microsoft.UI.Xaml.Controls.Primitives.ToggleButton { Parent: StackPanel { Children: [_, UIElement body, ..] } } toggle)
+        {
+            var expanded = toggle.IsChecked == true;
+            body.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+            if (toggle.Content is StackPanel { Children: [FontIcon chevron, ..] })
+            {
+                chevron.Glyph = expanded ? "" : "";
+            }
         }
     }
 

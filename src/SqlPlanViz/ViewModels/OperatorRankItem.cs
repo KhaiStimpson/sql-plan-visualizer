@@ -1,11 +1,28 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using SqlPlanViz.Common;
 using SqlPlanViz.Diagnostics.Rules;
 using SqlPlanViz.Model;
 
 namespace SqlPlanViz.ViewModels;
 
-public sealed class OperatorRankItem
+public sealed partial class OperatorRankItem : ObservableObject
 {
+    /// <summary>True for the operator selected on the canvas: drawn as the selected record.</summary>
+    [ObservableProperty]
+    private bool _isSelected;
+
+    /// <summary>Re-evaluates the theme-dependent brushes bound to this row.</summary>
+    public void RefreshTheme() => OnPropertyChanged(nameof(IsSelected));
+
+    /// <summary>"3.46 s" or "0.016 cost": the ranking metric alone, right-aligned in the table.</summary>
+    public string MetricValue => Node.SelfTimeMs is double self
+        ? Format.Milliseconds(self)
+        : Format.Cost(Node.EstimatedOperatorCost);
+
+    public string RowsValue => Node.ActualRows is double actual
+        ? Format.Rows(actual)
+        : Format.Rows(Node.EstimatedRowsTotal);
+
     public required int Rank { get; init; }
 
     public required PlanNode Node { get; init; }

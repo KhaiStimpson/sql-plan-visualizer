@@ -241,7 +241,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
 - [x] `ConfirmRunDialog`: "Run for an actual plan?" with the server and login in mono, a
       `GaugeSevCrit` "N statements will modify rows" list (Ln + mono statement), the
       estimated-plan note with a `Ctrl ↵` kbd, and Cancel / **Run and capture**.
-- [ ] Ranked operators, Query Store history and Anti-pattern library panes: `GaugePaneHeader`
+- [x] Ranked operators, Query Store history and Anti-pattern library panes: `GaugePaneHeader`
       (drop "Back to tree", since the rail owns navigation) and `GaugeTable` lists with selected-row
       treatment. Library entries collapse as plain sections. Run and screenshot all four views.
 
