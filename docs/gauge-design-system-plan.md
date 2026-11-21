@@ -69,7 +69,7 @@ Everything later references these resources, so they land first and change nothi
 - [x] Add `Themes/GaugeTheme.xaml` with `ThemeDictionaries` (Default = dark, Light, HighContrast
       placeholder) holding a `Color` and a `SolidColorBrush` for every token role (`GaugeBg0Brush`
       … `GaugeTm9Brush`), plus fonts (`GaugeSans`, `GaugeMono`) and radii. Merge it in `App.xaml`.
-- [ ] Add `Themes/GaugeTokens.cs` with the same values as `static` `Color`s per theme, for Win2D.
+- [x] Add `Themes/GaugeTokens.cs` with the same values as `static` `Color`s per theme, for Win2D.
       Add a header comment saying it mirrors `docs/design/gauge/tokens.json`. The values must
       match the XAML exactly.
 - [ ] Override the Fluent theme resources that drive stock controls (`TextFillColor*`,
