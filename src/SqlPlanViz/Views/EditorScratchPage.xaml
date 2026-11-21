@@ -1,0 +1,53 @@
+<Page
+    x:Class="SqlPlanViz.Views.EditorScratchPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SqlPlanViz.Controls"
+    mc:Ignorable="d"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+
+    <!--
+        Phase 1's deliverable: the editor on its own, with nothing else to blame. Not linked
+        from the app's navigation — it exists to be run and judged before MainPage depends on
+        the control (docs/live-plan-editor-plan.md Phase 1).
+    -->
+    <Grid Padding="16" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock
+                VerticalAlignment="Center"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Text="Editor scratch page" />
+            <Button Click="OnLoadSample" Content="Load sample" />
+            <ToggleButton
+                x:Name="AnnotationToggle"
+                Click="OnToggleAnnotations"
+                Content="Inline annotations"
+                IsChecked="True" />
+            <ToggleButton
+                x:Name="ReadOnlyToggle"
+                Click="OnToggleReadOnly"
+                Content="Read-only" />
+        </StackPanel>
+
+        <Border
+            Grid.Row="1"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="6">
+            <controls:SqlEditorControl x:Name="Editor" />
+        </Border>
+
+        <TextBlock
+            x:Name="StatusText"
+            Grid.Row="2"
+            FontSize="12"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+    </Grid>
+</Page>

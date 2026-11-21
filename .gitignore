@@ -43,3 +43,7 @@ secrets.json
 
 # Tool-local state
 .claude/
+.flow/
+HANDOFF-*.md
+# Agent loop drivers — process tooling, not part of the build
+scripts/

@@ -9,54 +9,114 @@
 
     <StackPanel Width="620" Spacing="12">
 
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBox
-                x:Name="ServerBox"
-                Header="Server"
-                PlaceholderText="localhost\SQLEXPRESS" />
-            <TextBox
-                x:Name="DatabaseBox"
-                Grid.Column="1"
-                Header="Database"
-                PlaceholderText="(default)" />
-        </Grid>
+        <ComboBox
+            x:Name="ProfileBox"
+            HorizontalAlignment="Stretch"
+            Header="Load a saved profile"
+            PlaceholderText="(none)"
+            SelectionChanged="OnProfileSelected" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button
+                x:Name="RenameProfileButton"
+                Click="OnRenameProfile"
+                Content="Rename"
+                ToolTipService.ToolTip="Rename the selected profile to the text in the profile-name box." />
+            <Button
+                x:Name="DeleteProfileButton"
+                Click="OnDeleteProfile"
+                Content="Delete" />
+        </StackPanel>
 
         <ComboBox
-            x:Name="AuthBox"
+            x:Name="EntryModeBox"
             HorizontalAlignment="Stretch"
-            Header="Authentication"
-            SelectionChanged="OnAuthChanged">
-            <ComboBoxItem Content="Windows Authentication" />
-            <ComboBoxItem Content="SQL Server Authentication" />
+            Header="Connection input"
+            SelectionChanged="OnEntryModeChanged">
+            <ComboBoxItem Content="Enter details" />
+            <ComboBoxItem Content="Paste connection string" />
         </ComboBox>
 
-        <Grid
-            x:Name="SqlAuthPanel"
-            ColumnSpacing="12"
-            Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <TextBox x:Name="UserBox" Header="Login" />
-            <PasswordBox
-                x:Name="PasswordBox"
-                Grid.Column="1"
-                Header="Password" />
-        </Grid>
+        <StackPanel x:Name="DetailsPanel" Spacing="12">
 
-        <StackPanel Orientation="Horizontal" Spacing="16">
-            <CheckBox x:Name="EncryptBox" Content="Encrypt connection" IsChecked="True" />
-            <CheckBox
-                x:Name="TrustCertBox"
-                Content="Trust server certificate"
-                IsChecked="True"
-                ToolTipService.ToolTip="Needed for a dev instance using a self-signed certificate." />
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <AutoSuggestBox
+                    x:Name="ServerBox"
+                    Header="Server"
+                    PlaceholderText="localhost\SQLEXPRESS"
+                    SuggestionChosen="OnServerSuggestionChosen"
+                    TextChanged="OnServerTextChanged" />
+                <AutoSuggestBox
+                    x:Name="DatabaseBox"
+                    Grid.Column="1"
+                    Header="Database"
+                    PlaceholderText="(default)"
+                    TextChanged="OnDatabaseTextChanged" />
+            </Grid>
+
+            <ComboBox
+                x:Name="AuthBox"
+                HorizontalAlignment="Stretch"
+                Header="Authentication"
+                SelectionChanged="OnAuthChanged">
+                <ComboBoxItem Content="Windows Authentication" />
+                <ComboBoxItem Content="SQL Server Authentication" />
+                <ComboBoxItem Content="Microsoft Entra MFA" />
+            </ComboBox>
+
+            <StackPanel
+                x:Name="SqlAuthPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="UserBox" Header="Login" TextChanged="OnUserTextChanged" />
+                    <PasswordBox
+                        x:Name="PasswordBox"
+                        Grid.Column="1"
+                        Header="Password" />
+                </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <CheckBox
+                        x:Name="RememberPasswordBox"
+                        Content="Remember password"
+                        ToolTipService.ToolTip="Stores the password for this server and login in Windows Credential Manager. Opt-in and revocable." />
+                    <Button
+                        x:Name="ForgetPasswordButton"
+                        Content="Forget saved password"
+                        Click="OnForgetPassword"
+                        IsEnabled="False" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <CheckBox x:Name="EncryptBox" Content="Encrypt connection" IsChecked="True" />
+                <CheckBox
+                    x:Name="TrustCertBox"
+                    Content="Trust server certificate"
+                    IsChecked="True"
+                    ToolTipService.ToolTip="Needed for a dev instance using a self-signed certificate." />
+            </StackPanel>
+
         </StackPanel>
+
+        <TextBox
+            x:Name="ConnectionStringBox"
+            AcceptsReturn="True"
+            FontFamily="Cascadia Mono, Consolas"
+            FontSize="12"
+            Header="Connection string"
+            Height="120"
+            PlaceholderText="Server=tcp:host,1433;Database=mydb;Authentication=Active Directory Interactive;Encrypt=True;"
+            TextWrapping="Wrap"
+            Visibility="Collapsed" />
 
         <TextBox
             x:Name="QueryBox"
@@ -84,10 +144,28 @@
                 TextWrapping="NoWrap" />
         </StackPanel>
 
+        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <TextBox
+                x:Name="ProfileNameBox"
+                PlaceholderText="Profile name"
+                Width="220" />
+            <Button
+                x:Name="SaveProfileButton"
+                Click="OnSaveProfile"
+                Content="Save as profile" />
+            <TextBlock
+                x:Name="ProfileResult"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextTrimming="CharacterEllipsis"
+                TextWrapping="NoWrap" />
+        </StackPanel>
+
         <InfoBar
             IsClosable="False"
             IsOpen="True"
-            Message="Credentials are used for this connection only and are never written to disk."
+            Message="Recent servers and logins are remembered on this PC, a SQL password is never written to disk and is kept only in Windows Credential Manager when you tick &quot;Remember password&quot;, and Microsoft Entra sign-in tokens stay cached in memory until the app closes."
             Severity="Informational" />
     </StackPanel>
 </UserControl>

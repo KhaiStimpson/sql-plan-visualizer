@@ -93,12 +93,14 @@ The C# host owns everything end to end (file I/O, SQL connections, layout, rende
 | Shell | WinUI 3 / Windows App SDK 1.6, .NET 8 (net8.0-windows10.0.19041.0), MVVM (CommunityToolkit.Mvvm) |
 | Plan rendering | Win2D `CanvasControl`, immediate-mode node/edge drawing (viewport-virtualized), hand-rolled tree layout engine — see §8 |
 | XML parsing | System.Xml.Linq |
+| T-SQL parsing | Microsoft.SqlServer.TransactSql.ScriptDom — the parser SSMS and SqlPackage use. Powers the editor's token stream, completion context, parameter discovery and batch safety analysis (see [live-plan-editor-plan.md](live-plan-editor-plan.md)) |
+| SQL editing | Win2D `CanvasControl` with `CoreTextEditContext` input — the editor is rendered the same way the plan canvas is, with no WebView2 and no Monaco |
 | SQL connectivity | Microsoft.Data.SqlClient |
 | Packaging | Unpackaged + self-contained folder — the Windows App SDK runtime ships in the output, so there is no installer dependency chain. (WinUI 3 does not support `PublishSingleFile`.) |
 
 ## 6. Plan capture
 
-Two paths, both producing the same raw Showplan XML that feeds the one parser:
+Three paths, all producing the same raw Showplan XML that feeds the one parser:
 
 **A. File import** — open a `.sqlplan` file (these are just Showplan XML with a
 different extension) or paste XML text directly.
@@ -113,6 +115,14 @@ SET STATISTICS XML OFF;
 and reads the XML result set back over `Microsoft.Data.SqlClient`. This gives an
 *actual* plan (with runtime row counts, actual elapsed time per operator) rather than
 just an estimated one — the more useful case for tuning.
+
+**C. The editor** — the SQL pane is an editable T-SQL editor, and `Ctrl+Enter` composes the
+edited batch (a generated `DECLARE` prelude for its parameters, then the user's text
+unchanged), sends it with `SET SHOWPLAN_XML ON`, and swaps in the plan that comes back.
+Estimated by default, because `SET SHOWPLAN_XML` compiles without executing and an edited
+`DELETE` therefore costs nothing; the actual run is opt-in behind a confirmation that names
+every modifying statement it found. Each re-plan lands in the same session history as A and
+B and is diffed against a pinned baseline. See [live-plan-editor-plan.md](live-plan-editor-plan.md).
 
 *Explicitly out of scope for v1:* attaching to a live workload via Extended Events to
 capture plans for queries the app didn't itself run (useful for prod diagnosis without

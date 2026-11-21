@@ -31,6 +31,10 @@ against the sample plans in `samples/`.
 | `App.xaml`, `MainWindow.cs`, `MainPage.xaml` | **Shell complete.** Command strip, canvas host, 3-tab detail pane, status bar |
 | `Views/ConnectView.xaml` | Connection dialog |
 | `samples/orders-actual.sqlplan` | The sample plan to develop rules against |
+| `Editing/` | Phase 10's layer: `SqlDocument`, `TSqlTokenizer`, completion engine + four providers, parameter extraction, batch composition, safety analysis — all ScriptDom-backed and UI-free |
+| `Controls/SqlEditorControl.cs` | Win2D T-SQL editor: virtualized line rendering, `CoreTextEditContext` input, gutter marks, squiggles, automation peer |
+| `Diagnostics/TuningSession.cs` | Pinned baseline, current plan, diff — what the cost bar and gutter read from |
+| `Capture/CatalogMetadataService.cs` | One bulk schema read per connection, cached; feeds catalog completions and TVP grids |
 
 **The shell is built**, so no phase below is blocked on it — the earlier gating note in this
 plan is obsolete and has been removed. Phases 1–3 remain pure C# with no UI surface; phases
@@ -418,6 +422,28 @@ Ideas that go past SSMS, Plan Explorer, and pev2. Independent of each other; pic
 
 ---
 
+## Phase 10 — Live plan editor
+
+Full plan: [live-plan-editor-plan.md](live-plan-editor-plan.md). Everything above makes the
+plan on screen *legible*; this closes the loop by making it *editable*. The 190px read-only
+SQL strip becomes a real T-SQL editor, `Ctrl+Enter` compiles the edited batch against the
+live connection, and every re-plan is diffed against a pinned baseline and reported in four
+places at once — a cost bar, gutter marks, inline annotations, and the canvas recoloured by
+delta.
+
+It leans on this roadmap's output rather than duplicating it: `PlanDiff` is the before/after
+primitive, `PlanFingerprint` distinguishes "the shape changed" from "the numbers moved",
+`PlanCanvas.SetDiff` already recolours nodes, and the diagnostics layer supplies the tuning
+completions — missing-index columns, the SARGable rewrite the `non-sargable-predicate` rule
+computes, the explicit column list that replaces `SELECT *`.
+
+The one dependency that runs the other way: Phase 8's live connection is what makes
+re-planning and catalog completions possible at all. Everything else in the editor —
+highlighting, keyword and plan-derived completions, parameter prefill — works from a
+`.sqlplan` file with nothing connected.
+
+---
+
 ## Dependency summary
 
 ```
@@ -433,6 +459,9 @@ Phase 1 (parser) ──→ Phase 2 (engine + core rules) ──→ Phase 3 (exte
                                     └─────────┬───────────┘
                                               ▼
                                    Phase 8 (live DB) ──→ Phase 9 (extras)
+                                          │
+                                          ▼
+                                   Phase 10 (live plan editor)
 ```
 
 Nothing is blocked on infrastructure — the shell is complete. Phases 1–3 are pure C# with no
@@ -544,3 +573,13 @@ Implementation order. Each item is a self-contained unit of work.
 - [x] 9.2 What-if estimation
 - [x] 9.3 Fix triage state
 - [x] 9.4 Regression-test mode (baseline fingerprint + CI check)
+
+### Phase 10 — Live plan editor
+See [live-plan-editor-plan.md](live-plan-editor-plan.md) for the per-item checklist.
+- [x] 10.1 Editor core: buffer, incremental tokenizer, Win2D control, IME, automation
+- [x] 10.2 Completions: engine plus keyword and plan-derived providers, working offline
+- [x] 10.3 Parameters: AST extraction, typed binding, `DECLARE` prelude and offset map
+- [x] 10.4 Re-plan pipeline: `Ctrl+Enter`, SQL error lines mapped back to editor lines
+- [x] 10.5 Better or worse: pinned baseline, cost bar, gutter marks, annotations, canvas delta
+- [x] 10.6 Catalog and tuning-aware completions
+- [x] 10.7 Opt-in actual run behind a confirmation that names what it will do

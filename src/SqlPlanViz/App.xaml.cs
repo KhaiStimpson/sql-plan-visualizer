@@ -18,6 +18,10 @@ public partial class App : Application
     {
         _window = new MainWindow();
         WindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_window);
+
+        // Anchor the Microsoft Entra MFA popup to the app window (see InteractiveAuthProvider).
+        Capture.InteractiveAuthProvider.Register(() => WindowHandle);
+
         _window.Activate();
     }
 }
