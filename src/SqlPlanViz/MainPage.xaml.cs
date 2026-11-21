@@ -748,8 +748,8 @@ public sealed partial class MainPage : Page
         };
     }
 
-    private void OnSearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) =>
-        ViewModel.FilterText = sender.Text ?? string.Empty;
+    private void OnSearchChanged(object sender, TextChangedEventArgs e) =>
+        ViewModel.FilterText = SearchBox.Text ?? string.Empty;
 
     private void OnToggleColorMode(object sender, RoutedEventArgs e)
     {

@@ -136,7 +136,7 @@ The chrome around the canvas, matching `gauge-mockup-main-*.png`.
 - [x] Rebuild the custom title bar: 32px, `bg-2`, `line` border, app glyph in accent, name + file
       in `fg-2`, and a ghost "Find a command or operator Ctrl K" button (wired in Phase 9; disabled
       until then is fine).
-- [ ] Rebuild the command bar (`bg-2`, `line` border, 6×12 padding): Open plan (secondary),
+- [x] Rebuild the command bar (`bg-2`, `line` border, 6×12 padding): Open plan (secondary),
       Paste icon, separator, connection cluster (`GaugeSevOk` "Connected" + mono
       `server · database` + auth in `fg-2` + ghost Disconnect, or "Not connected" + Connect),
       separator, ghost Compare / Re-run / Baseline (menu), then right-aligned search, playback,

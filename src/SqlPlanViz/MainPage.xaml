@@ -86,15 +86,18 @@
             </Button>
         </Grid>
 
-        <!--  Command strip  -->
+        <!--
+            Command bar (bg-2, line border, 6x12): file actions, the connection cluster, the
+            plan-to-plan actions, then search and canvas navigation on the right.
+        -->
         <Border
             Grid.Row="1"
             Padding="12,6"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,1">
-            <Grid ColumnSpacing="6">
+            Background="{ThemeResource GaugeBg2Brush}"
+            BorderBrush="{ThemeResource GaugeLineBrush}"
+            BorderThickness="0,0,0,1">
+            <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -103,164 +106,124 @@
                 <StackPanel
                     Grid.Column="0"
                     Orientation="Horizontal"
-                    Spacing="4">
-                    <Button Click="OnOpenFile" Style="{ThemeResource AccentButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
+                    Spacing="8">
+                    <Button
+                        AutomationProperties.Name="Open plan"
+                        Click="OnOpenFile"
+                        ToolTipService.ToolTip="Open a .sqlplan file (Ctrl+O)">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon
                                 FontFamily="Segoe Fluent Icons"
                                 FontSize="14"
-                                Glyph="&#xE8E5;" />
+                                Glyph="&#xE838;" />
                             <TextBlock Text="Open plan" />
                         </StackPanel>
                     </Button>
-                    <Button Click="OnPasteXml" ToolTipService.ToolTip="Paste Showplan XML">
+                    <Button
+                        AutomationProperties.Name="Paste Showplan XML"
+                        Click="OnPasteXml"
+                        Style="{StaticResource GaugeIconButton}"
+                        ToolTipService.ToolTip="Paste Showplan XML">
                         <FontIcon
                             FontFamily="Segoe Fluent Icons"
                             FontSize="14"
                             Glyph="&#xE77F;" />
                     </Button>
-                    <Button Click="OnConnect" ToolTipService.ToolTip="Open a connection to a SQL Server">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon
-                                FontFamily="Segoe Fluent Icons"
-                                FontSize="14"
-                                Glyph="&#xE968;" />
-                            <TextBlock Text="Connect" />
-                        </StackPanel>
-                    </Button>
-                    <TextBlock
-                        x:Name="ConnectionReadout"
-                        Margin="6,0,0,0"
+
+                    <Border
+                        Width="1"
+                        Margin="2,2"
+                        Background="{ThemeResource GaugeLine2Brush}" />
+
+                    <!--  Connection cluster  -->
+                    <StackPanel
                         VerticalAlignment="Center"
-                        FontSize="12"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}"
-                        TextTrimming="CharacterEllipsis"
-                        ToolTipService.ToolTip="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}" />
-                    <Button
-                        x:Name="DisconnectButton"
-                        Margin="4,0,0,0"
-                        Click="OnDisconnect"
-                        ToolTipService.ToolTip="Disconnect from the current server"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        ToolTipService.ToolTip="{x:Bind ViewModel.ConnectionDescription, Mode=OneWay}"
                         Visibility="{x:Bind ViewModel.IsConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                        <FontIcon
-                            FontFamily="Segoe Fluent Icons"
-                            FontSize="14"
-                            Glyph="&#xE8CB;" />
-                    </Button>
-                </StackPanel>
-
-                <ComboBox
-                    Grid.Column="1"
-                    MaxWidth="260"
-                    VerticalAlignment="Center"
-                    ItemsSource="{x:Bind ViewModel.Statements, Mode=OneWay}"
-                    SelectedItem="{x:Bind ViewModel.SelectedStatement, Mode=TwoWay}"
-                    ToolTipService.ToolTip="Statement in this batch"
-                    Visibility="{x:Bind ViewModel.HasMultipleStatements, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="model:PlanStatement">
-                            <TextBlock Text="{x:Bind Summary.ShortText}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-
-                <StackPanel
-                    Grid.Column="2"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="10"
-                    Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <SelectorBar
-                        x:Name="MetricSelector"
+                        <TextBlock
+                            FontSize="12"
+                            Style="{StaticResource GaugeSevOk}"
+                            Text="Connected" />
+                        <TextBlock
+                            x:Name="ConnectionReadout"
+                            MaxWidth="260"
+                            VerticalAlignment="Center"
+                            FontFamily="{StaticResource GaugeMono}"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource GaugeFg0Brush}"
+                            Text="{x:Bind ViewModel.ConnectionTarget, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{ThemeResource GaugeFg2Brush}"
+                            Text="{x:Bind ViewModel.ConnectionAuthLabel, Mode=OneWay}" />
+                        <Button
+                            x:Name="DisconnectButton"
+                            Click="OnDisconnect"
+                            Content="Disconnect"
+                            FontSize="12"
+                            Style="{StaticResource GaugeGhostButton}"
+                            ToolTipService.ToolTip="Disconnect from the current server" />
+                    </StackPanel>
+                    <StackPanel
                         VerticalAlignment="Center"
-                        SelectionChanged="OnMetricChanged">
-                        <SelectorBarItem IsSelected="True" Text="Subtree cost" />
-                        <SelectorBarItem Text="Operator cost" />
-                        <SelectorBarItem
-                            x:Name="RowsMetricItem"
-                            Text="Actual rows" />
-                        <SelectorBarItem
-                            x:Name="TimeMetricItem"
-                            Text="Elapsed time" />
-                        <SelectorBarItem
-                            x:Name="SelfTimeMetricItem"
-                            Text="Self time" />
-                        <SelectorBarItem
-                            x:Name="EfficiencyMetricItem"
-                            Text="Efficiency" />
-                        <SelectorBarItem
-                            x:Name="EstimateSkewMetricItem"
-                            Text="Estimate skew" />
-                    </SelectorBar>
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        Visibility="{x:Bind ViewModel.IsNotConnected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{ThemeResource GaugeFg2Brush}"
+                            Text="Not connected" />
+                        <Button
+                            AutomationProperties.Name="Connect"
+                            Click="OnConnect"
+                            FontSize="12"
+                            ToolTipService.ToolTip="Open a connection to a SQL Server">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon
+                                    FontFamily="Segoe Fluent Icons"
+                                    FontSize="13"
+                                    Glyph="&#xE71B;" />
+                                <TextBlock Text="Connect" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
 
-                    <Button
-                        x:Name="BlameToggleButton"
-                        VerticalAlignment="Center"
-                        Click="OnToggleColorMode"
-                        Content="Blame"
-                        ToolTipService.ToolTip="Colour nodes by finding severity instead of the selected metric" />
+                    <Border
+                        Width="1"
+                        Margin="2,2"
+                        Background="{ThemeResource GaugeLine2Brush}" />
 
-                    <Button
-                        x:Name="VerbosityButton"
-                        VerticalAlignment="Center"
-                        Click="OnToggleVerbosity"
-                        Content="Detailed"
-                        ToolTipService.ToolTip="Toggle terse or expansive explanations" />
-
-                    <Button
-                        x:Name="LabelDetailButton"
-                        VerticalAlignment="Center"
-                        Click="OnToggleLabelDetail"
-                        Content="Detail: Full"
-                        ToolTipService.ToolTip="Cycle how much text each node card shows: full, standard, or operator name only" />
-
-                    <AutoSuggestBox
-                        x:Name="SearchBox"
-                        Width="220"
-                        VerticalAlignment="Center"
-                        PlaceholderText="Search operators…"
-                        QueryIcon="Find"
-                        TextChanged="OnSearchChanged" />
-                </StackPanel>
-
-                <StackPanel
-                    Grid.Column="3"
-                    Orientation="Horizontal"
-                    Spacing="2"
-                    Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <Button
-                        x:Name="PlaybackButton"
-                        Click="OnTogglePlayback"
-                        ToolTipService.ToolTip="Play operators in execution order">
-                        <FontIcon
-                            FontFamily="Segoe Fluent Icons"
-                            FontSize="14"
-                            Glyph="&#xE768;" />
-                    </Button>
-                    <Button
-                        x:Name="FlameViewButton"
-                        Click="OnToggleFlameView"
-                        ToolTipService.ToolTip="Toggle the time-attribution flame view">
-                        <FontIcon
-                            FontFamily="Segoe Fluent Icons"
-                            FontSize="14"
-                            Glyph="&#xE9D9;" />
-                    </Button>
                     <Button
                         x:Name="CompareButton"
                         Click="OnCompareLatest"
                         Content="Compare"
                         IsEnabled="{x:Bind ViewModel.CanCompare, Mode=OneWay}"
+                        Style="{StaticResource GaugeGhostButton}"
                         ToolTipService.ToolTip="Compare the two latest session plans" />
                     <Button
                         Click="OnRerunAndCompare"
                         Content="Re-run"
                         IsEnabled="{x:Bind ViewModel.CanRerun, Mode=OneWay}"
+                        Style="{StaticResource GaugeGhostButton}"
                         ToolTipService.ToolTip="Re-run the last captured query and compare it with the prior plan" />
                     <Button
-                        Content="Baseline"
-                        IsEnabled="{x:Bind ViewModel.CanUseRegressionBaseline, Mode=OneWay}">
+                        AutomationProperties.Name="Baseline"
+                        IsEnabled="{x:Bind ViewModel.CanUseRegressionBaseline, Mode=OneWay}"
+                        Style="{StaticResource GaugeGhostButton}"
+                        ToolTipService.ToolTip="Save or check a regression baseline beside the plan file">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Baseline" />
+                            <FontIcon
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="8"
+                                Glyph="&#xE70D;" />
+                        </StackPanel>
                         <Button.Flyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Click="OnSaveRegressionBaseline" Text="Save baseline beside plan" />
@@ -268,29 +231,80 @@
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
-                    <Button Click="OnZoomOut" ToolTipService.ToolTip="Zoom out">
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="6">
+                    <TextBox
+                        x:Name="SearchBox"
+                        Width="170"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="Search operators"
+                        FontSize="12.5"
+                        PlaceholderText="Search operators…"
+                        TextChanged="OnSearchChanged" />
+                    <Button
+                        x:Name="PlaybackButton"
+                        AutomationProperties.Name="Play operators in execution order"
+                        Click="OnTogglePlayback"
+                        IsEnabled="{x:Bind ViewModel.HasPlan, Mode=OneWay}"
+                        Style="{StaticResource GaugeIconButton}"
+                        ToolTipService.ToolTip="Play operators in execution order">
                         <FontIcon
                             FontFamily="Segoe Fluent Icons"
                             FontSize="14"
-                            Glyph="&#xE71F;" />
+                            Glyph="&#xE768;" />
                     </Button>
-                    <Button Click="OnZoomIn" ToolTipService.ToolTip="Zoom in">
+                    <Button
+                        AutomationProperties.Name="Zoom out"
+                        Click="OnZoomOut"
+                        IsEnabled="{x:Bind ViewModel.HasPlan, Mode=OneWay}"
+                        Style="{StaticResource GaugeIconButton}"
+                        ToolTipService.ToolTip="Zoom out">
                         <FontIcon
                             FontFamily="Segoe Fluent Icons"
                             FontSize="14"
-                            Glyph="&#xE8A3;" />
+                            Glyph="&#xE738;" />
                     </Button>
-                    <Button Click="OnFit" ToolTipService.ToolTip="Fit plan to window">
+                    <Button
+                        AutomationProperties.Name="Zoom in"
+                        Click="OnZoomIn"
+                        IsEnabled="{x:Bind ViewModel.HasPlan, Mode=OneWay}"
+                        Style="{StaticResource GaugeIconButton}"
+                        ToolTipService.ToolTip="Zoom in">
+                        <FontIcon
+                            FontFamily="Segoe Fluent Icons"
+                            FontSize="14"
+                            Glyph="&#xE710;" />
+                    </Button>
+                    <Button
+                        AutomationProperties.Name="Fit plan to window"
+                        Click="OnFit"
+                        IsEnabled="{x:Bind ViewModel.HasPlan, Mode=OneWay}"
+                        Style="{StaticResource GaugeIconButton}"
+                        ToolTipService.ToolTip="Fit plan to window">
                         <FontIcon
                             FontFamily="Segoe Fluent Icons"
                             FontSize="14"
                             Glyph="&#xE9A6;" />
                     </Button>
-                    <Button ToolTipService.ToolTip="Collapse / expand subtrees">
-                        <FontIcon
-                            FontFamily="Segoe Fluent Icons"
-                            FontSize="14"
-                            Glyph="&#xE8A9;" />
+                    <Button
+                        AutomationProperties.Name="Collapse or expand subtrees"
+                        IsEnabled="{x:Bind ViewModel.HasPlan, Mode=OneWay}"
+                        Style="{StaticResource GaugeIconButton}"
+                        ToolTipService.ToolTip="Collapse / expand subtrees">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="14"
+                                Glyph="&#xF0E2;" />
+                            <FontIcon
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="8"
+                                Glyph="&#xE70D;" />
+                        </StackPanel>
                         <Button.Flyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Click="OnCollapseCheap" Text="Auto-collapse cheap subtrees (&lt;2%)" />
@@ -501,13 +515,103 @@
 
             <Grid x:Name="LeftContent" Grid.Column="1">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="EditorPaneRow" Height="240" />
                 </Grid.RowDefinitions>
+                <!--  Centre pane header: statement, canvas metric and view controls.  -->
+                <Border
+                    x:Name="CentreHeader"
+                    Grid.Row="0"
+                    Style="{StaticResource GaugePaneHeader}"
+                    Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                <ComboBox
+                    Grid.Column="0"
+                    MaxWidth="260"
+                    VerticalAlignment="Center"
+                    ItemsSource="{x:Bind ViewModel.Statements, Mode=OneWay}"
+                    SelectedItem="{x:Bind ViewModel.SelectedStatement, Mode=TwoWay}"
+                    ToolTipService.ToolTip="Statement in this batch"
+                    Visibility="{x:Bind ViewModel.HasMultipleStatements, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="model:PlanStatement">
+                            <TextBlock Text="{x:Bind Summary.ShortText}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                    <SelectorBar
+                        x:Name="MetricSelector"
+                        VerticalAlignment="Center"
+                        SelectionChanged="OnMetricChanged">
+                        <SelectorBarItem IsSelected="True" Text="Subtree cost" />
+                        <SelectorBarItem Text="Operator cost" />
+                        <SelectorBarItem
+                            x:Name="RowsMetricItem"
+                            Text="Actual rows" />
+                        <SelectorBarItem
+                            x:Name="TimeMetricItem"
+                            Text="Elapsed time" />
+                        <SelectorBarItem
+                            x:Name="SelfTimeMetricItem"
+                            Text="Self time" />
+                        <SelectorBarItem
+                            x:Name="EfficiencyMetricItem"
+                            Text="Efficiency" />
+                        <SelectorBarItem
+                            x:Name="EstimateSkewMetricItem"
+                            Text="Estimate skew" />
+                    </SelectorBar>
+
+                    <Button
+                        x:Name="BlameToggleButton"
+                        VerticalAlignment="Center"
+                        Click="OnToggleColorMode"
+                        Content="Blame"
+                        ToolTipService.ToolTip="Colour nodes by finding severity instead of the selected metric" />
+
+                    <Button
+                        x:Name="VerbosityButton"
+                        VerticalAlignment="Center"
+                        Click="OnToggleVerbosity"
+                        Content="Detailed"
+                        ToolTipService.ToolTip="Toggle terse or expansive explanations" />
+
+                    <Button
+                        x:Name="LabelDetailButton"
+                        VerticalAlignment="Center"
+                        Click="OnToggleLabelDetail"
+                        Content="Detail: Full"
+                        ToolTipService.ToolTip="Cycle how much text each node card shows: full, standard, or operator name only" />
+                </StackPanel>
+
+                    <Button
+                        x:Name="FlameViewButton"
+                        Click="OnToggleFlameView"
+                        ToolTipService.ToolTip="Toggle the time-attribution flame view">
+                        <FontIcon
+                            FontFamily="Segoe Fluent Icons"
+                            FontSize="14"
+                            Glyph="&#xE9D9;" />
+                    </Button>
+                    </Grid>
+                </Border>
+
                 <controls:PlanCanvas
                     x:Name="Canvas"
-                    Grid.Row="0"
+                    Grid.Row="1"
                     FilterText="{x:Bind ViewModel.FilterText, Mode=OneWay}"
                     ExplanationVerbosity="{x:Bind ViewModel.ExplanationVerbosity, Mode=OneWay}"
                     LayoutChanged="OnCanvasLayoutChanged"
@@ -517,14 +621,14 @@
 
                 <views:FlameView
                     x:Name="Flame"
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Visibility="Collapsed"
                     SelectedNode="{x:Bind ViewModel.SelectedNode, Mode=TwoWay}"
                     Statement="{x:Bind ViewModel.SelectedStatement, Mode=OneWay}" />
 
                 <Button
                     x:Name="FocusBreadcrumbButton"
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Margin="14"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
@@ -533,7 +637,7 @@
 
                 <Border
                     x:Name="OperatorListPane"
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Margin="14"
                     Padding="12"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
@@ -615,7 +719,7 @@
 
                 <Border
                     x:Name="QueryStorePane"
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Margin="14"
                     Padding="12"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
@@ -666,7 +770,7 @@
 
                 <Border
                     x:Name="AntiPatternPane"
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Margin="14"
                     Padding="12"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
@@ -703,7 +807,7 @@
 
                 <!--  Empty state  -->
                 <StackPanel
-                    Grid.Row="0"
+                    Grid.Row="1"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     MaxWidth="460"
@@ -759,7 +863,7 @@
 
                 <!--  Error  -->
                 <InfoBar
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Margin="16"
                     VerticalAlignment="Top"
                     CloseButtonClick="OnDismissError"
@@ -770,7 +874,7 @@
 
                 <!--  Busy  -->
                 <Grid
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Background="{ThemeResource SmokeFillColorDefaultBrush}"
                     Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                     <StackPanel
@@ -794,12 +898,12 @@
                 -->
                 <controls:PaneSplitter
                     x:Name="EditorSplitter"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
 
                 <Border
                     x:Name="EditorPane"
-                    Grid.Row="2"
+                    Grid.Row="3"
                     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
                     BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                     BorderThickness="0,1,0,0"
