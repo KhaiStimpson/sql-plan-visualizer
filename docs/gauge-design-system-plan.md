@@ -179,7 +179,7 @@ Win2D drawing driven by `GaugeTokens`, matching the mock-up's node cards and edg
 
 The bottom pane, matching the mock-up's baseline bar, SQL header, code and parameter grid.
 
-- [ ] Map `SqlSyntaxTheme` / `SqlSyntaxPalette` to Gauge: keyword accent, identifiers `fg-0`,
+- [x] Map `SqlSyntaxTheme` / `SqlSyntaxPalette` to Gauge: keyword accent, identifiers `fg-0`,
       variables/parameters `code`, numbers `val-num`, strings `val-str`, comments `fg-3` italic,
       operators `fg-1`. Background `bg-0`, line numbers `fg-3`.
 - [ ] Editor chrome in `SqlEditorControl`: clause highlight `accent-dim` with a 2px accent left

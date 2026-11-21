@@ -1,3 +1,5 @@
+using Microsoft.UI;
+using SqlPlanViz.Themes;
 using Windows.UI;
 
 namespace SqlPlanViz.Editing;
@@ -7,8 +9,8 @@ namespace SqlPlanViz.Editing;
 /// and rebuilt on theme change for the same reason: Win2D draws outside the XAML resource
 /// system, so the palette has to be mirrored in code.
 ///
-/// The hues deliberately echo the plan canvas — the same blue means "structure" in both
-/// panes — rather than importing a third-party editor theme wholesale.
+/// Gauge has no categorical palette, so the token colours are Gauge roles: the accent for
+/// structure (as on the canvas), the value roles for literals and code for parameters.
 /// </summary>
 public sealed class SqlSyntaxTheme
 {
@@ -93,73 +95,57 @@ public sealed class SqlSyntaxTheme
         _ => Foreground,
     };
 
-    public static SqlSyntaxTheme For(bool isDark) => isDark
-        ? new SqlSyntaxTheme
+    /// <summary>The clause the selected operator maps to: an accent-dim wash with a 2px accent edge.</summary>
+    public required Color ClauseFill { get; init; }
+
+    public required Color ClauseEdge { get; init; }
+
+    /// <summary>Bracket match: an outline in line-ctl rather than a fill.</summary>
+    public required Color BracketMatchOutline { get; init; }
+
+    /// <summary>
+    /// Gauge roles (docs/gauge-design-system-plan.md Phase 6): keywords in the accent,
+    /// identifiers fg-0, variables and parameters in code, numbers val-num, strings val-str,
+    /// comments fg-3 (drawn italic), operators fg-1, on a bg-0 surface with fg-3 line numbers.
+    /// Every value comes from <see cref="GaugeTokens"/>; never hand-copy hex here.
+    /// </summary>
+    public static SqlSyntaxTheme For(bool isDark)
+    {
+        var t = isDark ? GaugeTokens.Dark : GaugeTokens.Light;
+        return new SqlSyntaxTheme
         {
-            IsDark = true,
-            Background = Rgb(0x1A, 0x1A, 0x1E),
-            Foreground = Rgb(0xE6, 0xE8, 0xEC),
-            Caret = Rgb(0xF2, 0xF3, 0xF5),
-            SelectionFill = Argb(0x55, 0x3C, 0x6E, 0xA8),
-            CurrentLineFill = Argb(0x30, 0x3A, 0x3F, 0x4A),
-            BracketMatchFill = Argb(0x70, 0x6C, 0xB6, 0xFF),
-            FindMatchFill = Argb(0x50, 0xFF, 0xC1, 0x4E),
-            FindMatchActiveFill = Argb(0x90, 0xFF, 0xA0, 0x00),
-            GutterBackground = Rgb(0x17, 0x18, 0x1B),
-            LineNumber = Rgb(0x5F, 0x67, 0x72),
-            LineNumberActive = Rgb(0xB6, 0xBE, 0xC9),
-            Divider = Rgb(0x2E, 0x32, 0x39),
-            Keyword = Rgb(0x6C, 0xB6, 0xFF),
-            DataType = Rgb(0x5F, 0xD0, 0xB0),
-            Function = Rgb(0xD9, 0xB2, 0xFF),
-            Identifier = Rgb(0xE6, 0xE8, 0xEC),
-            QuotedIdentifier = Rgb(0x9C, 0xDC, 0xC0),
-            Variable = Rgb(0xFF, 0xC1, 0x4E),
-            StringLiteral = Rgb(0xE8, 0x9A, 0x74),
-            NumberLiteral = Rgb(0xB5, 0xCE, 0xA8),
-            Comment = Rgb(0x6E, 0x7A, 0x88),
-            Operator = Rgb(0xC0, 0xC8, 0xD2),
-            Punctuation = Rgb(0x8C, 0x95, 0xA1),
-            Error = Rgb(0xFF, 0x6B, 0x63),
-            Improved = Rgb(0x5A, 0xC8, 0x8A),
-            Regressed = Rgb(0xFF, 0x6B, 0x63),
-            Added = Rgb(0x6C, 0xB6, 0xFF),
-            Annotation = Rgb(0x7C, 0x83, 0x8E),
-        }
-        : new SqlSyntaxTheme
-        {
-            IsDark = false,
-            Background = Rgb(0xFD, 0xFD, 0xFE),
-            Foreground = Rgb(0x1B, 0x1E, 0x23),
-            Caret = Rgb(0x11, 0x13, 0x17),
-            SelectionFill = Argb(0x44, 0x3C, 0x84, 0xD8),
-            CurrentLineFill = Argb(0x22, 0xC4, 0xCC, 0xD6),
-            BracketMatchFill = Argb(0x55, 0x00, 0x55, 0xB8),
-            FindMatchFill = Argb(0x60, 0xFF, 0xD5, 0x4A),
-            FindMatchActiveFill = Argb(0x90, 0xFF, 0xA0, 0x00),
-            GutterBackground = Rgb(0xF4, 0xF6, 0xF8),
-            LineNumber = Rgb(0x9A, 0xA4, 0xB2),
-            LineNumberActive = Rgb(0x4A, 0x53, 0x60),
-            Divider = Rgb(0xE1, 0xE5, 0xEA),
-            Keyword = Rgb(0x00, 0x55, 0xB8),
-            DataType = Rgb(0x0A, 0x7A, 0x6B),
-            Function = Rgb(0x79, 0x3B, 0xB0),
-            Identifier = Rgb(0x1B, 0x1E, 0x23),
-            QuotedIdentifier = Rgb(0x0F, 0x6B, 0x5C),
-            Variable = Rgb(0x9A, 0x5B, 0x00),
-            StringLiteral = Rgb(0xA3, 0x31, 0x14),
-            NumberLiteral = Rgb(0x1F, 0x6F, 0x3C),
-            Comment = Rgb(0x6B, 0x76, 0x84),
-            Operator = Rgb(0x3A, 0x42, 0x4E),
-            Punctuation = Rgb(0x70, 0x79, 0x86),
-            Error = Rgb(0xC4, 0x2B, 0x1C),
-            Improved = Rgb(0x1B, 0x82, 0x4E),
-            Regressed = Rgb(0xC4, 0x2B, 0x1C),
-            Added = Rgb(0x00, 0x67, 0xC0),
-            Annotation = Rgb(0x8A, 0x93, 0xA0),
+            IsDark = isDark,
+            Background = t.Bg0,
+            Foreground = t.Fg1,
+            Caret = t.Fg0,
+            SelectionFill = t.Sel,
+            CurrentLineFill = Colors.Transparent,
+            BracketMatchFill = Colors.Transparent,
+            BracketMatchOutline = t.LineCtl,
+            FindMatchFill = t.WarnDim,
+            FindMatchActiveFill = t.AccentDim,
+            ClauseFill = t.AccentDim,
+            ClauseEdge = t.Accent,
+            GutterBackground = t.Bg0,
+            LineNumber = t.Fg3,
+            LineNumberActive = t.Fg2,
+            Divider = t.Bg0,
+            Keyword = t.Accent,
+            DataType = t.Accent,
+            Function = t.Accent,
+            Identifier = t.Fg0,
+            QuotedIdentifier = t.Fg0,
+            Variable = t.Code,
+            StringLiteral = t.ValStr,
+            NumberLiteral = t.ValNum,
+            Comment = t.Fg3,
+            Operator = t.Fg1,
+            Punctuation = t.Fg1,
+            Error = t.Crit,
+            Improved = t.Ok,
+            Regressed = t.Crit,
+            Added = t.Warn,
+            Annotation = t.Fg2,
         };
-
-    private static Color Rgb(byte r, byte g, byte b) => Color.FromArgb(255, r, g, b);
-
-    private static Color Argb(byte a, byte r, byte g, byte b) => Color.FromArgb(a, r, g, b);
+    }
 }

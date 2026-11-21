@@ -1,4 +1,5 @@
 using SqlPlanViz.Sql;
+using SqlPlanViz.Themes;
 using Windows.UI;
 
 namespace SqlPlanViz.Controls;
@@ -38,39 +39,27 @@ public sealed class SqlSyntaxPalette
     /// <summary>The strip in the gutter — the same cue the canvas uses for a selected node.</summary>
     public required Color RowAccent { get; init; }
 
-    public static SqlSyntaxPalette For(bool isDark) => isDark
-        ? new SqlSyntaxPalette
+    /// <summary>The same Gauge roles as <see cref="Editing.SqlSyntaxTheme"/>, from <see cref="GaugeTokens"/>.</summary>
+    public static SqlSyntaxPalette For(bool isDark)
+    {
+        var t = isDark ? GaugeTokens.Dark : GaugeTokens.Light;
+        return new SqlSyntaxPalette
         {
-            Keyword = Rgb(0x7C, 0xB7, 0xF7),
-            Function = Rgb(0xDC, 0xDC, 0xAA),
-            String = Rgb(0xE0, 0x9B, 0x74),
-            Number = Rgb(0xB5, 0xCE, 0xA8),
-            Comment = Rgb(0x79, 0x9E, 0x6E),
-            Identifier = Rgb(0xE4, 0xE6, 0xEA),
-            Variable = Rgb(0x9C, 0xDC, 0xFE),
-            Operator = Rgb(0xC8, 0xCD, 0xD4),
-            Punctuation = Rgb(0xA8, 0xAE, 0xB8),
-            LineNumber = Rgb(0x6E, 0x76, 0x81),
-            SpanHighlight = Argb(0x66, 0x60, 0xB0, 0xFF),
-            RowHighlight = Argb(0x1F, 0x60, 0xB0, 0xFF),
-            RowAccent = Rgb(0x60, 0xB0, 0xFF),
-        }
-        : new SqlSyntaxPalette
-        {
-            Keyword = Rgb(0x0B, 0x54, 0xB5),
-            Function = Rgb(0x6C, 0x3A, 0x8C),
-            String = Rgb(0xA3, 0x15, 0x15),
-            Number = Rgb(0x0A, 0x70, 0x45),
-            Comment = Rgb(0x4A, 0x7A, 0x4A),
-            Identifier = Rgb(0x1B, 0x1E, 0x23),
-            Variable = Rgb(0x0F, 0x5C, 0x9E),
-            Operator = Rgb(0x44, 0x4A, 0x52),
-            Punctuation = Rgb(0x5A, 0x63, 0x70),
-            LineNumber = Rgb(0x9A, 0xA0, 0xA6),
-            SpanHighlight = Argb(0x40, 0x00, 0x67, 0xC0),
-            RowHighlight = Argb(0x14, 0x00, 0x67, 0xC0),
-            RowAccent = Rgb(0x00, 0x67, 0xC0),
+            Keyword = t.Accent,
+            Function = t.Accent,
+            String = t.ValStr,
+            Number = t.ValNum,
+            Comment = t.Fg3,
+            Identifier = t.Fg0,
+            Variable = t.Code,
+            Operator = t.Fg1,
+            Punctuation = t.Fg1,
+            LineNumber = t.Fg3,
+            SpanHighlight = t.AccentDim,
+            RowHighlight = t.AccentDim,
+            RowAccent = t.Accent,
         };
+    }
 
     public Color ForKind(SqlTokenKind kind) => kind switch
     {
@@ -85,7 +74,4 @@ public sealed class SqlSyntaxPalette
         _ => Identifier,
     };
 
-    private static Color Rgb(byte r, byte g, byte b) => Color.FromArgb(255, r, g, b);
-
-    private static Color Argb(byte a, byte r, byte g, byte b) => Color.FromArgb(a, r, g, b);
 }

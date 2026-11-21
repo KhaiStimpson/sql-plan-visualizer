@@ -209,7 +209,7 @@ public sealed partial class SqlEditorControl : UserControl
     /// <summary>Compile-error squiggles (Phase 4).</summary>
     public IReadOnlyList<EditorSquiggle> Squiggles { get; set; } = [];
 
-    public double FontSize { get; private set; } = 13;
+    public double FontSize { get; private set; } = 12;
 
     /// <summary>Repaints without recomputing anything. Cheap enough for the caret blink.</summary>
     public void Redraw() => _canvas.Invalidate();
@@ -227,26 +227,41 @@ public sealed partial class SqlEditorControl : UserControl
 
     private void CreateTextFormats()
     {
+        // Gauge code: 12px mono at a 1.6 line height. A uniform line spacing keeps every
+        // row the same height, so hit testing stays arithmetic.
+        var lineSpacing = (float)Math.Round(FontSize * 1.6);
+        var baseline = (float)Math.Round(lineSpacing * 0.74);
+
         _textFormat = new CanvasTextFormat
         {
-            FontFamily = "Cascadia Mono, Consolas, Courier New",
+            FontFamily = Themes.GaugeFonts.MonoSingle,
             FontSize = (float)FontSize,
             WordWrapping = CanvasWordWrapping.NoWrap,
+            LineSpacingMode = CanvasLineSpacingMode.Uniform,
+            LineSpacing = lineSpacing,
+            LineSpacingBaseline = baseline,
         };
 
         _lineNumberFormat = new CanvasTextFormat
         {
-            FontFamily = "Cascadia Mono, Consolas, Courier New",
-            FontSize = (float)FontSize - 1,
+            FontFamily = Themes.GaugeFonts.MonoSingle,
+            FontSize = (float)FontSize,
             WordWrapping = CanvasWordWrapping.NoWrap,
             HorizontalAlignment = CanvasHorizontalAlignment.Right,
+            LineSpacingMode = CanvasLineSpacingMode.Uniform,
+            LineSpacing = lineSpacing,
+            LineSpacingBaseline = baseline,
         };
 
+        // End-of-line annotations: 11.5px sans fg-2, on the same baseline as the code.
         _annotationFormat = new CanvasTextFormat
         {
-            FontFamily = "Segoe UI Variable Text, Segoe UI",
-            FontSize = (float)FontSize - 2,
+            FontFamily = Themes.GaugeFonts.SansSingle,
+            FontSize = (float)(FontSize - 0.5),
             WordWrapping = CanvasWordWrapping.NoWrap,
+            LineSpacingMode = CanvasLineSpacingMode.Uniform,
+            LineSpacing = lineSpacing,
+            LineSpacingBaseline = baseline,
         };
     }
 
@@ -360,6 +375,10 @@ public sealed partial class SqlEditorControl : UserControl
             if (length > 0)
             {
                 layout.SetColor(start, length, _theme.For(span.Class));
+                if (span.Class == SqlTokenClass.Comment)
+                {
+                    layout.SetFontStyle(start, length, Windows.UI.Text.FontStyle.Italic);
+                }
             }
         }
 
