@@ -1,6 +1,6 @@
 # Gauge design system — plan
 
-Status: in progress · Branch: `claude/gauge-design-system` · Written: 2026-11-21
+Status: complete (awaiting review) · Branch: `claude/gauge-design-system` · Written: 2026-11-21
 
 ## Goal
 
@@ -261,9 +261,32 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
 - [x] Replace `docs/app-overview.png`, `docs/operator-details.png` and `docs/index-suggestions.png`
       with fresh captures, and update README wording that names removed controls (bottom strip,
       toolbar History/Library).
-- [ ] Final side-by-side: capture each mock-up state from the running app in both themes into
+- [x] Final side-by-side: capture each mock-up state from the running app in both themes into
       `docs/screenshots/gauge-design-system/final-*`, list any remaining differences in the
       handoff, and fix or explicitly defer each one.
+
+## Final side-by-side: remaining differences
+
+Captured in `docs/screenshots/gauge-design-system/final-{main,empty,connect,run}-{dark,light}.png`.
+No structural differences remain. What differs, and why:
+
+- **Data, not layout.** The sample plan's rules rate Index Seek Critical (the mock-up says
+  Warning), show 6 warnings rather than 8, and the session list holds one plan rather than the
+  mock-up's three re-plans. The run dialog's sample batch only reads, so its modify list is
+  empty; the list renders when statements modify rows.
+- **Run confirmation keeps its tick box** (deliberate). The mock-up omits it, but it is the
+  safety gate from `live-plan-editor-plan.md` Phase 7; removing a guard is out of scope.
+- **Test connection's result** sits at the end of the dialog body, not beside the button in the
+  footer: ContentDialog accepts only its own button parts in the footer (any extra footer element
+  crashes it), so the button is the dialog's Secondary button and the result is in the body.
+- **Saved-profile rows** have no selected row on the empty state: there is no inspector for a
+  profile to update, so nothing is "selected" until you connect.
+- **Statement header** stays visible over the Ranked / History / Library views (the mock-up only
+  shows the tree). Its canvas controls still apply when you return to the tree.
+- **Canvas framing**: node spacing and fit differ slightly from the mock-up's hand-placed nodes;
+  the cards, edges, labels, legend and minimap match.
+- **Not visually verified**: Windows contrast themes. The mappings are in place (Gauge roles,
+  selected rows, Win2D palettes) but switching the system to a contrast theme was not done here.
 
 ## Open questions
 
