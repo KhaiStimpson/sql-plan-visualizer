@@ -203,7 +203,7 @@ The bottom pane, matching the mock-up's baseline bar, SQL header, code and param
 The right pane, matching the mock-up's Diagnosis column. Seven tasks; it does not split cleanly
 because every task shares the inspector's header and list templates.
 
-- [ ] Diagnosis `GaugePaneHeader`: title, `GaugeSevCrit` / `GaugeSevWarn` counts, Terse/Detailed
+- [x] Diagnosis `GaugePaneHeader`: title, `GaugeSevCrit` / `GaugeSevWarn` counts, Terse/Detailed
       `GaugeSegmented` (replaces `VerbosityButton`), copy-as-Markdown icon button.
 - [ ] Narrative as a `GaugeCallout` with entity links for operator names, bold metrics and a bold
       "Next step:" lead.

@@ -1003,14 +1003,17 @@ public sealed partial class MainPage : Page
         }
     }
 
-    private void OnToggleVerbosity(object sender, RoutedEventArgs e)
+    private void OnVerbosityChecked(object sender, RoutedEventArgs e)
     {
-        ViewModel.ExplanationVerbosity = ViewModel.ExplanationVerbosity == ExplanationVerbosity.Expansive
+        // IsChecked="True" in XAML raises Checked while the page is still being built.
+        if (ViewModel is null || TerseRadio is null)
+        {
+            return;
+        }
+
+        ViewModel.ExplanationVerbosity = sender == TerseRadio
             ? ExplanationVerbosity.Terse
             : ExplanationVerbosity.Expansive;
-        VerbosityButton.Content = ViewModel.ExplanationVerbosity == ExplanationVerbosity.Expansive
-            ? "Detailed"
-            : "Terse";
     }
 
     private void OnToggleLabelDetail(object sender, RoutedEventArgs e)

@@ -242,6 +242,17 @@ public sealed partial class MainViewModel : ObservableObject
 
     public int FindingCount => Findings.Count;
 
+    /// <summary>The Diagnosis header's facts, as severity words: "5 critical · 8 warnings".</summary>
+    public string CriticalCountText => Findings.Count(f => f.Severity == FindingSeverity.Critical) is var n and > 0
+        ? $"{n} critical"
+        : string.Empty;
+
+    public string WarningFindingCountText => Findings.Count(f => f.Severity == FindingSeverity.Warning) is var n and > 0
+        ? $"{n} warning{(n == 1 ? string.Empty : "s")}"
+        : string.Empty;
+
+    public bool HasBothSeverityCounts => CriticalCountText.Length > 0 && WarningFindingCountText.Length > 0;
+
     public bool HasFindings => Findings.Count > 0;
 
     public string Narrative => PlanNarrative.Generate(SelectedStatement, ExplanationVerbosity);
@@ -775,6 +786,9 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(HasWarnings));
         OnPropertyChanged(nameof(HasMissingIndexes));
         OnPropertyChanged(nameof(FindingCount));
+        OnPropertyChanged(nameof(CriticalCountText));
+        OnPropertyChanged(nameof(WarningFindingCountText));
+        OnPropertyChanged(nameof(HasBothSeverityCounts));
         OnPropertyChanged(nameof(HasFindings));
         OnPropertyChanged(nameof(Narrative));
     }
@@ -972,6 +986,9 @@ public sealed partial class MainViewModel : ObservableObject
 
         OnPropertyChanged(nameof(Narrative));
         OnPropertyChanged(nameof(FindingCount));
+        OnPropertyChanged(nameof(CriticalCountText));
+        OnPropertyChanged(nameof(WarningFindingCountText));
+        OnPropertyChanged(nameof(HasBothSeverityCounts));
         OnPropertyChanged(nameof(HasFindings));
     }
 
