@@ -446,6 +446,7 @@ public sealed partial class MainPage : Page
         var sql = SqlEditor.Text;
         if (ViewModel.SelectedNode is not { } node)
         {
+            SqlEditor.ClearClauseHighlight();
             SqlMappingLabel.Text = "SQL · select an operator to highlight its likely clause";
             return;
         }
@@ -453,12 +454,16 @@ public sealed partial class MainPage : Page
         if (SqlNodeMapper.Map(sql, node) is not { } span)
         {
             // Exchanges and spools move rows around; no part of the statement is theirs.
+            SqlEditor.ClearClauseHighlight();
             SqlEditor.SelectRange(0, 0);
             SqlMappingLabel.Text = $"SQL · no clause maps to node {node.NodeId} ({node.PhysicalOp})";
             return;
         }
 
-        SqlEditor.SelectRange(span.Start, span.Length);
+        // The clause gets the accent-dim row wash; the caret moves to its end without
+        // selecting it, so the code keeps its syntax colours.
+        SqlEditor.HighlightClause(span.Start, span.Length);
+        SqlEditor.SelectRange(span.Start + span.Length, 0);
         SqlMappingLabel.Text = span.Clause == SqlClauseSplitter.StatementKind
             ? $"SQL · likely source of node {node.NodeId}"
             : $"SQL · likely {span.Clause} clause for node {node.NodeId}";

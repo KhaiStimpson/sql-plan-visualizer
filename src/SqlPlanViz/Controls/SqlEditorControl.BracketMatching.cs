@@ -129,6 +129,7 @@ public sealed partial class SqlEditorControl
         var column = offset - _document.GetLineStart(line);
         var x0 = ColumnXExact(line, column);
         var x1 = ColumnXExact(line, column + 1);
-        ds.FillRectangle(x0, LineTop(line), Math.Max(2f, x1 - x0), _lineHeight, _theme.BracketMatchFill);
+        // Outlined in line-ctl rather than filled, so the bracket's own colour still reads.
+        ds.DrawRoundedRectangle(x0 + 0.5f, LineTop(line) + 1.5f, Math.Max(2f, x1 - x0) - 1f, _lineHeight - 3f, 2f, 2f, _theme.BracketMatchOutline, 1f);
     }
 }

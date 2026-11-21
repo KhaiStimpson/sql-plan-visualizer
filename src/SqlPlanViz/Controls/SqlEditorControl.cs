@@ -576,6 +576,15 @@ public sealed partial class SqlEditorControl : UserControl
         var selectionStart = SelectionStart;
         var selectionEnd = selectionStart + SelectionLength;
 
+        // The clause the selected operator maps to: an accent-dim wash across the whole row.
+        if (ClauseLines() is var (clauseFirst, clauseLast))
+        {
+            for (var line = Math.Max(first, clauseFirst); line <= Math.Min(last, clauseLast); line++)
+            {
+                ds.FillRectangle(0, LineTop(line), width, _lineHeight, _theme.ClauseFill);
+            }
+        }
+
         // Current-line wash, drawn under everything else and only when nothing is selected —
         // two highlights fighting over the same line reads as a rendering bug.
         if (!HasSelection && caretLine >= first && caretLine <= last)
@@ -619,6 +628,16 @@ public sealed partial class SqlEditorControl : UserControl
     {
         ds.FillRectangle(0, 0, _gutterWidth, height, _theme.GutterBackground);
         ds.DrawLine(_gutterWidth, 0, _gutterWidth, height, _theme.Divider);
+
+        // The clause wash continues under the line numbers, with a 2px accent leading edge.
+        if (ClauseLines() is var (clauseFirst, clauseLast))
+        {
+            for (var line = Math.Max(first, clauseFirst); line <= Math.Min(last, clauseLast); line++)
+            {
+                ds.FillRectangle(0, LineTop(line), _gutterWidth, _lineHeight, _theme.ClauseFill);
+                ds.FillRectangle(0, LineTop(line), 2f, _lineHeight, _theme.ClauseEdge);
+            }
+        }
 
         var numberWidth = _gutterWidth - GutterMarkWidth - LineNumberPadding;
 
@@ -724,9 +743,47 @@ public sealed partial class SqlEditorControl : UserControl
                 continue;
             }
 
-            var x = ColumnXExact(line, lineLength + 3);
-            ds.DrawText(annotation.Text, x, y, MarkColor(annotation.Kind), _annotationFormat);
+            // Right-aligned at the pane's edge (14px in), unless the code runs that far, in
+            // which case it trails the line. Always fg-2: the gutter mark carries direction.
+            using var layout = new CanvasTextLayout(ds, annotation.Text, _annotationFormat, 0, 0);
+            var textWidth = (float)layout.LayoutBounds.Width;
+            var codeEnd = ColumnXExact(line, lineLength) + 24f;
+            var x = Math.Max(codeEnd, (float)ActualWidth - 14f - textWidth);
+            ds.DrawTextLayout(layout, x, y, _theme.Annotation);
         }
+    }
+
+    private int _clauseStart = -1;
+    private int _clauseLength;
+
+    /// <summary>
+    /// Marks the clause the selected operator maps to (an accent-dim row wash with a 2px
+    /// accent edge). Independent of the selection, so the caret can sit anywhere.
+    /// </summary>
+    public void HighlightClause(int start, int length)
+    {
+        _clauseStart = start;
+        _clauseLength = length;
+        Redraw();
+    }
+
+    public void ClearClauseHighlight()
+    {
+        _clauseStart = -1;
+        _clauseLength = 0;
+        Redraw();
+    }
+
+    private (int First, int Last)? ClauseLines()
+    {
+        if (_clauseStart < 0 || _clauseLength <= 0 || _document.Length == 0)
+        {
+            return null;
+        }
+
+        var start = Math.Clamp(_clauseStart, 0, _document.Length);
+        var end = Math.Clamp(_clauseStart + _clauseLength - 1, start, Math.Max(start, _document.Length - 1));
+        return (_document.LineOf(start), _document.LineOf(end));
     }
 
     private void DrawCaret(CanvasDrawingSession ds, int caretLine)

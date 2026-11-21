@@ -28,12 +28,23 @@ public sealed partial class SqlEditorControl
         FontSize = 11,
         MinWidth = 46,
         VerticalAlignment = VerticalAlignment.Center,
-        Opacity = 0.7,
     };
 
-    private readonly Button _findPreviousButton = new() { Content = "▲", FontSize = 10, Padding = new Thickness(6, 4, 6, 4), MinWidth = 0 };
-    private readonly Button _findNextButton = new() { Content = "▼", FontSize = 10, Padding = new Thickness(6, 4, 6, 4), MinWidth = 0 };
-    private readonly Button _findCloseButton = new() { Content = "✕", FontSize = 10, Padding = new Thickness(6, 4, 6, 4), MinWidth = 0 };
+    private readonly Button _findPreviousButton = FindIconButton("\uE70E", "Previous match (Shift+Enter)");
+    private readonly Button _findNextButton = FindIconButton("\uE70D", "Next match (Enter)");
+    private readonly Button _findCloseButton = FindIconButton("\uE711", "Close (Esc)");
+
+    private static Button FindIconButton(string glyph, string name)
+    {
+        var button = new Button
+        {
+            Content = new FontIcon { Glyph = glyph, FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 11 },
+            Style = (Style)Application.Current.Resources["GaugeIconButton"],
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, name);
+        ToolTipService.SetToolTip(button, name);
+        return button;
+    }
 
     private readonly TextBox _replaceBox = new()
     {
@@ -43,8 +54,8 @@ public sealed partial class SqlEditorControl
         IsSpellCheckEnabled = false,
     };
 
-    private readonly Button _replaceOneButton = new() { Content = "Replace", FontSize = 11, Padding = new Thickness(8, 4, 8, 4), MinWidth = 0 };
-    private readonly Button _replaceAllButton = new() { Content = "All", FontSize = 11, Padding = new Thickness(8, 4, 8, 4), MinWidth = 0 };
+    private readonly Button _replaceOneButton = new() { Content = "Replace", FontSize = 12 };
+    private readonly Button _replaceAllButton = new() { Content = "All", FontSize = 12 };
 
     private StackPanel _replaceRow = null!;
     private Border _findOverlay = null!;
@@ -84,8 +95,10 @@ public sealed partial class SqlEditorControl
             Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 0xFF, 0xFF, 0xFF)),
             BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 0xD8, 0xDC, 0xE2)),
             BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(6),
-            Padding = new Thickness(8, 6, 8, 6),
+            CornerRadius = new CornerRadius(4),
+            Padding = new Thickness(6),
+            Shadow = new ThemeShadow(),
+            Translation = new System.Numerics.Vector3(0, 0, 16),
             Margin = new Thickness(0, 8, 20, 0),
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
@@ -114,15 +127,13 @@ public sealed partial class SqlEditorControl
         return _findOverlay;
     }
 
+    /// <summary>The overlay is a Gauge menu surface: bg-2 with a line-2 border.</summary>
     private void ApplyFindOverlayTheme()
     {
-        var dark = ActualTheme == ElementTheme.Dark;
-        _findOverlay.Background = new SolidColorBrush(dark
-            ? Microsoft.UI.ColorHelper.FromArgb(255, 0x24, 0x25, 0x29)
-            : Microsoft.UI.ColorHelper.FromArgb(255, 0xFF, 0xFF, 0xFF));
-        _findOverlay.BorderBrush = new SolidColorBrush(dark
-            ? Microsoft.UI.ColorHelper.FromArgb(255, 0x3A, 0x3E, 0x46)
-            : Microsoft.UI.ColorHelper.FromArgb(255, 0xD8, 0xDC, 0xE2));
+        var tokens = Themes.GaugeTokens.For(ActualTheme);
+        _findOverlay.Background = new SolidColorBrush(tokens.Bg2);
+        _findOverlay.BorderBrush = new SolidColorBrush(tokens.Line2);
+        _findStatus.Foreground = new SolidColorBrush(tokens.Fg2);
     }
 
     /// <summary>Opens the overlay, seeded from the current selection when there is a short one.</summary>

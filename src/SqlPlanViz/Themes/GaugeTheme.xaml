@@ -291,6 +291,10 @@
             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#FF0A4A78" />
             <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="#FF2B2B2B" />
             <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#FF0A4A78" />
+            <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#FF7CC0FF" />
+            <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPointerOverBrush" Color="#FF7CC0FF" />
+            <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPressedBrush" Color="#FF7CC0FF" />
             <SolidColorBrush x:Key="InfoBarErrorSeverityBackgroundBrush" Color="#FF2B2B2B" />
             <SolidColorBrush x:Key="InfoBarWarningSeverityBackgroundBrush" Color="#FF2B2B2B" />
             <SolidColorBrush x:Key="InfoBarInformationalSeverityBackgroundBrush" Color="#FF2B2B2B" />
@@ -591,6 +595,10 @@
             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#FFD6E6F8" />
             <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="#FFF3F3F3" />
             <SolidColorBrush x:Key="ListViewItemForegroundSelected" Color="#FF1B1B1B" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#FFD6E6F8" />
+            <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#FF0A64C8" />
+            <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPointerOverBrush" Color="#FF0A64C8" />
+            <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPressedBrush" Color="#FF0A64C8" />
             <SolidColorBrush x:Key="InfoBarErrorSeverityBackgroundBrush" Color="#FFF3F3F3" />
             <SolidColorBrush x:Key="InfoBarWarningSeverityBackgroundBrush" Color="#FFF3F3F3" />
             <SolidColorBrush x:Key="InfoBarInformationalSeverityBackgroundBrush" Color="#FFF3F3F3" />

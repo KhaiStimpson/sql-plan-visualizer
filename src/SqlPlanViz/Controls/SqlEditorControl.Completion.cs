@@ -78,6 +78,7 @@ public sealed partial class SqlEditorControl
 
         _completionContext = context;
         _completionAnchor = context.ReplaceStart;
+        _completionPopup.ApplyTheme(ActualTheme);
         _completionPopup.Show(XamlRoot, items, CaretRectInRoot());
         Redraw();
     }

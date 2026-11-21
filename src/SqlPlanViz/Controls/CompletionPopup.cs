@@ -41,7 +41,23 @@ public sealed class CompletionPopup
     };
 
     private readonly Border _documentationBorder;
+    private readonly Border _root;
     private IReadOnlyList<CompletionItem> _items = [];
+    private Themes.GaugeTokenSet _tokens = Themes.GaugeTokens.Dark;
+
+    /// <summary>
+    /// A Gauge menu (bg-2, line-2 border, 4px corners) in the editor's resolved theme. The
+    /// popup lives outside the page's tree, so the theme is handed over rather than inherited.
+    /// </summary>
+    public void ApplyTheme(ElementTheme theme)
+    {
+        _tokens = Themes.GaugeTokens.For(theme);
+        _root.RequestedTheme = theme;
+        _root.Background = new SolidColorBrush(_tokens.Bg2);
+        _root.BorderBrush = new SolidColorBrush(_tokens.Line2);
+        _documentationBorder.BorderBrush = new SolidColorBrush(_tokens.Line);
+        _documentation.Foreground = new SolidColorBrush(_tokens.Fg2);
+    }
 
     public CompletionPopup()
     {
@@ -56,19 +72,18 @@ public sealed class CompletionPopup
         panel.Children.Add(_list);
         panel.Children.Add(_documentationBorder);
 
-        var root = new Border
+        _root = new Border
         {
             Width = PopupWidth,
-            CornerRadius = new CornerRadius(6),
+            CornerRadius = new CornerRadius(4),
             BorderThickness = new Thickness(1),
+            Padding = new Thickness(0, 4, 0, 0),
             Child = panel,
+            Shadow = new ThemeShadow(),
+            Translation = new System.Numerics.Vector3(0, 0, 24),
         };
 
-        root.Background = (Brush)Application.Current.Resources["AcrylicBackgroundFillColorDefaultBrush"];
-        root.BorderBrush = (Brush)Application.Current.Resources["SurfaceStrokeColorFlyoutBrush"];
-        _documentationBorder.BorderBrush = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"];
-
-        _popup.Child = root;
+        _popup.Child = _root;
         _list.ItemClick += (_, e) =>
         {
             if (e.ClickedItem is ListViewItem { Tag: CompletionItem item })
@@ -191,15 +206,15 @@ public sealed class CompletionPopup
         if (item.IsSuggestion)
         {
             label.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
-            label.Foreground = (Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"];
+            label.Foreground = new SolidColorBrush(_tokens.Accent);
             glyph.Foreground = label.Foreground;
         }
 
         var detail = new TextBlock
         {
             Text = item.Detail,
-            FontSize = 11,
-            Opacity = 0.6,
+            FontSize = 11.5,
+            Foreground = new SolidColorBrush(_tokens.Fg2),
             TextTrimming = TextTrimming.CharacterEllipsis,
             TextAlignment = TextAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
