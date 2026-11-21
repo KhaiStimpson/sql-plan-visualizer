@@ -1029,91 +1029,124 @@
                             </Grid>
                         </Border>
 
-                        <!--  Editor toolbar  -->
-                        <Grid
+                        <!--
+                            SQL pane header: title, where the selected operator maps (an entity
+                            link back to it) and the caret position, then the editor actions.
+                            Re-plan is the workbench's one accent-filled primary.
+                        -->
+                        <Border
                             Grid.Row="1"
-                            Padding="10,5"
-                            ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                            Padding="14,5"
+                            BorderBrush="{ThemeResource GaugeLineBrush}"
+                            BorderThickness="0,0,0,1">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock
-                                x:Name="SqlMappingLabel"
-                                VerticalAlignment="Center"
-                                FontSize="11"
-                                FontWeight="SemiBold"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="SQL · select an operator to highlight its likely clause" />
+                                <TextBlock
+                                    FontSize="12.5"
+                                    Style="{StaticResource GaugePaneTitle}"
+                                    Text="SQL" />
 
-                            <TextBlock
-                                x:Name="EditorStatusText"
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                FontSize="11"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                TextTrimming="CharacterEllipsis" />
-
-                            <StackPanel
-                                Grid.Column="2"
-                                Orientation="Horizontal"
-                                Spacing="4">
-                                <ProgressRing
-                                    x:Name="EditorBusyRing"
-                                    Width="16"
-                                    Height="16"
+                                <StackPanel
+                                    Grid.Column="1"
                                     VerticalAlignment="Center"
-                                    IsActive="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay}"
-                                    Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-                                <Button
-                                    x:Name="SqlFormatButton"
-                                    Padding="10,2"
-                                    Click="OnFormatSql"
-                                    Content="Format"
-                                    FontSize="11"
-                                    ToolTipService.ToolTip="Re-lay out the batch, one clause per line (Shift+Alt+F)" />
-                                <Button
-                                    Padding="10,4"
-                                    Click="OnCopySql"
-                                    ToolTipService.ToolTip="Copy the statement">
-                                    <FontIcon
-                                        FontFamily="Segoe Fluent Icons"
+                                    Orientation="Horizontal">
+                                    <TextBlock x:Name="SqlMappingLabel" Style="{StaticResource GaugeFacts}" />
+                                    <TextBlock
+                                        x:Name="SqlMappingClause"
+                                        Margin="4,0,4,0"
+                                        FontFamily="{StaticResource GaugeMono}"
                                         FontSize="12"
-                                        Glyph="&#xE8C8;" />
-                                </Button>
-                                <Button
-                                    x:Name="CancelReplanButton"
-                                    Padding="8,2"
-                                    Click="OnCancelReplan"
-                                    Content="Cancel"
-                                    FontSize="11"
-                                    Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-                                <Button
-                                    x:Name="RunActualButton"
-                                    Padding="8,2"
-                                    Click="OnRunActual"
-                                    Content="Run for actual…"
-                                    FontSize="11"
-                                    ToolTipService.ToolTip="Execute the batch and capture measured row counts and timings — asks for confirmation first" />
-                                <Button
-                                    x:Name="ReplanButton"
-                                    Padding="10,2"
-                                    Click="OnReplan"
-                                    FontSize="11"
-                                    Style="{ThemeResource AccentButtonStyle}"
-                                    ToolTipService.ToolTip="Compile the edited batch and swap in its plan (Ctrl+Enter)">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        Style="{StaticResource GaugeFacts}" />
+                                    <TextBlock x:Name="SqlMappingJoin" Style="{StaticResource GaugeFacts}" />
+                                    <HyperlinkButton
+                                        x:Name="SqlMappingEntity"
+                                        Margin="4,0,0,0"
+                                        Click="OnSqlMappingEntity"
+                                        FontSize="12.5"
+                                        Style="{StaticResource GaugeEntityLinkSans}"
+                                        ToolTipService.ToolTip="Show this operator in the plan"
+                                        Visibility="Collapsed" />
+                                    <TextBlock x:Name="EditorStatusText" Style="{StaticResource GaugeFacts}" />
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <ProgressRing
+                                        x:Name="EditorBusyRing"
+                                        Width="16"
+                                        Height="16"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource GaugeAccentBrush}"
+                                        IsActive="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay}"
+                                        Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                    <Button
+                                        x:Name="SqlFormatButton"
+                                        Click="OnFormatSql"
+                                        Content="Format"
+                                        FontSize="12.5"
+                                        Style="{StaticResource GaugeGhostButton}"
+                                        ToolTipService.ToolTip="Re-lay out the batch, one clause per line (Shift+Alt+F)" />
+                                    <Button
+                                        AutomationProperties.Name="Copy the statement"
+                                        Click="OnCopySql"
+                                        Style="{StaticResource GaugeIconButton}"
+                                        ToolTipService.ToolTip="Copy the statement">
                                         <FontIcon
                                             FontFamily="Segoe Fluent Icons"
-                                            FontSize="12"
-                                            Glyph="&#xE768;" />
-                                        <TextBlock Text="Re-plan" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
+                                            FontSize="14"
+                                            Glyph="&#xE8C8;" />
+                                    </Button>
+                                    <Button
+                                        x:Name="CancelReplanButton"
+                                        Click="OnCancelReplan"
+                                        Content="Cancel"
+                                        FontSize="12.5"
+                                        Style="{StaticResource GaugeGhostButton}"
+                                        Visibility="{x:Bind ViewModel.Editor.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                    <Button
+                                        x:Name="RunActualButton"
+                                        Click="OnRunActual"
+                                        Content="Run for actual…"
+                                        FontSize="12.5"
+                                        ToolTipService.ToolTip="Execute the batch and capture measured row counts and timings; asks for confirmation first" />
+                                    <Button
+                                        x:Name="ReplanButton"
+                                        AutomationProperties.Name="Re-plan"
+                                        Click="OnReplan"
+                                        FontSize="12.5"
+                                        Style="{StaticResource GaugePrimaryButton}"
+                                        ToolTipService.ToolTip="Compile the edited batch and swap in its plan (Ctrl+Enter)">
+                                        <StackPanel Orientation="Horizontal" Spacing="7">
+                                            <FontIcon
+                                                FontFamily="Segoe Fluent Icons"
+                                                FontSize="12"
+                                                Glyph="&#xE768;" />
+                                            <TextBlock Text="Re-plan" />
+                                            <!--  The kbd on a filled button takes the button's ink, not the bg-2 chip.  -->
+                                            <Border
+                                                Padding="5,0"
+                                                VerticalAlignment="Center"
+                                                BorderBrush="{ThemeResource GaugeAccentInkBrush}"
+                                                BorderThickness="1,1,1,2"
+                                                CornerRadius="{StaticResource GaugeR3}">
+                                                <TextBlock
+                                                    FontFamily="{StaticResource GaugeMono}"
+                                                    FontSize="11"
+                                                    FontWeight="Normal"
+                                                    Text="Ctrl &#x21B5;" />
+                                            </Border>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
                         <controls:SqlEditorControl x:Name="SqlEditor" Grid.Row="2" />
 

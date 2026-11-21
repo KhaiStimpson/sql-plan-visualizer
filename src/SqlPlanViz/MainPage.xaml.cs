@@ -324,7 +324,12 @@ public sealed partial class MainPage : Page
             parts.Add(editor.StatusMessage);
         }
 
-        EditorStatusText.Text = string.Join("  ·  ", parts);
+        EditorStatusText.Text = string.Join(" · ", parts);
+        EditorStatusText.Margin = new Thickness(SqlMappingLabel.Text.Length > 0 ? 4 : 0, 0, 0, 0);
+        if (SqlMappingLabel.Text.Length > 0)
+        {
+            EditorStatusText.Text = "· " + EditorStatusText.Text;
+        }
     }
 
     /// <summary>Best-effort client-to-screen mapping for the IME candidate window.</summary>
@@ -453,7 +458,8 @@ public sealed partial class MainPage : Page
         if (ViewModel.SelectedNode is not { } node)
         {
             SqlEditor.ClearClauseHighlight();
-            SqlMappingLabel.Text = "SQL · select an operator to highlight its likely clause";
+            SetSqlMapping("Select an operator to highlight its likely clause", null, null, null);
+            UpdateEditorStatus();
             return;
         }
 
@@ -462,7 +468,8 @@ public sealed partial class MainPage : Page
             // Exchanges and spools move rows around; no part of the statement is theirs.
             SqlEditor.ClearClauseHighlight();
             SqlEditor.SelectRange(0, 0);
-            SqlMappingLabel.Text = $"SQL · no clause maps to node {node.NodeId} ({node.PhysicalOp})";
+            SetSqlMapping("No clause maps to ", null, null, node);
+            UpdateEditorStatus();
             return;
         }
 
@@ -470,9 +477,38 @@ public sealed partial class MainPage : Page
         // selecting it, so the code keeps its syntax colours.
         SqlEditor.HighlightClause(span.Start, span.Length);
         SqlEditor.SelectRange(span.Start + span.Length, 0);
-        SqlMappingLabel.Text = span.Clause == SqlClauseSplitter.StatementKind
-            ? $"SQL · likely source of node {node.NodeId}"
-            : $"SQL · likely {span.Clause} clause for node {node.NodeId}";
+        if (span.Clause == SqlClauseSplitter.StatementKind)
+        {
+            SetSqlMapping("Likely source of ", null, null, node);
+        }
+        else
+        {
+            SetSqlMapping("Likely ", span.Clause, " clause for ", node);
+        }
+
+        UpdateEditorStatus();
+    }
+
+    /// <summary>"Likely <c>ORDER BY</c> clause for <u>Sort</u>": the clause in mono, the operator as an entity link.</summary>
+    private void SetSqlMapping(string lead, string? clause, string? join, PlanNode? node)
+    {
+        // TextBlocks drop edge whitespace, so the gaps are margins on the clause and entity.
+        SqlMappingLabel.Text = lead.Trim();
+        SqlMappingClause.Text = clause ?? string.Empty;
+        SqlMappingClause.Visibility = clause is null ? Visibility.Collapsed : Visibility.Visible;
+        SqlMappingJoin.Text = join?.Trim() ?? string.Empty;
+        SqlMappingEntity.Content = node?.PhysicalOp;
+        SqlMappingEntity.Tag = node;
+        SqlMappingEntity.Visibility = node is null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void OnSqlMappingEntity(object sender, RoutedEventArgs e)
+    {
+        if (SqlMappingEntity.Tag is PlanNode node)
+        {
+            SetViewMode(ViewMode.Tree);
+            Canvas.BringIntoView(node);
+        }
     }
 
     private void OnFormatSql(object sender, RoutedEventArgs e) => FormatSql();

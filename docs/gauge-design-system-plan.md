@@ -190,7 +190,7 @@ The bottom pane, matching the mock-up's baseline bar, SQL header, code and param
 - [x] Splitter grip in `line-ctl` on a `bg-2` 7px band (accent on hover). Cost bar as a `bg-2`
       pane header: verdict text 600 (`ok` "Better" / `crit` "Worse" / neutral), facts in `fg-2`,
       ghost Pin current as baseline / Refresh schema and the Annotations toggle.
-- [ ] SQL header as a `GaugePaneHeader`: "SQL", facts (likely clause + entity link to the operator
+- [x] SQL header as a `GaugePaneHeader`: "SQL", facts (likely clause + entity link to the operator
       + Ln/Col), ghost Format, Copy icon, secondary "Run for actual…", Cancel (when busy), and
       **Re-plan** as the workbench's single `GaugePrimaryButton` with a `Ctrl ↵` kbd.
 - [ ] `ParameterStrip`: header row (chevron toggle, "Parameters" + count, note, ghost "Reset to
