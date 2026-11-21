@@ -23,7 +23,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!--  Title bar  -->
@@ -317,8 +316,15 @@
                 Background="{ThemeResource GaugeBg2Brush}"
                 BorderBrush="{ThemeResource GaugeLineBrush}"
                 BorderThickness="0,0,1,0">
-                <StackPanel Padding="6,8" Spacing="2">
-                    <TextBlock Style="{StaticResource GaugeNavGroupLabel}" Text="View" />
+                <Grid Padding="6,8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Spacing="2">
+                        <TextBlock Style="{StaticResource GaugeNavGroupLabel}" Text="View" />
                     <RadioButton
                         x:Name="RailTree"
                         AutomationProperties.Name="Plan tree"
@@ -427,7 +433,61 @@
                                 TextTrimming="CharacterEllipsis" />
                         </Grid>
                     </RadioButton>
-                </StackPanel>
+                    </StackPanel>
+
+                    <Border
+                        Grid.Row="1"
+                        Height="1"
+                        Margin="2,5"
+                        Background="{ThemeResource GaugeLineBrush}" />
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Style="{StaticResource GaugeNavGroupLabel}"
+                        Text="Session plans" />
+
+                    <!--  Every plan opened or captured this session; the current one is highlighted.  -->
+                    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock
+                                Margin="9,4"
+                                FontSize="12"
+                                Foreground="{ThemeResource GaugeFg2Brush}"
+                                Text="Plans you open or capture this session appear here."
+                                TextWrapping="Wrap"
+                                Visibility="{x:Bind ViewModel.HasSessionPlans, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.SessionPlans, Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SessionPlanItem">
+                                        <Grid Margin="0,0,0,2">
+                                            <Border
+                                                Background="{ThemeResource GaugeBg3Brush}"
+                                                CornerRadius="{StaticResource GaugeR3}"
+                                                Visibility="{x:Bind IsCurrent, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                            <Button
+                                                AutomationProperties.Name="{x:Bind Title}"
+                                                Click="OnSelectSessionPlan"
+                                                Style="{StaticResource GaugeNavRowButton}"
+                                                Tag="{x:Bind}"
+                                                ToolTipService.ToolTip="{x:Bind Subtitle}">
+                                                <StackPanel>
+                                                    <TextBlock
+                                                        Foreground="{ThemeResource GaugeFg0Brush}"
+                                                        Text="{x:Bind Title}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock
+                                                        FontSize="11.5"
+                                                        Foreground="{ThemeResource GaugeFg2Brush}"
+                                                        Text="{x:Bind RailSubtitle}" />
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
             </Border>
 
             <Grid x:Name="LeftContent" Grid.Column="1">
@@ -1695,49 +1755,9 @@
             </Border>
         </Grid>
 
-        <!--  In-memory session capture strip  -->
-        <Border
-            Grid.Row="3"
-            Padding="10,6"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0"
-            Visibility="{x:Bind ViewModel.HasSessionPlans, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" HorizontalScrollMode="Enabled">
-                <ItemsControl ItemsSource="{x:Bind ViewModel.SessionPlans, Mode=OneWay}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="8" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:SessionPlanItem">
-                            <Button
-                                MinWidth="150"
-                                HorizontalContentAlignment="Left"
-                                Click="OnSelectSessionPlan"
-                                Tag="{x:Bind}">
-                                <StackPanel Spacing="1">
-                                    <TextBlock
-                                        MaxWidth="220"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"
-                                        Text="{x:Bind Title}"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        FontSize="10"
-                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                        Text="{x:Bind Subtitle}" />
-                                </StackPanel>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
-
         <!--  Status bar  -->
         <Border
-            Grid.Row="4"
+            Grid.Row="3"
             Padding="14,6"
             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0"

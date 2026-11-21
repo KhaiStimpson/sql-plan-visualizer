@@ -440,6 +440,11 @@ public sealed partial class MainViewModel : ObservableObject
     public void ActivateSessionPlan(SessionPlanItem item, string? preferredFingerprint, int? preferredIndex)
     {
         CurrentDiff = null;
+        foreach (var sessionPlan in SessionPlans)
+        {
+            sessionPlan.IsCurrent = ReferenceEquals(sessionPlan, item);
+        }
+
         var plan = item.Plan;
         Plan = plan;
         _planSourcePath = item.SourcePath;

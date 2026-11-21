@@ -122,7 +122,7 @@ The structural change from the mock-up: one view mode, a left rail, session plan
 - [x] Add the four rail items using `GaugeNavItem` with Segoe Fluent Icons glyphs,
       `ToolTipService.ToolTip` and `AutomationProperties.Name`; current item follows `ViewMode`.
       Show the ranked operator count with `GaugeCount`.
-- [ ] Move the session plans list from the bottom strip into the rail under a "Session plans"
+- [x] Move the session plans list from the bottom strip into the rail under a "Session plans"
       group label (name + time · fingerprint), current plan highlighted, `OnSelectSessionPlan`
       unchanged. Delete the bottom strip.
 - [ ] Remove the `OperatorListButton`, History and Library buttons from the command strip. Mark
