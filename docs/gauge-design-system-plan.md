@@ -97,7 +97,7 @@ The Gauge components as reusable XAML styles, so later phases only compose them.
 - [x] `GaugeSegmentItem` `RadioButton` style plus a `GaugeSegmented` border container: 22px,
       2×10 padding, 12px type, `line-ctl` outer border, `line-2` dividers, off `fg-2`, hover
       `bg-3`, on `bg-4` / `fg-0` / 600.
-- [ ] Text styles: `GaugeSevCrit` / `GaugeSevWarn` / `GaugeSevOk` / `GaugeSevNeutral` (12.5px 600),
+- [x] Text styles: `GaugeSevCrit` / `GaugeSevWarn` / `GaugeSevOk` / `GaugeSevNeutral` (12.5px 600),
       `GaugeEntityLink` (`HyperlinkButton` style, underlined, `fg-3` underline, accent on hover;
       mono and sans variants), `GaugeKbd`, `GaugeCount`.
 - [ ] Layout styles: `GaugePaneHeader` (8×14 padding, `line` bottom border, 14px 600 title, facts

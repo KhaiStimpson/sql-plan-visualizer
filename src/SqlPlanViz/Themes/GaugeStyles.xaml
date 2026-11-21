@@ -540,6 +540,131 @@
         <Setter Property="BorderThickness" Value="0" />
     </Style>
 
+    <!-- ===================================================================================
+         Text: severity is always a word (colour only reinforces it); entities are underlined
+         text, never badges.
+         ================================================================================= -->
+
+    <Style x:Key="GaugeSevNeutral" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+    <Style
+        x:Key="GaugeSevCrit"
+        BasedOn="{StaticResource GaugeSevNeutral}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource GaugeCritBrush}" />
+    </Style>
+    <Style
+        x:Key="GaugeSevWarn"
+        BasedOn="{StaticResource GaugeSevNeutral}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource GaugeWarnBrush}" />
+    </Style>
+    <Style
+        x:Key="GaugeSevOk"
+        BasedOn="{StaticResource GaugeSevNeutral}"
+        TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{ThemeResource GaugeOkBrush}" />
+    </Style>
+
+    <!--  12px fg-3 count beside a label (fg-2 where it sits on bg-3 or bg-4).  -->
+    <Style x:Key="GaugeCount" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg3Brush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!--  Keyboard key: 11px mono, bg-2, line-2 border with a 2px bottom, 0x5 padding.  -->
+    <Style x:Key="GaugeKbd" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource GaugeBg2Brush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeLine2Brush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,2" />
+        <Setter Property="CornerRadius" Value="{StaticResource GaugeR3}" />
+        <Setter Property="Padding" Value="5,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="GaugeKbdText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource GaugeMono}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+    </Style>
+
+    <!--  Entity link: 12px mono fg-0 with an fg-3 underline; hover turns both accent.  -->
+    <Style x:Key="GaugeEntityLink" TargetType="HyperlinkButton">
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeFg3Brush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="FontFamily" Value="{StaticResource GaugeMono}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="-3" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
+        <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GaugeAccentBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="HyperlinkButton">
+                    <Grid x:Name="Root" Background="{TemplateBinding Background}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Underline.Fill" Value="{ThemeResource GaugeAccentBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Underline.Fill" Value="{ThemeResource GaugeAccentBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.45" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter
+                            x:Name="ContentPresenter"
+                            Padding="{TemplateBinding Padding}"
+                            AutomationProperties.AccessibilityView="Raw"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}" />
+                        <!--  The underline is drawn, not a text decoration, so it can be its own colour.  -->
+                        <Rectangle
+                            x:Name="Underline"
+                            Height="1"
+                            Margin="0,0,0,1"
+                            VerticalAlignment="Bottom"
+                            Fill="{TemplateBinding BorderBrush}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  Human-readable names (operators, profiles, files) read in 13px sans.  -->
+    <Style
+        x:Key="GaugeEntityLinkSans"
+        BasedOn="{StaticResource GaugeEntityLink}"
+        TargetType="HyperlinkButton">
+        <Setter Property="FontFamily" Value="{StaticResource GaugeSans}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
     <!--  Stock keys point at Gauge so code and stock templates that name them follow along.  -->
     <Style
         x:Key="AccentButtonStyle"
