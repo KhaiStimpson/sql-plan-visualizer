@@ -125,7 +125,7 @@ The structural change from the mock-up: one view mode, a left rail, session plan
 - [x] Move the session plans list from the bottom strip into the rail under a "Session plans"
       group label (name + time · fingerprint), current plan highlighted, `OnSelectSessionPlan`
       unchanged. Delete the bottom strip.
-- [ ] Remove the `OperatorListButton`, History and Library buttons from the command strip. Mark
+- [x] Remove the `OperatorListButton`, History and Library buttons from the command strip. Mark
       `docs/command-strip-mode-rail-plan.md` as superseded by this plan. Run, cycle every view,
       and screenshot.
 

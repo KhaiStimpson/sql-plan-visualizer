@@ -215,15 +215,6 @@
                             Glyph="&#xE768;" />
                     </Button>
                     <Button
-                        x:Name="OperatorListButton"
-                        Click="OnToggleOperatorList"
-                        ToolTipService.ToolTip="Toggle ranked operator list">
-                        <FontIcon
-                            FontFamily="Segoe Fluent Icons"
-                            FontSize="14"
-                            Glyph="&#xEA37;" />
-                    </Button>
-                    <Button
                         x:Name="FlameViewButton"
                         Click="OnToggleFlameView"
                         ToolTipService.ToolTip="Toggle the time-attribution flame view">
@@ -243,12 +234,6 @@
                         Content="Re-run"
                         IsEnabled="{x:Bind ViewModel.CanRerun, Mode=OneWay}"
                         ToolTipService.ToolTip="Re-run the last captured query and compare it with the prior plan" />
-                    <Button
-                        Click="OnToggleQueryStore"
-                        Content="History"
-                        IsEnabled="{x:Bind ViewModel.CanBrowseQueryStore, Mode=OneWay}"
-                        ToolTipService.ToolTip="Browse Query Store plan history" />
-                    <Button Click="OnToggleAntiPatterns" Content="Library" ToolTipService.ToolTip="Browse named plan anti-patterns" />
                     <Button
                         Content="Baseline"
                         IsEnabled="{x:Bind ViewModel.CanUseRegressionBaseline, Mode=OneWay}">

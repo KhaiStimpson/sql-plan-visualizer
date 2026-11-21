@@ -1,6 +1,8 @@
 # Command strip mode rail — plan
 
-Status: not started · Branch: `claude/command-strip-mode-rail` · Written: 2026-08-22
+Status: **superseded** by [`gauge-design-system-plan.md`](gauge-design-system-plan.md) (Phase 3,
+2026-11-21), which absorbed the mode rail into Gauge's left view rail. Do not execute this plan. ·
+Branch: `claude/command-strip-mode-rail` · Written: 2026-08-22
 
 ## Goal
 
