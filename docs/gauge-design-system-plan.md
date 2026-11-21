@@ -94,7 +94,7 @@ The Gauge components as reusable XAML styles, so later phases only compose them.
       COMPONENTS.md.
 - [x] Field styles for `TextBox`, `ComboBox`, `AutoSuggestBox`, `NumberBox`, `PasswordBox`,
       `CheckBox`: `bg-0` fill, `line-ctl` border, 26px, 3×8 padding, `fg-3` placeholder.
-- [ ] `GaugeSegmentItem` `RadioButton` style plus a `GaugeSegmented` border container: 22px,
+- [x] `GaugeSegmentItem` `RadioButton` style plus a `GaugeSegmented` border container: 22px,
       2×10 padding, 12px type, `line-ctl` outer border, `line-2` dividers, off `fg-2`, hover
       `bg-3`, on `bg-4` / `fg-0` / 600.
 - [ ] Text styles: `GaugeSevCrit` / `GaugeSevWarn` / `GaugeSevOk` / `GaugeSevNeutral` (12.5px 600),
