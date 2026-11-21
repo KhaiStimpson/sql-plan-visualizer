@@ -56,7 +56,7 @@ public sealed partial class PlanCanvas : UserControl
     private const float MinScale = 0.05f;
     private const float MaxScale = 3.0f;
 
-    private static readonly CanvasStrokeStyle DashedStroke = new() { DashStyle = CanvasDashStyle.Dash };
+    private static readonly CanvasStrokeStyle DashedStroke = new() { CustomDashStyle = [2f, 1.6f] };
 
     private readonly CanvasControl _canvas = new();
     private readonly PlanLayoutEngine _engine = new();
@@ -936,14 +936,17 @@ public sealed partial class PlanCanvas : UserControl
                 continue;
             }
 
-            var thickness = EdgeThickness(edge);
-            var crossesParallelismBoundary = edge.Parent.Node.Parallel != edge.Child.Node.Parallel;
+            // Neutral line-ctl edges whose width carries rows; the hot path is the accent and
+            // a step thicker. A parallelism boundary is a fact, not a severity, so it stays
+            // neutral too (fg-3) rather than borrowing the warning colour.
             var isHotPath = _hotPathNodeIds.Contains(edge.Parent.Node.NodeId)
                          && _hotPathNodeIds.Contains(edge.Child.Node.NodeId);
+            var thickness = EdgeThickness(edge) + (isHotPath ? 1.5f : 0f);
+            var crossesParallelismBoundary = edge.Parent.Node.Parallel != edge.Child.Node.Parallel;
             var color = isHotPath
                 ? _palette.Selection
                 : crossesParallelismBoundary
-                ? _palette.Caution
+                ? _palette.TextTertiary
                 : edge.IsActual ? _palette.Edge : _palette.EdgeEstimated;
             if (filtering)
             {
@@ -960,6 +963,11 @@ public sealed partial class PlanCanvas : UserControl
             {
                 ds.DrawGeometry(geo, color, thickness);
             }
+        }
+
+        if (drawText && _edgeLabelFormat is not null)
+        {
+            DrawEdgeLabels(ds, left, top, right, bottom, filtering);
         }
 
         DrawPlayback(ds);
@@ -980,6 +988,80 @@ public sealed partial class PlanCanvas : UserControl
 
         ds.Transform = Matrix3x2.Identity;
         DrawMinimap(ds, sender, left, top, right, bottom);
+        DrawLegend(ds, sender);
+    }
+
+    /// <summary>Row counts beside each edge, where it meets its child: 11px mono fg-2.</summary>
+    private void DrawEdgeLabels(CanvasDrawingSession ds, double left, double top, double right, double bottom, bool filtering)
+    {
+        var color = filtering ? _palette.Fade(_palette.TextSecondary, 0.35) : _palette.TextSecondary;
+        foreach (var edge in _layout!.Edges)
+        {
+            if (!EdgeIntersects(edge, left, top, right, bottom) || edge.Rows <= 0)
+            {
+                continue;
+            }
+
+            var text = $"{edge.Rows:N0} rows";
+            using var layout = new CanvasTextLayout(ds, text, _edgeLabelFormat, 200, 16);
+            var width = (float)layout.LayoutBounds.Width;
+            var x2 = (float)edge.Child.CenterX;
+            var x1 = (float)edge.Parent.CenterX;
+            var x = x2 >= x1 - 0.5f ? x2 + 10f : x2 - 10f - width;
+            var y = (float)edge.Child.Y - 22f;
+            ds.DrawTextLayout(layout, x, y, color);
+        }
+    }
+
+    /// <summary>The legend chip, bottom-left: Hot path / Rows (width) / Estimate off ≥10×.</summary>
+    private void DrawLegend(CanvasDrawingSession ds, CanvasControl sender)
+    {
+        if (_legendFormat is null || sender.ActualWidth < 420 || sender.ActualHeight < 160)
+        {
+            return;
+        }
+
+        string[] labels = ["Hot path", "Rows (width)", "Estimate off \u226510\u00d7"];
+        const float swatch = 18f;
+        const float gap = 14f;
+        const float padX = 10f;
+        const float height = 26f;
+
+        var widths = new float[labels.Length];
+        for (var i = 0; i < labels.Length; i++)
+        {
+            using var layout = new CanvasTextLayout(ds, labels[i], _legendFormat, 200, height);
+            widths[i] = (float)layout.LayoutBounds.Width;
+        }
+
+        var total = (padX * 2) + widths.Sum() + (labels.Length * (swatch + 5f)) + (gap * (labels.Length - 1));
+        var x = 12f;
+        var y = (float)sender.ActualHeight - 12f - height;
+
+        ds.FillRoundedRectangle(x, y, total, height, NodeCorner, NodeCorner, _palette.Chrome);
+        ds.DrawRoundedRectangle(x + 0.5f, y + 0.5f, total - 1, height - 1, NodeCorner, NodeCorner, _palette.Grid, 1f);
+
+        var cx = x + padX;
+        var midY = y + (height / 2f);
+        for (var i = 0; i < labels.Length; i++)
+        {
+            switch (i)
+            {
+                case 0:
+                    ds.DrawLine(cx, midY, cx + swatch, midY, _palette.Selection, 3f);
+                    break;
+                case 1:
+                    ds.DrawLine(cx, midY, cx + swatch, midY, _palette.Edge, 2f);
+                    break;
+                default:
+                    ds.DrawLine(cx, midY, cx + swatch, midY, _palette.Edge, 2f, DashedStroke);
+                    break;
+            }
+
+            cx += swatch + 5f;
+            ds.DrawText(labels[i], new Rect(cx, y, widths[i] + 4, height), _palette.TextSecondary, _legendFormat);
+            cx += widths[i] + gap;
+        }
     }
 
     /// <summary>
@@ -1052,14 +1134,19 @@ public sealed partial class PlanCanvas : UserControl
             return;
         }
 
-        const float width = 180f;
-        const float height = 118f;
-        const float margin = 14f;
-        const float padding = 7f;
+        const float width = 132f;
+        const float height = 92f;
+        const float margin = 12f;
+        const float padding = 8f;
         _minimapBounds = new Rect(sender.ActualWidth - width - margin, sender.ActualHeight - height - margin, width, height);
 
-        ds.FillRectangle(_minimapBounds, _palette.WithAlpha(_palette.Surface, 235));
-        ds.DrawRectangle(_minimapBounds, _palette.NodeBorder, 1f);
+        ds.FillRoundedRectangle(_minimapBounds, NodeCorner, NodeCorner, _palette.Chrome);
+        ds.DrawRoundedRectangle(
+            new Rect(_minimapBounds.X + 0.5, _minimapBounds.Y + 0.5, _minimapBounds.Width - 1, _minimapBounds.Height - 1),
+            NodeCorner,
+            NodeCorner,
+            _palette.ChromeBorder,
+            1f);
 
         _minimapScale = (float)Math.Min(
             (width - (padding * 2)) / _layout.Width,
@@ -1074,7 +1161,7 @@ public sealed partial class PlanCanvas : UserControl
 
         foreach (var edge in _layout.Edges)
         {
-            ds.DrawLine(Map(edge.Parent.CenterX, edge.Parent.Bottom), Map(edge.Child.CenterX, edge.Child.Y), _palette.EdgeEstimated, 0.7f);
+            ds.DrawLine(Map(edge.Parent.CenterX, edge.Parent.Bottom), Map(edge.Child.CenterX, edge.Child.Y), _palette.NodeBorder, 0.7f);
         }
 
         foreach (var node in _layout.Nodes)
@@ -1082,7 +1169,7 @@ public sealed partial class PlanCanvas : UserControl
             var position = Map(node.X, node.Y);
             var nodeWidth = Math.Max(3f, (float)node.Width * _minimapScale);
             var nodeHeight = Math.Max(2f, (float)node.Height * _minimapScale);
-            ds.FillRectangle(position.X, position.Y, nodeWidth, nodeHeight, MinimapHeat(node.Node));
+            ds.FillRoundedRectangle(position.X, position.Y, nodeWidth, nodeHeight, 1f, 1f, MinimapHeat(node.Node));
         }
 
         var viewStart = Map(Math.Clamp(viewportLeft, 0, _layout.Width), Math.Clamp(viewportTop, 0, _layout.Height));
@@ -1096,19 +1183,9 @@ public sealed partial class PlanCanvas : UserControl
             1.5f);
     }
 
-    private Color MinimapHeat(PlanNode node)
-    {
-        if (ColorMode == ColorMode.Blame)
-        {
-            return _blame.TryGetValue(node.NodeId, out var severity)
-                ? _palette.FindingAccent(severity)
-                : _palette.NodeBorder;
-        }
-
-        return Metric == SizeMetric.EstimateSkew
-            ? _palette.Diverging(EstimateSkewSignedFraction(node))
-            : _palette.Heat(MetricFraction(node));
-    }
+    /// <summary>Minimap nodes are line-ctl; only the selected node takes the accent.</summary>
+    private Color MinimapHeat(PlanNode node) =>
+        ReferenceEquals(node, SelectedNode) ? _palette.Selection : _palette.NodeBorder;
 
     private void DrawPlayback(CanvasDrawingSession ds)
     {
@@ -1232,7 +1309,7 @@ public sealed partial class PlanCanvas : UserControl
         // Row counts span orders of magnitude, so a linear map would render every edge but
         // the fattest as a hairline. Log keeps the whole range legible.
         var t = Math.Log(1 + Math.Max(0, edge.Rows)) / Math.Log(1 + _layout.MaxEdgeRows);
-        return (float)(1.3 + (7.0 * Math.Clamp(t, 0, 1)));
+        return (float)(1.5 + (2.5 * Math.Clamp(t, 0, 1)));
     }
 
     private static bool EdgeIntersects(EdgeLayout e, double left, double top, double right, double bottom)

@@ -167,7 +167,7 @@ Win2D drawing driven by `GaugeTokens`, matching the mock-up's node cards and edg
       edges with "better" or "worse" words.
 - [x] Selected node: `sel` fill, `sel-fg` text, `sel-crit` / `sel-warn` state words and a 2px
       `sel-edge` inset. Collapse handles: 16px `bg-3` circle with a `line-ctl` border.
-- [ ] Edges: neutral `line-ctl`, hot path in accent and thicker, dashed when the estimate is off
+- [x] Edges: neutral `line-ctl`, hot path in accent and thicker, dashed when the estimate is off
       by 10× or more, row labels in 11px mono `fg-2`. Minimap: `bg-2`, `line-2` border, nodes in
       `line-ctl`, viewport in accent. Add the legend chip (Hot path / Rows (width) /
       Estimate off ≥10×) bottom-left.
