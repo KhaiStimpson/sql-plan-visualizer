@@ -87,7 +87,7 @@ Everything later references these resources, so they land first and change nothi
 
 The Gauge components as reusable XAML styles, so later phases only compose them.
 
-- [ ] Button styles: default secondary (`bg-3` / `line-2` / `fg-0`), `GaugePrimaryButton`
+- [x] Button styles: default secondary (`bg-3` / `line-2` / `fg-0`), `GaugePrimaryButton`
       (accent / accent-ink / 600), `GaugeGhostButton` (`line-ctl` border, no fill),
       `GaugeIconButton`, and a toggle style (`aria-pressed` equivalent: accent border + text when
       checked). 26px min height, 3×11 padding, `r-2`, with hover/pressed/disabled states per

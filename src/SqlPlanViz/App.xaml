@@ -12,6 +12,8 @@
                 <!--  Gauge tokens (generated from docs/design/gauge/tokens.json). Merged after
                       the Fluent resources so its keys win on lookup.  -->
                 <ResourceDictionary Source="ms-appx:///Themes/GaugeTheme.xaml" />
+                <!--  Gauge control vocabulary (COMPONENTS.md).  -->
+                <ResourceDictionary Source="ms-appx:///Themes/GaugeStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <local:BoolToVisibilityConverter x:Key="BoolToVisibility" />
