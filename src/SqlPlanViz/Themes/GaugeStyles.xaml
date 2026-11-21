@@ -307,6 +307,131 @@
         </Setter>
     </Style>
 
+    <!-- ===================================================================================
+         Fields: bg-0 fill, line-ctl border (the only boundary), 26px, 3x8 padding, fg-3
+         placeholder. The Fluent templates are kept; their sizing resources are overridden
+         here and their brushes in GaugeTheme.xaml.
+         ================================================================================= -->
+
+    <x:Double x:Key="TextControlThemeMinHeight">26</x:Double>
+    <Thickness x:Key="TextControlThemePadding">8,3,6,3</Thickness>
+    <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+    <x:Double x:Key="ComboBoxMinHeight">26</x:Double>
+    <Thickness x:Key="ComboBoxPadding">8,2,0,3</Thickness>
+    <x:Double x:Key="CheckBoxSize">14</x:Double>
+    <x:Double x:Key="CheckBoxGlyphSize">10</x:Double>
+    <x:Double x:Key="CheckBoxHeight">20</x:Double>
+    <x:Double x:Key="CheckBoxMinWidth">0</x:Double>
+    <Thickness x:Key="CheckBoxPadding">6,0,0,0</Thickness>
+
+    <Style
+        x:Key="GaugeTextBox"
+        BasedOn="{StaticResource DefaultTextBoxStyle}"
+        TargetType="TextBox">
+        <Setter Property="Background" Value="{ThemeResource GaugeBg0Brush}" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeLineCtlBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource GaugeR2}" />
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="Padding" Value="8,3,6,3" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="PlaceholderForeground" Value="{ThemeResource GaugeFg3Brush}" />
+        <Setter Property="SelectionHighlightColor" Value="{ThemeResource GaugeAccentBrush}" />
+    </Style>
+    <Style BasedOn="{StaticResource GaugeTextBox}" TargetType="TextBox" />
+
+    <!--  Monospace field for identifiers, servers and values.  -->
+    <Style
+        x:Key="GaugeMonoTextBox"
+        BasedOn="{StaticResource GaugeTextBox}"
+        TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{StaticResource GaugeMono}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style
+        x:Key="GaugePasswordBox"
+        BasedOn="{StaticResource DefaultPasswordBoxStyle}"
+        TargetType="PasswordBox">
+        <Setter Property="Background" Value="{ThemeResource GaugeBg0Brush}" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeLineCtlBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource GaugeR2}" />
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="Padding" Value="8,3,6,3" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style BasedOn="{StaticResource GaugePasswordBox}" TargetType="PasswordBox" />
+
+    <Style
+        x:Key="GaugeComboBox"
+        BasedOn="{StaticResource DefaultComboBoxStyle}"
+        TargetType="ComboBox">
+        <Setter Property="Background" Value="{ThemeResource GaugeBg0Brush}" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeLineCtlBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource GaugeR2}" />
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="Padding" Value="8,2,0,3" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="-4" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
+        <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GaugeAccentBrush}" />
+    </Style>
+    <Style BasedOn="{StaticResource GaugeComboBox}" TargetType="ComboBox" />
+
+    <!--  Compact field for a status bar: 20px, 11.5px type.  -->
+    <Style
+        x:Key="GaugeCompactComboBox"
+        BasedOn="{StaticResource GaugeComboBox}"
+        TargetType="ComboBox">
+        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Padding" Value="5,0,0,1" />
+        <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style BasedOn="{StaticResource DefaultComboBoxItemStyle}" TargetType="ComboBoxItem">
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style
+        x:Key="GaugeAutoSuggestBox"
+        BasedOn="{StaticResource DefaultAutoSuggestBoxStyle}"
+        TargetType="AutoSuggestBox">
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style BasedOn="{StaticResource GaugeAutoSuggestBox}" TargetType="AutoSuggestBox" />
+
+    <Style x:Key="GaugeNumberBox" TargetType="NumberBox">
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CornerRadius" Value="{StaticResource GaugeR2}" />
+    </Style>
+    <Style BasedOn="{StaticResource GaugeNumberBox}" TargetType="NumberBox" />
+
+    <Style
+        x:Key="GaugeCheckBox"
+        BasedOn="{StaticResource DefaultCheckBoxStyle}"
+        TargetType="CheckBox">
+        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Padding" Value="6,0,0,0" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg1Brush}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GaugeAccentBrush}" />
+    </Style>
+    <Style BasedOn="{StaticResource GaugeCheckBox}" TargetType="CheckBox" />
+
     <!--  Stock keys point at Gauge so code and stock templates that name them follow along.  -->
     <Style
         x:Key="AccentButtonStyle"

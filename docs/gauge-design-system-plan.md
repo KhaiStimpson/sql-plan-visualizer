@@ -92,7 +92,7 @@ The Gauge components as reusable XAML styles, so later phases only compose them.
       `GaugeIconButton`, and a toggle style (`aria-pressed` equivalent: accent border + text when
       checked). 26px min height, 3×11 padding, `r-2`, with hover/pressed/disabled states per
       COMPONENTS.md.
-- [ ] Field styles for `TextBox`, `ComboBox`, `AutoSuggestBox`, `NumberBox`, `PasswordBox`,
+- [x] Field styles for `TextBox`, `ComboBox`, `AutoSuggestBox`, `NumberBox`, `PasswordBox`,
       `CheckBox`: `bg-0` fill, `line-ctl` border, 26px, 3×8 padding, `fg-3` placeholder.
 - [ ] `GaugeSegmentItem` `RadioButton` style plus a `GaugeSegmented` border container: 22px,
       2×10 padding, 12px type, `line-ctl` outer border, `line-2` dividers, off `fg-2`, hover
