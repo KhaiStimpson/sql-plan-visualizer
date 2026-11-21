@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Plan Visualizer · Gauge mock-up</title>
+<!-- Views: #main (default), #empty, #connect, #run. Ctrl+K opens the command palette. -->
+<script>try{const s=localStorage.getItem('gauge.theme');if(s==='light'||s==='dark')document.documentElement.dataset.theme=s;}catch{}</script>
+<style>
+/* ===== Gauge theme.css (verbatim) ===== */
+/* Generated from tokens.json by build-theme.py. */
+
+:root {
+  color-scheme: dark;
+  --gauge-sans: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --gauge-mono: 'Cascadia Code', 'JetBrains Mono', 'Consolas', ui-monospace, monospace;
+  --gauge-r-1: 3px;
+  --gauge-r-2: 3px;
+  --gauge-r-3: 4px;
+  --gauge-bg-0: #1e1e1e;
+  --gauge-bg-1: #252525;
+  --gauge-bg-2: #2b2b2b;
+  --gauge-bg-3: #333333;
+  --gauge-bg-4: #444444;
+  --gauge-line: #3c3c3c;
+  --gauge-line-2: #555555;
+  --gauge-line-ctl: #767676;
+  --gauge-fg-0: #f2f2f2;
+  --gauge-fg-1: #dcdcdc;
+  --gauge-fg-2: #c4c4c4;
+  --gauge-fg-3: #9e9e9e;
+  --gauge-accent: #7cc0ff;
+  --gauge-accent-dim: #7cc0ff22;
+  --gauge-accent-ink: #06263f;
+  --gauge-sel: #0a4a78;
+  --gauge-crit: #ff7b72;
+  --gauge-crit-dim: #ff7b721f;
+  --gauge-warn: #e9b44c;
+  --gauge-warn-dim: #e9b44c1f;
+  --gauge-info: #7cc0ff;
+  --gauge-info-dim: #7cc0ff1f;
+  --gauge-ok: #6fcf97;
+  --gauge-ok-dim: #6fcf971f;
+  --gauge-code: #d6b4ff;
+  --gauge-sel-fg: #ffffff;
+  --gauge-sel-crit: #ffffff;
+  --gauge-sel-warn: #ffffff;
+  --gauge-sel-edge: #7cc0ff;
+  --gauge-val-str: #a7f3d0;
+  --gauge-val-num: #fcd34d;
+  --gauge-tm-fg: #ffffff;
+  --gauge-tm-1: #2f5d8a;
+  --gauge-tm-2: #34526f;
+  --gauge-tm-3: #37495c;
+  --gauge-tm-4: #383f4a;
+  --gauge-tm-5: #363b42;
+  --gauge-tm-6: #34383d;
+  --gauge-tm-7: #33363a;
+  --gauge-tm-8: #323437;
+  --gauge-tm-9: #313335;
+  --gauge-shadow: #00000088;
+  --gauge-scrim: #05070999;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --gauge-bg-0: #ffffff;
+  --gauge-bg-1: #fafafa;
+  --gauge-bg-2: #f3f3f3;
+  --gauge-bg-3: #e8e8e8;
+  --gauge-bg-4: #dcdcdc;
+  --gauge-line: #e1e1e1;
+  --gauge-line-2: #c6c6c6;
+  --gauge-line-ctl: #858585;
+  --gauge-fg-0: #1b1b1b;
+  --gauge-fg-1: #2f2f2f;
+  --gauge-fg-2: #4d4d4d;
+  --gauge-fg-3: #6b6b6b;
+  --gauge-accent: #0a64c8;
+  --gauge-accent-dim: #0a64c81a;
+  --gauge-accent-ink: #ffffff;
+  --gauge-sel: #d6e6f8;
+  --gauge-crit: #b42318;
+  --gauge-crit-dim: #b4231814;
+  --gauge-warn: #8a5700;
+  --gauge-warn-dim: #8a570014;
+  --gauge-info: #0a64c8;
+  --gauge-info-dim: #0a64c814;
+  --gauge-ok: #1d7a3a;
+  --gauge-ok-dim: #1d7a3a14;
+  --gauge-code: #7a3fc4;
+  --gauge-sel-fg: #1b1b1b;
+  --gauge-sel-crit: #b42318;
+  --gauge-sel-warn: #8a5700;
+  --gauge-sel-edge: #0a64c8;
+  --gauge-val-str: #11703a;
+  --gauge-val-num: #9a4a00;
+  --gauge-tm-fg: #1b1b1b;
+  --gauge-tm-1: #a9c8ea;
+  --gauge-tm-2: #bcd0e4;
+  --gauge-tm-3: #c8d5e2;
+  --gauge-tm-4: #d2d9e0;
+  --gauge-tm-5: #d8dce1;
+  --gauge-tm-6: #dcdfe3;
+  --gauge-tm-7: #dfe1e4;
+  --gauge-tm-8: #e2e3e6;
+  --gauge-tm-9: #e4e5e7;
+  --gauge-shadow: #00000026;
+  --gauge-scrim: #00000040;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+    --gauge-bg-0: #ffffff;
+    --gauge-bg-1: #fafafa;
+    --gauge-bg-2: #f3f3f3;
+    --gauge-bg-3: #e8e8e8;
+    --gauge-bg-4: #dcdcdc;
+    --gauge-line: #e1e1e1;
+    --gauge-line-2: #c6c6c6;
+    --gauge-line-ctl: #858585;
+    --gauge-fg-0: #1b1b1b;
+    --gauge-fg-1: #2f2f2f;
+    --gauge-fg-2: #4d4d4d;
+    --gauge-fg-3: #6b6b6b;
+    --gauge-accent: #0a64c8;
+    --gauge-accent-dim: #0a64c81a;
+    --gauge-accent-ink: #ffffff;
+    --gauge-sel: #d6e6f8;
+    --gauge-crit: #b42318;
+    --gauge-crit-dim: #b4231814;
+    --gauge-warn: #8a5700;
+    --gauge-warn-dim: #8a570014;
+    --gauge-info: #0a64c8;
+    --gauge-info-dim: #0a64c814;
+    --gauge-ok: #1d7a3a;
+    --gauge-ok-dim: #1d7a3a14;
+    --gauge-code: #7a3fc4;
+    --gauge-sel-fg: #1b1b1b;
+    --gauge-sel-crit: #b42318;
+    --gauge-sel-warn: #8a5700;
+    --gauge-sel-edge: #0a64c8;
+    --gauge-val-str: #11703a;
+    --gauge-val-num: #9a4a00;
+    --gauge-tm-fg: #1b1b1b;
+    --gauge-tm-1: #a9c8ea;
+    --gauge-tm-2: #bcd0e4;
+    --gauge-tm-3: #c8d5e2;
+    --gauge-tm-4: #d2d9e0;
+    --gauge-tm-5: #d8dce1;
+    --gauge-tm-6: #dcdfe3;
+    --gauge-tm-7: #dfe1e4;
+    --gauge-tm-8: #e2e3e6;
+    --gauge-tm-9: #e4e5e7;
+    --gauge-shadow: #00000026;
+    --gauge-scrim: #00000040;
+  }
+}
+
+@media print {
+  :root:root {
+    color-scheme: light;
+    --gauge-bg-0: #ffffff;
+    --gauge-bg-1: #fafafa;
+    --gauge-bg-2: #f3f3f3;
+    --gauge-bg-3: #e8e8e8;
+    --gauge-bg-4: #dcdcdc;
+    --gauge-line: #e1e1e1;
+    --gauge-line-2: #c6c6c6;
+    --gauge-line-ctl: #858585;
+    --gauge-fg-0: #1b1b1b;
+    --gauge-fg-1: #2f2f2f;
+    --gauge-fg-2: #4d4d4d;
+    --gauge-fg-3: #6b6b6b;
+    --gauge-accent: #0a64c8;
+    --gauge-accent-dim: #0a64c81a;
+    --gauge-accent-ink: #ffffff;
+    --gauge-sel: #d6e6f8;
+    --gauge-crit: #b42318;
+    --gauge-crit-dim: #b4231814;
+    --gauge-warn: #8a5700;
+    --gauge-warn-dim: #8a570014;
+    --gauge-info: #0a64c8;
+    --gauge-info-dim: #0a64c814;
+    --gauge-ok: #1d7a3a;
+    --gauge-ok-dim: #1d7a3a14;
+    --gauge-code: #7a3fc4;
+    --gauge-sel-fg: #1b1b1b;
+    --gauge-sel-crit: #b42318;
+    --gauge-sel-warn: #8a5700;
+    --gauge-sel-edge: #0a64c8;
+    --gauge-val-str: #11703a;
+    --gauge-val-num: #9a4a00;
+    --gauge-tm-fg: #1b1b1b;
+    --gauge-tm-1: #a9c8ea;
+    --gauge-tm-2: #bcd0e4;
+    --gauge-tm-3: #c8d5e2;
+    --gauge-tm-4: #d2d9e0;
+    --gauge-tm-5: #d8dce1;
+    --gauge-tm-6: #dcdfe3;
+    --gauge-tm-7: #dfe1e4;
+    --gauge-tm-8: #e2e3e6;
+    --gauge-tm-9: #e4e5e7;
+    --gauge-shadow: #00000026;
+    --gauge-scrim: #00000040;
+  }
+}
+/* ===== Gauge components.css (verbatim) ===== */
+/* Gauge components. Optional: load after theme.css. Every class is prefixed `g-` so it can
+   sit beside a project's own styles. Dimensions, states and keyboard behaviour are in
+   COMPONENTS.md. */
+
+.g-root {
+  background: var(--gauge-bg-0);
+  color: var(--gauge-fg-1);
+  font: 13px/1.45 var(--gauge-sans);
+}
+.g-mono {
+  font-family: var(--gauge-mono);
+  font-size: 12px;
+}
+
+/* Focus: 2px accent ring, 2px offset, never removed. */
+.g-root :focus {
+  outline: none;
+}
+.g-root :focus-visible {
+  outline: 2px solid var(--gauge-accent);
+  outline-offset: 2px;
+  border-radius: var(--gauge-r-3);
+}
+
+/* Button: secondary by default, --primary for the one main action, --ghost inside toolbars. */
+.g-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  padding: 3px 11px;
+  border: 1px solid var(--gauge-line-2);
+  border-radius: var(--gauge-r-2);
+  background: var(--gauge-bg-3);
+  color: var(--gauge-fg-0);
+  font: inherit;
+  cursor: pointer;
+}
+.g-btn:hover {
+  background: var(--gauge-bg-4);
+}
+.g-btn--primary {
+  background: var(--gauge-accent);
+  border-color: var(--gauge-accent);
+  color: var(--gauge-accent-ink);
+  font-weight: 600;
+}
+.g-btn--primary:hover {
+  background: var(--gauge-accent);
+  filter: brightness(1.08);
+}
+/* A ghost button has no fill, so its border is the control boundary. */
+.g-btn--ghost {
+  background: none;
+  border-color: var(--gauge-line-ctl);
+}
+.g-btn--ghost:hover {
+  background: var(--gauge-bg-3);
+}
+.g-btn[aria-pressed='true'] {
+  border-color: var(--gauge-accent);
+  color: var(--gauge-accent);
+}
+.g-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: none;
+}
+
+/* Fields: the border is the only boundary, so it uses line-ctl. */
+.g-field {
+  min-height: 26px;
+  padding: 3px 8px;
+  border: 1px solid var(--gauge-line-ctl);
+  border-radius: var(--gauge-r-2);
+  background: var(--gauge-bg-0);
+  color: var(--gauge-fg-0);
+  font: inherit;
+}
+select.g-field {
+  padding-right: 4px;
+  cursor: pointer;
+}
+textarea.g-field {
+  min-height: 64px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+.g-field::placeholder {
+  color: var(--gauge-fg-3);
+}
+
+/* Segmented control: mutually exclusive views or filters, 2-5 short options. */
+.g-seg {
+  display: inline-flex;
+  flex: none;
+  border: 1px solid var(--gauge-line-ctl);
+  border-radius: var(--gauge-r-2);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.g-seg button {
+  min-height: 22px;
+  padding: 2px 10px;
+  border: 0;
+  border-left: 1px solid var(--gauge-line-2);
+  background: none;
+  color: var(--gauge-fg-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.g-seg button:first-child {
+  border-left: 0;
+}
+.g-seg button:hover {
+  background: var(--gauge-bg-3);
+  color: var(--gauge-fg-0);
+}
+.g-seg button[aria-pressed='true'] {
+  background: var(--gauge-bg-4);
+  color: var(--gauge-fg-0);
+  font-weight: 600;
+}
+.g-root .g-seg button:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
+}
+
+/* Entity link: any named thing that opens details. Underlined text, never a badge. */
+.g-entity {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gauge-fg-0);
+  font-family: var(--gauge-mono);
+  font-size: 12px;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--gauge-fg-3);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.g-entity:hover {
+  color: var(--gauge-accent);
+  text-decoration-color: var(--gauge-accent);
+}
+/* Entities with human names (files, types, people) read in sans. */
+.g-entity--sans {
+  font-family: var(--gauge-sans);
+  font-size: 13px;
+}
+
+/* Severity: always a word. Only critical and warning carry colour. */
+.g-sev {
+  color: var(--gauge-fg-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.g-sev--crit {
+  color: var(--gauge-crit);
+}
+.g-sev--warn {
+  color: var(--gauge-warn);
+}
+.g-sev--ok {
+  color: var(--gauge-ok);
+}
+
+.g-kbd {
+  padding: 0 5px;
+  border: 1px solid var(--gauge-line-2);
+  border-bottom-width: 2px;
+  border-radius: var(--gauge-r-3);
+  background: var(--gauge-bg-2);
+  color: var(--gauge-fg-2);
+  font-family: var(--gauge-mono);
+  font-size: 11px;
+}
+/* A glossary term: dotted underline, definition on hover or in a help view. */
+.g-term {
+  border-bottom: 1px dotted var(--gauge-fg-3);
+  cursor: help;
+}
+.g-term:hover {
+  border-bottom-color: var(--gauge-fg-2);
+  color: var(--gauge-fg-0);
+}
+
+.g-callout {
+  margin: 18px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--gauge-line-2);
+  border-radius: var(--gauge-r-2);
+  background: var(--gauge-bg-2);
+  color: var(--gauge-fg-1);
+}
+.g-callout--crit {
+  border-color: var(--gauge-crit);
+}
+
+/* Pane header: title, inline facts, actions pushed right. */
+.g-pane-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--gauge-line);
+}
+.g-pane-h > h2,
+.g-pane-h > h3 {
+  margin: 0;
+  color: var(--gauge-fg-0);
+  font-size: 14px;
+  font-weight: 600;
+}
+.g-pane-h .g-facts {
+  color: var(--gauge-fg-2);
+  font-size: 12.5px;
+}
+.g-pane-h .g-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Navigation rail. Mark the current item with aria-current="page". */
+.g-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 6px;
+  border-right: 1px solid var(--gauge-line);
+  background: var(--gauge-bg-2);
+}
+.g-nav button,
+.g-nav a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--gauge-r-3);
+  background: none;
+  color: var(--gauge-fg-2);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.g-nav :is(button, a):hover {
+  background: var(--gauge-bg-3);
+  color: var(--gauge-fg-0);
+}
+.g-nav [aria-current='page'] {
+  background: var(--gauge-bg-4);
+  color: var(--gauge-fg-0);
+  font-weight: 600;
+}
+.g-nav .g-count {
+  margin-left: auto;
+  color: var(--gauge-fg-3);
+  font-size: 12px;
+  font-weight: 400;
+}
+/* fg-3 drops below 4.5:1 on bg-3 and bg-4. */
+.g-nav :is(:hover, [aria-current='page']) .g-count {
+  color: var(--gauge-fg-2);
+}
+.g-nav .g-count.g-count--crit {
+  color: var(--gauge-crit);
+}
+/* crit falls below 4.5:1 on dark bg-4; the current section no longer needs the alert. */
+.g-nav [aria-current='page'] .g-count.g-count--crit {
+  color: var(--gauge-fg-0);
+}
+.g-nav hr {
+  margin: 5px 2px;
+  border: 0;
+  border-top: 1px solid var(--gauge-line);
+}
+
+/* Data table with a selectable row. Mark the selected row with .is-selected; the control that
+   selected it carries aria-current="true". */
+.g-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.g-table th {
+  padding: 6px 14px;
+  background: var(--gauge-bg-2);
+  color: var(--gauge-fg-2);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+}
+.g-table td {
+  padding: 6px 14px;
+  border-top: 1px solid var(--gauge-line);
+}
+.g-table .g-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.g-table tbody tr:hover {
+  background: var(--gauge-bg-2);
+}
+.g-table tbody tr.is-selected {
+  background: var(--gauge-sel);
+  color: var(--gauge-sel-fg);
+  box-shadow: inset 2px 0 var(--gauge-sel-edge);
+}
+.g-table tbody tr.is-selected :is(.g-entity, .g-sev) {
+  color: var(--gauge-sel-fg);
+  text-decoration-color: currentColor;
+}
+.g-table tbody tr.is-selected .g-sev--warn {
+  color: var(--gauge-sel-warn);
+}
+.g-table tbody tr.is-selected .g-sev--crit {
+  color: var(--gauge-sel-crit);
+}
+
+/* Menus: dropdown and context menu share one look. */
+.g-menu {
+  min-width: 190px;
+  padding: 4px;
+  border: 1px solid var(--gauge-line-2);
+  border-radius: var(--gauge-r-3);
+  background: var(--gauge-bg-2);
+  box-shadow: 0 8px 24px var(--gauge-shadow);
+}
+.g-menu [role^='menuitem'] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--gauge-r-3);
+  background: none;
+  color: var(--gauge-fg-1);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.g-menu [role^='menuitem']:is(:hover, :focus-visible) {
+  background: var(--gauge-bg-4);
+  color: var(--gauge-fg-0);
+}
+.g-root .g-menu [role^='menuitem']:focus-visible {
+  outline-offset: -2px;
+}
+.g-menu [aria-checked='true'] {
+  color: var(--gauge-fg-0);
+  font-weight: 600;
+}
+.g-menu .g-note {
+  color: var(--gauge-fg-2);
+  font-size: 12px;
+  font-weight: 400;
+}
+.g-menu hr {
+  margin: 4px 2px;
+  border: 0;
+  border-top: 1px solid var(--gauge-line);
+}
+
+/* Command palette: a modal dialog over a scrim. */
+.g-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--gauge-scrim);
+}
+.g-palette {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  z-index: 31;
+  width: min(600px, calc(100vw - 24px));
+  margin: 0;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 1px solid var(--gauge-line-2);
+  border-radius: 6px;
+  background: var(--gauge-bg-2);
+  color: var(--gauge-fg-1);
+  box-shadow: 0 12px 32px var(--gauge-shadow);
+}
+.g-palette input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--gauge-line);
+  background: none;
+  color: var(--gauge-fg-0);
+  font: inherit;
+  font-size: 15px;
+}
+.g-root .g-palette input:focus-visible {
+  outline: none;
+}
+.g-palette [role='listbox'] {
+  max-height: 50vh;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  list-style: none;
+}
+.g-palette .g-group {
+  padding: 8px 10px 4px;
+  color: var(--gauge-fg-2);
+  font-size: 12px;
+}
+.g-palette [role='option'] {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: var(--gauge-r-2);
+  cursor: pointer;
+}
+.g-palette [role='option'][aria-selected='true'] {
+  background: var(--gauge-sel);
+  color: var(--gauge-sel-fg);
+  box-shadow: inset 2px 0 var(--gauge-sel-edge);
+}
+.g-palette [role='option'] .g-note {
+  color: var(--gauge-fg-2);
+  font-size: 12px;
+}
+.g-palette [aria-selected='true'] .g-note {
+  color: var(--gauge-sel-fg);
+}
+
+/* Status bar: counts, background work, theme control. */
+.g-statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  min-height: 24px;
+  padding: 0 12px;
+  border-top: 1px solid var(--gauge-line);
+  background: var(--gauge-bg-2);
+  color: var(--gauge-fg-2);
+  font-size: 11.5px;
+}
+
+.g-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Motion: 120ms for hover and selection; respect the system setting. */
+.g-btn,
+.g-entity,
+.g-seg button,
+.g-nav :is(button, a),
+.g-table tr,
+.g-menu [role^='menuitem'] {
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+@media (prefers-reduced-motion: reduce) {
+  [class^='g-'],
+  [class^='g-'] * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Windows high contrast and other forced-colour modes replace every colour above. Restore the
+   cues that were carried by fill alone: selection, the current nav item and pressed toggles. */
+@media (forced-colors: active) {
+  .g-table tbody tr.is-selected,
+  .g-palette [role='option'][aria-selected='true'],
+  .g-nav [aria-current='page'],
+  .g-seg button[aria-pressed='true'] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-table tbody tr.is-selected :is(.g-entity, .g-sev) {
+    color: HighlightText;
+  }
+  .g-btn,
+  .g-seg,
+  .g-field {
+    border-color: ButtonText;
+  }
+  .g-root :focus-visible {
+    outline-color: Highlight;
+  }
+}
+</style>
+<style>
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { display: grid; grid-template-rows: auto auto 1fr auto; overflow: hidden; }
+h1, h2, h3 { margin: 0; color: var(--gauge-fg-0); font-weight: 600; }
+svg.i { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.muted { color: var(--gauge-fg-2); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Title bar (PLATFORMS.md: bg-2 + line) */
+.titlebar { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 0 0 12px; background: var(--gauge-bg-2); border-bottom: 1px solid var(--gauge-line); }
+.titlebar strong { color: var(--gauge-fg-0); font-size: 12.5px; }
+.titlebar .sub { color: var(--gauge-fg-2); font-size: 12px; }
+.titlebar .pal { margin-left: auto; min-height: 22px; padding: 1px 8px; font-size: 12px; }
+.caps { display: flex; height: 100%; }
+.caps span { width: 46px; display: grid; place-items: center; color: var(--gauge-fg-2); font-size: 13px; }
+
+/* Command bar */
+.cmdbar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--gauge-bg-2); border-bottom: 1px solid var(--gauge-line); white-space: nowrap; }
+.cmdbar .sep { width: 1px; align-self: stretch; background: var(--gauge-line-2); margin: 2px 2px; }
+.g-btn { display: inline-flex; align-items: center; gap: 6px; }
+.icon { padding: 3px 6px !important; }
+.cmdbar .end { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.cmdbar input.g-field { width: 170px; }
+.lbl, .cmdbar label { display: inline-flex; gap: 6px; align-items: center; color: var(--gauge-fg-2); font-size: 12px; }
+.conn { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+.conn .g-mono { color: var(--gauge-fg-0); }
+.caret::after { content: ""; width: 0; height: 0; border: 4px solid transparent; border-top-color: currentColor; margin: 4px 0 0 2px; }
+
+.layout { display: grid; grid-template-columns: 184px minmax(0, 1fr) minmax(340px, 29%); min-height: 0; }
+
+/* Left nav */
+.g-nav { overflow: auto; }
+.g-nav .grp { font-size: 11.5px; color: var(--gauge-fg-2); padding: 10px 9px 4px; font-weight: 600; }
+.g-nav a { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+.g-nav [aria-current="true"] { background: var(--gauge-bg-3); color: var(--gauge-fg-0); }
+.g-nav .plan { flex-direction: column; align-items: flex-start; gap: 0; height: auto; padding-top: 5px; padding-bottom: 5px; }
+.g-nav .plan small { font-size: 11.5px; color: var(--gauge-fg-2); font-weight: 400; }
+
+/* Centre */
+.centre { display: grid; grid-template-rows: auto 1fr auto; min-width: 0; min-height: 0; }
+.g-pane-h h1 { font-size: 14px; }
+.centre > .g-pane-h .g-facts { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.canvas { position: relative; overflow: hidden; background: var(--gauge-bg-0);
+  background-image: radial-gradient(var(--gauge-line) 1px, transparent 1px); background-size: 18px 18px; }
+.canvas svg.plan { position: absolute; inset: 0; width: 100%; height: 100%; }
+.edge { fill: none; stroke: var(--gauge-line-ctl); }
+.edge.hot { stroke: var(--gauge-accent); }
+.edge.est { stroke-dasharray: 6 5; }
+.edge-lbl { font: 11px var(--gauge-mono); fill: var(--gauge-fg-2); }
+
+.node { position: absolute; width: 226px; border: 1px solid var(--gauge-line-ctl); border-radius: var(--gauge-r-3);
+  background: var(--gauge-bg-1); color: var(--gauge-fg-2); padding: 7px 10px 8px 12px; cursor: pointer; font-size: 11.5px; line-height: 1.4; }
+.node::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: 3px; border-radius: 3px 0 0 3px; }
+.node.crit::before { background: var(--gauge-crit); }
+.node.warn::before { background: var(--gauge-warn); }
+.node .hd { display: flex; align-items: baseline; gap: 8px; }
+.node .op { font-size: 13px; font-weight: 600; color: var(--gauge-fg-0); }
+.node .hd .g-sev { margin-left: auto; font-size: 11.5px; }
+.node .obj { font: 11.5px var(--gauge-mono); color: var(--gauge-code); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node .why { color: var(--gauge-fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
+.node .facts { display: flex; gap: 10px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.node .facts b { color: var(--gauge-fg-0); font-weight: 600; }
+.node .bar { height: 4px; margin-top: 6px; background: var(--gauge-bg-3); border-radius: 2px; overflow: hidden; }
+.node .bar i { display: block; height: 100%; background: var(--gauge-accent); }
+.node:hover { background: var(--gauge-bg-2); }
+.node.is-selected { background: var(--gauge-sel); color: var(--gauge-sel-fg); box-shadow: inset 2px 0 0 var(--gauge-sel-edge); border-color: var(--gauge-sel-edge); }
+.node.is-selected :is(.op, .facts, .facts b, .obj, .why) { color: var(--gauge-sel-fg); }
+.node.is-selected .g-sev--crit { color: var(--gauge-sel-crit); }
+.node.is-selected .g-sev--warn { color: var(--gauge-sel-warn); }
+.node.is-selected .bar { background: color-mix(in srgb, var(--gauge-sel-fg) 25%, transparent); }
+.node.is-selected .bar i { background: var(--gauge-sel-fg); }
+.collapse { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--gauge-bg-3); border: 1px solid var(--gauge-line-ctl); color: var(--gauge-fg-1); font: 12px/13px var(--gauge-sans); text-align: center; }
+
+.minimap { position: absolute; right: 12px; bottom: 12px; width: 132px; height: 92px; background: var(--gauge-bg-2); border: 1px solid var(--gauge-line-2); border-radius: var(--gauge-r-3); }
+.minimap i { position: absolute; background: var(--gauge-line-ctl); border-radius: 1px; }
+.minimap .vp { position: absolute; inset: 8px 16px; border: 1.5px solid var(--gauge-accent); border-radius: 2px; }
+.legend { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 14px; align-items: center; padding: 5px 10px; font-size: 11.5px; color: var(--gauge-fg-2); background: var(--gauge-bg-2); border: 1px solid var(--gauge-line); border-radius: var(--gauge-r-3); }
+.legend .sw { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--gauge-line-ctl); vertical-align: middle; margin-right: 5px; }
+.legend .sw.hot { border-color: var(--gauge-accent); border-top-width: 3px; }
+.legend .sw.est { border-top-style: dashed; }
+
+/* Editor pane */
+.editor { border-top: 1px solid var(--gauge-line); background: var(--gauge-bg-1); }
+.grip { height: 7px; display: grid; place-items: center; cursor: row-resize; background: var(--gauge-bg-2); border-bottom: 1px solid var(--gauge-line); }
+.grip i { width: 36px; height: 3px; border-radius: 2px; background: var(--gauge-line-ctl); }
+.editor .g-pane-h { padding-top: 5px; padding-bottom: 5px; gap: 10px; }
+.editor .g-pane-h h2 { font-size: 12.5px; }
+.costbar { background: var(--gauge-bg-2); }
+.costbar .verdict { font-weight: 600; color: var(--gauge-fg-0); }
+.code { position: relative; margin: 0; padding: 6px 0 8px; font: 12px/1.6 var(--gauge-mono); color: var(--gauge-fg-1); background: var(--gauge-bg-0); border-top: 1px solid var(--gauge-line); border-bottom: 1px solid var(--gauge-line); }
+.code .l { white-space: pre; display: flex; padding-right: 14px; }
+.code .ln { color: var(--gauge-fg-3); user-select: none; width: 40px; text-align: right; padding-right: 8px; flex: none; }
+.code .gut { width: 4px; flex: none; margin-right: 10px; }
+.code .gut.mod { background: var(--gauge-warn); }
+.code .kw { color: var(--gauge-accent); }
+.code .id { color: var(--gauge-fg-0); }
+.code .p { color: var(--gauge-code); }
+.code .n { color: var(--gauge-val-num); }
+.code .s { color: var(--gauge-val-str); }
+.code .cm { color: var(--gauge-fg-3); font-style: italic; }
+.code .hl { background: var(--gauge-accent-dim); box-shadow: inset 2px 0 0 var(--gauge-accent); }
+.code .br { outline: 1px solid var(--gauge-line-ctl); border-radius: 2px; }
+.code .ann { margin-left: auto; padding-left: 24px; font: 11.5px var(--gauge-sans); color: var(--gauge-fg-2); }
+.code .cur { border-left: 1.5px solid var(--gauge-fg-0); margin-left: -1px; }
+
+.params-h { display: flex; align-items: center; gap: 10px; padding: 6px 14px; }
+.params-h button.tog { background: none; border: 0; color: var(--gauge-fg-0); font: 600 12.5px var(--gauge-sans); display: inline-flex; gap: 6px; align-items: center; padding: 0; cursor: pointer; }
+.params-h .note { color: var(--gauge-fg-2); font-size: 12px; }
+.params-h .g-btn { margin-left: auto; }
+.params { display: grid; grid-template-columns: 140px 130px minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; padding: 0 14px 10px; }
+.params .hdr { font-size: 12px; color: var(--gauge-fg-2); }
+.params .g-field { width: 100%; }
+.params label { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; }
+input[type=checkbox] { accent-color: var(--gauge-accent); width: 14px; height: 14px; margin: 0; }
+
+/* Inspector */
+.insp { display: grid; grid-template-rows: auto auto auto 1fr; min-height: 0; background: var(--gauge-bg-1); border-left: 1px solid var(--gauge-line); }
+.insp .g-pane-h h2 { font-size: 14px; }
+.insp .g-facts { white-space: nowrap; }
+.narr { font-size: 12.5px; color: var(--gauge-fg-1); }
+.narr p { margin: 0 0 6px; }
+.narr p:last-child { margin: 0; }
+.narr .next b { font-weight: 600; color: var(--gauge-fg-0); }
+.tabs { padding: 10px 14px 8px; border-bottom: 1px solid var(--gauge-line); }
+.scroll { overflow: auto; min-height: 0; }
+
+.find { border-bottom: 1px solid var(--gauge-line); padding: 8px 14px 9px; cursor: pointer; }
+.find:hover { background: var(--gauge-bg-2); }
+.find .row1 { display: flex; gap: 10px; align-items: baseline; }
+.find .ttl { color: var(--gauge-fg-0); font-weight: 600; }
+.find .imp { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--gauge-fg-0); font-weight: 600; white-space: nowrap; }
+.find .meta { margin-top: 2px; font-size: 12px; color: var(--gauge-fg-2); display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.find .meta .tri { margin-left: auto; }
+.find.is-selected { background: var(--gauge-sel); color: var(--gauge-sel-fg); box-shadow: inset 2px 0 0 var(--gauge-sel-edge); }
+.find.is-selected :is(.ttl, .imp, .meta, .g-entity) { color: var(--gauge-sel-fg); }
+.find.is-selected .g-sev--crit { color: var(--gauge-sel-crit); }
+.find.is-selected .g-sev--warn { color: var(--gauge-sel-warn); }
+.whyfix { padding: 10px 14px 14px; border-bottom: 1px solid var(--gauge-line); background: var(--gauge-bg-0); }
+.whyfix h3 { font-size: 12px; color: var(--gauge-fg-2); font-weight: 600; margin: 8px 0 4px; }
+.whyfix h3:first-child { margin-top: 0; }
+.whyfix p, .whyfix ol { margin: 0 0 6px; color: var(--gauge-fg-1); }
+.whyfix ol { padding-left: 18px; }
+.whatif { border: 1px solid var(--gauge-line-2); border-radius: var(--gauge-r-3); padding: 8px 10px; margin: 8px 0; }
+.whatif .k { font-size: 11.5px; font-weight: 600; color: var(--gauge-fg-2); }
+.whatif .v { color: var(--gauge-fg-0); font-variant-numeric: tabular-nums; }
+.whatif .q { font-size: 11.5px; color: var(--gauge-fg-2); }
+.whyfix .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+.whyfix .actions .g-seg { margin-left: auto; }
+.whyfix .saved { font-size: 11.5px; color: var(--gauge-fg-2); margin-top: 6px; }
+
+.g-statusbar .end { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+.g-statusbar label { display: inline-flex; align-items: center; gap: 6px; }
+.g-statusbar .g-field { min-height: 20px; padding: 0 4px; font-size: 11.5px; }
+
+/* Empty state */
+.empty { display: grid; place-content: center; gap: 0; background: var(--gauge-bg-0); padding: 40px; }
+.empty .box { width: min(560px, 100%); }
+.empty h1 { font-size: 18px; margin-bottom: 6px; }
+.empty p { margin: 0 0 16px; color: var(--gauge-fg-1); }
+.empty .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.empty h2 { font-size: 13px; margin: 28px 0 8px; }
+.empty .g-table { border: 1px solid var(--gauge-line); }
+.empty .g-table td:last-child { text-align: right; }
+.emptyinsp { padding: 14px; color: var(--gauge-fg-2); }
+
+/* Dialogs */
+.dlg { position: fixed; z-index: 50; left: 50%; top: 52px; transform: translateX(-50%); width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 80px); overflow: auto;
+  background: var(--gauge-bg-2); border: 1px solid var(--gauge-line-2); border-radius: 6px; box-shadow: 0 12px 32px var(--gauge-shadow); }
+.dlg header { padding: 14px 18px 10px; border-bottom: 1px solid var(--gauge-line); }
+.dlg header h2 { font-size: 15px; }
+.dlg header p { margin: 4px 0 0; color: var(--gauge-fg-2); font-size: 12.5px; }
+.dlg .body { padding: 14px 18px; display: grid; gap: 12px; }
+.dlg .f { display: grid; gap: 4px; }
+.dlg .f > span { font-size: 12px; color: var(--gauge-fg-2); }
+.dlg .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.dlg .inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.dlg .inline .g-field { flex: 1; min-width: 0; }
+.dlg .checks { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; }
+.dlg .checks label { display: inline-flex; gap: 6px; align-items: center; }
+.dlg footer { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--gauge-line); background: var(--gauge-bg-1); border-radius: 0 0 6px 6px; }
+.dlg footer .sp { margin-left: auto; }
+.dlg .g-callout { margin: 0; font-size: 12px; }
+.sugg { margin-top: -2px; border: 1px solid var(--gauge-line-2); border-radius: var(--gauge-r-3); background: var(--gauge-bg-1); }
+.sugg div { padding: 5px 8px; display: flex; gap: 10px; }
+.sugg div + div { border-top: 1px solid var(--gauge-line); }
+.sugg .on { background: var(--gauge-sel); color: var(--gauge-sel-fg); box-shadow: inset 2px 0 0 var(--gauge-sel-edge); }
+.sugg small { margin-left: auto; color: inherit; opacity: .85; }
+.dlg ul.mods { margin: 0; padding: 0; list-style: none; border: 1px solid var(--gauge-line); border-radius: var(--gauge-r-3); }
+.dlg ul.mods li { padding: 6px 10px; display: flex; gap: 10px; align-items: baseline; }
+.dlg ul.mods li + li { border-top: 1px solid var(--gauge-line); }
+.dlg ul.mods .ln { color: var(--gauge-fg-2); font: 11.5px var(--gauge-mono); width: 44px; }
+
+[data-view]:not(.on) { display: none !important; }
+</style>
+</head>
+<body class="g-root">
+
+<header class="titlebar">
+  <svg class="i" viewBox="0 0 16 16" style="color:var(--gauge-accent)"><path d="M2 13h12M4 10l3-4 3 2 3-5"/></svg>
+  <strong>SQL Plan Visualizer</strong><span class="sub" data-view="main" class="on">nested-loop-lookup-storm.sqlplan</span>
+  <button class="g-btn g-btn--ghost pal" id="open-palette" aria-haspopup="dialog" aria-keyshortcuts="Control+K">Find a command or operator <span class="g-kbd">Ctrl K</span></button>
+  <div class="caps" aria-hidden="true"><span>&#x2013;</span><span>&#x25A1;</span><span>&#x2715;</span></div>
+</header>
+
+<div class="cmdbar" role="toolbar" aria-label="Plan">
+  <button class="g-btn"><svg class="i" viewBox="0 0 16 16"><path d="M2 4h4l1.5 1.5H14V13H2z"/></svg>Open plan</button>
+  <button class="g-btn g-btn--ghost icon" title="Paste Showplan XML"><svg class="i" viewBox="0 0 16 16"><rect x="3.5" y="3" width="9" height="11" rx="1"/><path d="M6 3V2h4v1"/></svg></button>
+  <span class="sep"></span>
+  <span class="conn" id="conn"></span>
+  <span class="sep"></span>
+  <button class="g-btn g-btn--ghost" title="Compare the two latest session plans">Compare</button>
+  <button class="g-btn g-btn--ghost" title="Re-run the last captured query and compare">Re-run</button>
+  <button class="g-btn g-btn--ghost caret" aria-haspopup="menu">Baseline</button>
+  <div class="end">
+    <input class="g-field" placeholder="Search operators…" aria-label="Search operators">
+    <button class="g-btn g-btn--ghost icon" title="Play operators in execution order"><svg class="i" viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg></button>
+    <button class="g-btn g-btn--ghost icon" title="Zoom out"><svg class="i" viewBox="0 0 16 16"><path d="M4 8h8"/></svg></button>
+    <button class="g-btn g-btn--ghost icon" title="Zoom in"><svg class="i" viewBox="0 0 16 16"><path d="M4 8h8M8 4v8"/></svg></button>
+    <button class="g-btn g-btn--ghost icon" title="Fit plan to window"><svg class="i" viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
+    <button class="g-btn g-btn--ghost icon caret" title="Collapse / expand subtrees" aria-haspopup="menu"><svg class="i" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg></button>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="g-nav" aria-label="Views">
+    <div class="grp">View</div>
+    <a href="#" aria-current="page"><svg class="i" viewBox="0 0 16 16"><rect x="5" y="1.5" width="6" height="3.5" rx="1"/><rect x="1.5" y="11" width="5.5" height="3.5" rx="1"/><rect x="9" y="11" width="5.5" height="3.5" rx="1"/><path d="M8 5v3M4 11V8h8v3"/></svg>Plan tree</a>
+    <a href="#"><svg class="i" viewBox="0 0 16 16"><path d="M3 4h10M3 8h7M3 12h4"/></svg>Ranked by self time <span class="g-count">4</span></a>
+    <a href="#"><svg class="i" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>Query Store history</a>
+    <a href="#"><svg class="i" viewBox="0 0 16 16"><path d="M3 2.5h8l2 2V14H3z"/><path d="M6 7h4M6 10h4"/></svg>Anti-pattern library</a>
+    <hr>
+    <div class="grp">Session plans</div>
+    <div data-view="main" class="on" style="display:contents">
+      <a href="#" class="plan" aria-current="true"><span>nested-loop-lookup…</span><small>9:33 PM · a0adb2e1</small></a>
+      <a href="#" class="plan"><span>Re-plan #2 · estimated</span><small>9:41 PM · 7c1e09bd</small></a>
+      <a href="#" class="plan"><span>Re-plan #1 · estimated</span><small>9:38 PM · 51c09f3a</small></a>
+    </div>
+    <div data-view="empty" style="padding:4px 9px;font-size:12px;color:var(--gauge-fg-2)">Plans you open or capture this session appear here.</div>
+  </nav>
+
+  <!-- ===== Main workbench ===== -->
+  <main class="centre on" data-view="main">
+    <div class="g-pane-h">
+      <h1>Statement 1 of 1</h1>
+      <span class="g-facts">actual plan · captured 9:33 PM</span>
+      <div class="g-actions">
+        <label class="lbl">Weigh by <select class="g-field" aria-label="Node metric"><option>Subtree cost</option><option>Operator cost</option><option>Actual rows</option><option>Elapsed time</option><option>Self time</option><option>Efficiency</option><option>Estimate skew</option></select></label>
+        <button class="g-btn g-btn--ghost" aria-pressed="false" title="Colour nodes by finding severity instead of the selected metric">Blame</button>
+        <button class="g-btn g-btn--ghost" title="Cycle how much text each node card shows">Detail: Full</button>
+        <div class="g-seg" role="group" aria-label="Canvas"><button aria-pressed="true">Tree</button><button aria-pressed="false">Flame</button></div>
+      </div>
+    </div>
+
+    <div class="canvas" id="canvas">
+      <svg class="plan" aria-hidden="true"></svg>
+      <div class="legend"><span><span class="sw hot"></span>Hot path</span><span><span class="sw"></span>Rows (width)</span><span><span class="sw est"></span>Estimate off ≥10×</span></div>
+      <div class="minimap" aria-hidden="true"><i style="left:55px;top:12px;width:22px;height:12px"></i><i style="left:55px;top:36px;width:22px;height:12px"></i><i style="left:33px;top:62px;width:22px;height:12px"></i><i style="left:77px;top:62px;width:22px;height:12px"></i><div class="vp"></div></div>
+    </div>
+
+    <section class="editor" aria-label="Query editor">
+      <div class="grip" title="Drag to resize the SQL pane"><i></i></div>
+      <div class="g-pane-h costbar">
+        <span class="verdict">Baseline pinned · 4.21 s</span><span class="g-facts">Measured elapsed time from actual plans</span>
+        <div class="g-actions">
+          <button class="g-btn g-btn--ghost">Pin current as baseline</button>
+          <button class="g-btn g-btn--ghost">Refresh schema</button>
+          <button class="g-btn g-btn--ghost" aria-pressed="true">Annotations</button>
+        </div>
+      </div>
+      <div class="g-pane-h">
+        <h2>SQL</h2><span class="g-facts">Likely <span class="g-mono">ORDER BY</span> clause for <button class="g-entity g-entity--sans">Sort</button> · Ln 5, Col 28</span>
+        <div class="g-actions">
+          <button class="g-btn g-btn--ghost" title="Shift+Alt+F">Format</button>
+          <button class="g-btn g-btn--ghost icon" title="Copy the statement"><svg class="i" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1"/><path d="M11 5V2.5H2.5V11H5"/></svg></button>
+          <button class="g-btn">Run for actual…</button>
+          <button class="g-btn g-btn--primary"><svg class="i" viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg>Re-plan <span class="g-kbd" style="background:transparent;color:inherit;border-color:currentColor">Ctrl ↵</span></button>
+        </div>
+      </div>
+      <div class="code" aria-label="SQL editor">
+        <div class="l"><span class="ln">1</span><span class="gut"></span><span><span class="kw">SELECT</span> <span class="id">o.OrderId</span>, <span class="id">o.OrderDate</span>, <span class="id">o.Total</span></span></div>
+        <div class="l"><span class="ln">2</span><span class="gut"></span><span><span class="kw">FROM</span> <span class="id">dbo.Orders</span> <span class="kw">AS</span> o</span></div>
+        <div class="l"><span class="ln">3</span><span class="gut"></span><span><span class="kw">WHERE</span> <span class="id">o.CustomerId</span> = <span class="p">@CustomerId</span></span><span class="ann">Index Seek · 50k rows, est 5 — 10,000× under</span></div>
+        <div class="l"><span class="ln">4</span><span class="gut"></span><span>  <span class="kw">AND</span> <span class="kw">YEAR</span><span class="br">(</span><span class="id">o.OrderDate</span><span class="br">)</span> = <span class="n">2024</span></span><span class="ann">Non-sargable predicate</span></div>
+        <div class="l hl"><span class="ln">5</span><span class="gut"></span><span><span class="kw">ORDER BY</span> <span class="id">o.OrderDate</span> <span class="kw">DESC</span>;<span class="cur"></span></span><span class="ann">Sort · spilled to tempdb</span></div>
+      </div>
+      <div class="params-h">
+        <button class="tog" aria-expanded="true"><svg class="i" viewBox="0 0 16 16" style="width:12px"><path d="M4 6l4 4 4-4"/></svg>Parameters <span class="g-count" style="color:var(--gauge-fg-2);font-weight:400">1</span></button>
+        <span class="note">Values are written into a <span class="g-mono">DECLARE</span> prelude at capture time.</span>
+        <button class="g-btn g-btn--ghost">Reset to plan values</button>
+      </div>
+      <div class="params">
+        <span class="hdr">Name</span><span class="hdr">Type</span><span class="hdr">Value</span><span></span>
+        <span class="g-mono" style="color:var(--gauge-code)">@CustomerId</span>
+        <input class="g-field g-mono" value="int" aria-label="Type">
+        <input class="g-field g-mono num" value="884213" aria-label="Value" style="text-align:right">
+        <label><input type="checkbox"> NULL</label>
+      </div>
+    </section>
+  </main>
+
+  <aside class="insp on" data-view="main" aria-labelledby="diag">
+    <div class="g-pane-h">
+      <h2 id="diag">Diagnosis</h2><span class="g-facts"><span class="g-sev g-sev--crit">5 critical</span> · <span class="g-sev g-sev--warn">8 warnings</span></span>
+      <div class="g-actions"><div class="g-seg" role="group" aria-label="Explanations"><button aria-pressed="false">Terse</button><button aria-pressed="true">Detailed</button></div><button class="g-btn g-btn--ghost icon" title="Copy diagnosis as Markdown"><svg class="i" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1"/><path d="M11 5V2.5H2.5V11H5"/></svg></button></div>
+    </div>
+    <div class="g-callout narr" style="margin:10px 14px 0">
+      <p>Completed in <b>4.21 s</b>. <button class="g-entity g-entity--sans">Sort</button> spilled to tempdb and carries about 100% of measured impact.</p>
+      <p>Next strongest signal: the inner side of <button class="g-entity g-entity--sans">Nested Loops</button> runs <b>50,000</b> times against <span class="g-mono">o.PK_Orders</span>.</p>
+      <p class="next"><b>Next step:</b> update statistics on the tables feeding this operator. A spill is usually a downstream underestimate.</p>
+    </div>
+    <div class="tabs">
+      <div class="g-seg" role="group" aria-label="Inspector view">
+        <button aria-pressed="true">Findings 13</button><button aria-pressed="false">Operator</button><button aria-pressed="false">Indexes 2</button><button aria-pressed="false">Warnings 2</button><button aria-pressed="false">Delta</button>
+      </div>
+    </div>
+    <div class="scroll" id="findings"></div>
+  </aside>
+
+  <!-- ===== Empty state ===== -->
+  <main class="centre empty" data-view="empty" style="grid-template-rows:1fr">
+    <div class="box">
+      <h1>No plan loaded</h1>
+      <p>Drop a <span class="g-mono">.sqlplan</span> file here, open one, paste Showplan XML, or capture a plan straight from a live SQL Server connection.</p>
+      <div class="row">
+        <button class="g-btn g-btn--primary">Open a .sqlplan file</button>
+        <button class="g-btn">Paste XML</button>
+        <button class="g-btn">Capture from server</button>
+      </div>
+      <h2>Or connect to a saved profile</h2>
+      <table class="g-table" aria-label="Saved profiles">
+        <thead><tr><th>Profile</th><th>Server · database</th><th>Authentication</th></tr></thead>
+        <tbody>
+          <tr class="is-selected"><td><button class="g-entity g-entity--sans" aria-current="true">Sales dev</button></td><td class="g-mono">sql-dev01 · SalesDb</td><td>Microsoft Entra MFA</td></tr>
+          <tr><td><button class="g-entity g-entity--sans">Local Express</button></td><td class="g-mono">localhost\SQLEXPRESS · Orders</td><td>Windows</td></tr>
+          <tr><td><button class="g-entity g-entity--sans">Reporting replica</button></td><td class="g-mono">rpt-ro.corp · Warehouse</td><td>SQL Server · saved password</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <aside class="insp" data-view="empty" style="grid-template-rows:auto 1fr">
+    <div class="g-pane-h"><h2>Diagnosis</h2></div>
+    <div class="emptyinsp">Open or capture a plan to see ranked findings, operator details, index suggestions and warnings here.</div>
+  </aside>
+</div>
+
+<footer class="g-statusbar">
+  <span data-view="main" class="on">4 operators</span><span data-view="main" class="on">cost 42.881</span><span data-view="main" class="on">elapsed 4.21 s</span><span data-view="main" class="on">CPU 5.22 s</span><span data-view="main" class="on">actual plan</span>
+  <span data-view="empty">No plan loaded</span>
+  <div class="end">
+    <span>Scroll to zoom · drag to pan · double-click an operator to collapse it</span>
+    <label>Theme <select class="g-field" id="theme"><option value="">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+  </div>
+</footer>
+
+<!-- ===== Connect dialog ===== -->
+<div class="g-scrim" data-view="connect run"></div>
+<section class="dlg" role="dialog" aria-modal="true" aria-labelledby="ch" data-view="connect">
+  <header><h2 id="ch">Connect to SQL Server</h2><p>Connect once, then re-plan edits and capture plans against this server.</p></header>
+  <div class="body">
+    <div class="f"><span>Load a saved profile</span>
+      <div class="inline"><select class="g-field"><option>Reporting replica</option><option>Sales dev</option><option>Local Express</option></select><button class="g-btn g-btn--ghost">Rename</button><button class="g-btn g-btn--ghost">Delete</button></div>
+    </div>
+    <div class="f"><span>Connection input</span>
+      <div class="g-seg" role="group" aria-label="Connection input" style="justify-self:start"><button aria-pressed="true">Enter details</button><button aria-pressed="false">Paste connection string</button></div>
+    </div>
+    <div class="two">
+      <div class="f"><span>Server</span><input class="g-field g-mono" value="rpt-ro" placeholder="localhost\SQLEXPRESS">
+        <div class="sugg"><div class="on"><span class="g-mono">rpt-ro.corp</span><small>Warehouse · 2 days ago</small></div><div><span class="g-mono">rpt-ro-02.corp</span><small>Warehouse · last week</small></div></div>
+      </div>
+      <div class="f"><span>Database</span><input class="g-field g-mono" value="Warehouse" placeholder="(default)"></div>
+    </div>
+    <div class="f"><span>Authentication</span>
+      <div class="g-seg" role="group" aria-label="Authentication" style="justify-self:start"><button aria-pressed="false">Windows</button><button aria-pressed="true">SQL Server</button><button aria-pressed="false">Microsoft Entra MFA</button></div>
+    </div>
+    <div class="two">
+      <div class="f"><span>Login</span><input class="g-field g-mono" value="report_reader"></div>
+      <div class="f"><span>Password</span><input class="g-field" type="password" value="xxxxxxxxxxxx"></div>
+    </div>
+    <div class="checks">
+      <label><input type="checkbox" checked> Remember password</label>
+      <label><input type="checkbox" checked> Encrypt connection</label>
+      <label><input type="checkbox"> Trust server certificate</label>
+      <button class="g-btn g-btn--ghost" style="margin-left:auto">Forget saved password</button>
+    </div>
+    <div class="g-callout">Password filled from Windows Credential Manager. Recent servers and logins are remembered on this PC; a SQL password is never written to disk, and Entra sign-in tokens stay in memory until the app closes.</div>
+    <div class="f"><span>Save as profile</span>
+      <div class="inline"><input class="g-field" placeholder="Profile name" value="Reporting replica"><button class="g-btn">Save as profile</button></div>
+    </div>
+  </div>
+  <footer><button class="g-btn">Test connection</button><span class="sev-ok g-sev g-sev--ok" style="align-self:center">Connected in 0.4 s</span><span class="sp"></span><button class="g-btn g-btn--ghost">Cancel</button><button class="g-btn g-btn--primary">Connect</button></footer>
+</section>
+
+<!-- ===== Confirm run dialog ===== -->
+<section class="dlg" role="dialog" aria-modal="true" aria-labelledby="rh" data-view="run" style="top:110px;width:min(500px,calc(100vw - 24px))">
+  <header><h2 id="rh">Run for an actual plan?</h2><p>This will execute against <span class="g-mono" style="color:var(--gauge-fg-0)">sql-dev01 · SalesDb</span> as <span class="g-mono" style="color:var(--gauge-fg-0)">khai@corp</span>.</p></header>
+  <div class="body">
+    <div class="f"><span><span class="g-sev g-sev--crit">2 statements will modify rows</span></span>
+      <ul class="mods">
+        <li><span class="ln">Ln 7</span><span class="g-mono">UPDATE dbo.Orders SET Status = …</span></li>
+        <li><span class="ln">Ln 12</span><span class="g-mono">DELETE FROM dbo.OrderAudit WHERE …</span></li>
+      </ul>
+    </div>
+    <p class="muted" style="margin:0">An estimated plan needs none of this. <span class="g-kbd">Ctrl ↵</span> compiles without executing. Run this only when you need measured row counts and timings.</p>
+  </div>
+  <footer><span class="sp"></span><button class="g-btn">Cancel</button><button class="g-btn g-btn--primary">Run and capture</button></footer>
+</section>
+
+<div class="g-scrim" id="scrim" hidden></div>
+<div class="g-palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <input id="palette-input" role="combobox" aria-expanded="true" aria-controls="palette-list" placeholder="Type a command or operator" autocomplete="off">
+  <ul id="palette-list" role="listbox" aria-label="Commands"></ul>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const view = (location.hash || '#main').slice(1);
+const base = (view === 'connect' || view === 'run') ? (view === 'connect' ? 'empty' : 'main') : view;
+document.querySelectorAll('[data-view]').forEach(el => {
+  const vs = el.dataset.view.split(' ');
+  el.classList.toggle('on', vs.includes(base) || vs.includes(view));
+});
+$('#conn').innerHTML = base === 'empty'
+  ? `<span class="muted">Not connected</span><button class="g-btn"><svg class="i" viewBox="0 0 16 16"><path d="M6 10l4-4M5 7.5L3.5 9a2.5 2.5 0 003.5 3.5L8.5 11M11 8.5L12.5 7A2.5 2.5 0 009 3.5L7.5 5"/></svg>Connect</button>`
+  : `<span class="g-sev g-sev--ok">Connected</span><span class="g-mono">sql-dev01 · SalesDb</span><span class="muted">Entra MFA</span><button class="g-btn g-btn--ghost">Disconnect</button>`;
+
+/* ---------- plan nodes ---------- */
+const nodes = [
+  { op: 'Sort', obj: 'Orders', why: 'Sort spilled to tempdb', rows: '50k', est: '10k× off', self: 'self 106 ms · 2.5%', cost: 100, sev: 'crit', label: 'Critical', x: .5, y: .15 },
+  { op: 'Nested Loops', obj: 'Orders ⋈ Orders', why: 'Expensive inner side of Nested Loops', rows: '50k', est: '10k× off', self: 'self 640 ms · 15.2%', cost: 100, sev: 'crit', label: 'Critical', x: .5, y: .45 },
+  { op: 'Index Seek', obj: 'dbo.Orders AS o.IX_Orders_CustomerId', why: 'Row estimate first goes wrong here', rows: '50k', est: '10k× off', self: 'self 640 ms · 15.2%', cost: 0.03, sev: 'warn', label: 'Warning', x: .31, y: .77 },
+  { op: 'Key Lookup', obj: 'dbo.Orders AS o.PK_Orders', why: 'Key Lookup storm — 50,000 executions', rows: '50k', est: 'est 50k', self: 'self 3.46 s · 82.3%', cost: 99.9, sev: 'crit', label: 'Critical', x: .66, y: .77 },
+];
+const edges = [[0, 1, true, true], [1, 2, false, true], [1, 3, true, false]];
+let selNode = 0;
+function drawPlan() {
+  const c = $('#canvas'); if (!c || !c.offsetParent) return;
+  const W = c.clientWidth, H = c.clientHeight, NW = 226, NH = 112;
+  c.querySelectorAll('.node,.collapse').forEach(n => n.remove());
+  const svg = c.querySelector('svg.plan'); svg.innerHTML = '';
+  const pos = nodes.map(n => ({ x: n.x * W - NW / 2, y: n.y * H - NH / 2 }));
+  nodes.forEach((n, i) => {
+    const d = document.createElement('div');
+    d.className = 'node ' + n.sev + (i === selNode ? ' is-selected' : '');
+    d.style.left = pos[i].x + 'px'; d.style.top = pos[i].y + 'px'; d.tabIndex = 0;
+    d.innerHTML = `<div class="hd"><span class="op">${n.op}</span><span class="g-sev g-sev--${n.sev}">${n.label}</span></div>
+      <div class="obj">${n.obj}</div><div class="why">${n.why}</div>
+      <div class="facts"><span><b>${n.rows}</b> rows · ${n.est}</span><span style="margin-left:auto"><b>${n.cost}%</b></span></div>
+      <div class="facts"><span>${n.self} of query</span></div>
+      <div class="bar"><i style="width:${Math.max(n.cost, 1)}%"></i></div>`;
+    d.onclick = () => { selNode = i; drawPlan(); };
+    c.appendChild(d);
+    if (i < 2) requestAnimationFrame(() => { const k = document.createElement('span'); k.className = 'collapse'; k.textContent = '−'; k.style.left = (pos[i].x + NW / 2 - 8) + 'px'; k.style.top = (pos[i].y + d.offsetHeight - 8) + 'px'; c.appendChild(k); });
+  });
+  const hs = [...c.querySelectorAll(".node")].map(n => n.offsetHeight);
+  for (const [a, b, hot, est] of edges) {
+    const x1 = pos[a].x + NW / 2, y1 = pos[a].y + hs[a], x2 = pos[b].x + NW / 2, y2 = pos[b].y, my = (y1 + y2) / 2;
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
+    p.setAttribute('class', 'edge' + (hot ? ' hot' : '') + (est ? ' est' : ''));
+    p.setAttribute('stroke-width', hot ? 5 : 3);
+    svg.appendChild(p);
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', x2 + (x2 >= x1 ? 10 : -86)); t.setAttribute('y', y2 - 10); t.setAttribute('class', 'edge-lbl');
+    t.textContent = '50,000 rows'; svg.appendChild(t);
+  }
+}
+
+/* ---------- findings ---------- */
+const findings = [
+  { sev: 'crit', title: 'Tempdb spill', desc: 'Sort spilled to tempdb', node: 'Sort · node 0', imp: '100%', conf: 'high confidence' },
+  { sev: 'crit', title: 'Heavy inner loop', desc: 'Inner side of Nested Loops runs 50,000 times', node: '2 related operators', imp: '100%', conf: 'likely' },
+  { sev: 'crit', title: 'Lookup storm', desc: 'Key Lookup on o.PK_Orders — 50,000 executions', node: 'Key Lookup · node 3', imp: '99.9%', conf: 'high confidence', tri: 'Tried' },
+  { sev: 'crit', title: 'Cardinality cascade', desc: 'Estimate first goes wrong here — 10,000× under', node: 'Index Seek · node 2', imp: '0%', conf: 'high confidence' },
+  { sev: 'crit', title: 'Wrong battlefield', desc: 'Most of the time was spent waiting, not executing', node: 'Sort · node 0', imp: 'Context', conf: 'high confidence' },
+  { sev: 'warn', title: 'Sniffing skew', desc: '@CustomerId compiled for a different value than it ran with', node: 'Sort · node 0', imp: '100%', conf: 'likely' },
+  { sev: 'warn', title: 'Non-sargable predicate', desc: 'YEAR(o.OrderDate) prevents a seek on OrderDate', node: 'Index Seek · node 2', imp: '—', conf: 'high confidence' },
+  { sev: 'warn', title: 'Cost-model divergence', desc: 'Estimated cost share and measured time share disagree by 67 points', node: 'Key Lookup · node 3', imp: '82.3%', conf: 'likely' },
+];
+let selFind = 0;
+const sevWord = { crit: 'Critical', warn: 'Warning' };
+function drawFindings() {
+  const host = $('#findings'); if (!host) return; host.innerHTML = '';
+  findings.forEach((f, i) => {
+    const r = document.createElement('div');
+    r.className = 'find' + (i === selFind ? ' is-selected' : '');
+    r.innerHTML = `<div class="row1"><span class="g-sev g-sev--${f.sev}">${sevWord[f.sev]}</span><span class="ttl">${f.title}</span><span class="imp">${f.imp}</span></div>
+      <div style="margin-top:2px">${f.desc}</div>
+      <div class="meta"><button class="g-entity g-entity--sans">${f.node}</button><span>${f.conf}</span>${f.tri ? `<span class="tri">${f.tri}</span>` : ''}</div>`;
+    r.onclick = () => { selFind = i; drawFindings(); };
+    host.appendChild(r);
+    if (i === selFind) {
+      const w = document.createElement('div'); w.className = 'whyfix';
+      w.innerHTML = `<h3>Why it matters</h3><p>The Sort was granted memory for ~5 rows but received 50,000, so it wrote intermediate runs to tempdb. Every extra pass is disk I/O on the critical path.</p>
+        <h3>Fixes, most effective first</h3><ol><li>Update statistics on <span class="g-mono">dbo.Orders</span> so the seek estimates closer to 50k.</li><li>Replace <span class="g-mono">YEAR(o.OrderDate) = 2024</span> with a date range.</li><li>Add the suggested covering index to remove the lookups feeding the sort.</li></ol>
+        <div class="whatif"><div class="k">Approximate what-if</div><div class="v">Removing the spill: 4.21 s → about 3.9 s</div><div class="q">Directional estimate only; re-run the query to measure the real result.</div></div>
+        <div class="actions"><button class="g-btn">Show in plan</button><button class="g-btn g-btn--ghost">Open in library</button>
+        <div class="g-seg" role="group" aria-label="Triage"><button aria-pressed="false">Tried</button><button aria-pressed="false">No help</button><button aria-pressed="false">Fixed</button><button aria-pressed="false">Reset</button></div></div>
+        <div class="saved">Triage is saved beside file-backed plans.</div>`;
+      host.appendChild(w);
+    }
+  });
+}
+
+document.querySelectorAll('.g-seg').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+}));
+document.querySelectorAll('.cmdbar [aria-pressed], .costbar [aria-pressed]').forEach(b => b.addEventListener('click', () => b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')));
+
+const themeSel = $('#theme');
+themeSel.value = document.documentElement.dataset.theme || '';
+themeSel.onchange = () => {
+  const v = themeSel.value;
+  if (v) { document.documentElement.dataset.theme = v; try { localStorage.setItem('gauge.theme', v); } catch {} }
+  else { delete document.documentElement.dataset.theme; try { localStorage.removeItem('gauge.theme'); } catch {} }
+};
+
+const cmds = [
+  ['Plan', 'Open plan…'], ['Plan', 'Paste Showplan XML'], ['Plan', 'Re-plan edited batch'], ['Plan', 'Run for actual…'], ['Plan', 'Compare the two latest plans'], ['Plan', 'Pin current as baseline'],
+  ['Connection', 'Connect…'], ['Connection', 'Disconnect'], ['Connection', 'Connect to “Sales dev”'],
+  ['View', 'Plan tree'], ['View', 'Flame view'], ['View', 'Ranked by self time'], ['View', 'Query Store history'], ['View', 'Anti-pattern library'], ['View', 'Focus the hot path'],
+  ['Operators', 'Sort · node 0'], ['Operators', 'Nested Loops · node 1'], ['Operators', 'Index Seek · node 2'], ['Operators', 'Key Lookup · node 3'],
+];
+let active = 0, opener = null;
+function renderPal() {
+  const q = $('#palette-input').value.toLowerCase();
+  const list = $('#palette-list'); list.innerHTML = '';
+  const hits = cmds.filter(c => c[1].toLowerCase().includes(q));
+  active = Math.min(active, Math.max(hits.length - 1, 0));
+  let grp = '';
+  hits.forEach((c, i) => {
+    if (c[0] !== grp) { grp = c[0]; const h = document.createElement('li'); h.setAttribute('role', 'presentation'); h.className = 'g-group'; h.textContent = grp; list.appendChild(h); }
+    const li = document.createElement('li'); li.setAttribute('role', 'option'); li.id = 'opt' + i; li.textContent = c[1];
+    li.setAttribute('aria-selected', i === active ? 'true' : 'false'); list.appendChild(li);
+  });
+  $('#palette-input').setAttribute('aria-activedescendant', 'opt' + active);
+  return hits;
+}
+function openPal() { opener = document.activeElement; $('#scrim').hidden = false; $('#palette').hidden = false; $('#palette-input').value = ''; active = 0; renderPal(); $('#palette-input').focus(); }
+function closePal() { $('#scrim').hidden = true; $('#palette').hidden = true; opener && opener.focus(); }
+$('#open-palette').onclick = openPal;
+$('#scrim').onclick = closePal;
+$('#palette-input').oninput = () => { active = 0; renderPal(); };
+$('#palette-input').onkeydown = e => {
+  const n = renderPal().length;
+  if (e.key === 'ArrowDown') { active = (active + 1) % n; renderPal(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { active = (active - 1 + n) % n; renderPal(); e.preventDefault(); }
+  else if (e.key === 'Escape' || e.key === 'Enter') closePal();
+};
+document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#palette').hidden ? openPal() : closePal(); } });
+window.addEventListener('hashchange', () => location.reload());
+window.addEventListener('resize', drawPlan);
+drawPlan(); drawFindings();
+</script>
+</body>
+</html>
