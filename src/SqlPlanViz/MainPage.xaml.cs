@@ -211,7 +211,7 @@ public sealed partial class MainPage : Page
         var report = ViewModel.AnalyseBatchSafety();
         var view = new ConfirmRunDialog(ViewModel.Connection, report);
 
-        var dialog = CreateDialog("Run for an actual plan?", null, view);
+        var dialog = CreateDialog("Run for an actual plan?", view.Subtitle, view);
         dialog.PrimaryButtonText = view.RunButtonText;
         dialog.CloseButtonText = "Cancel";
 

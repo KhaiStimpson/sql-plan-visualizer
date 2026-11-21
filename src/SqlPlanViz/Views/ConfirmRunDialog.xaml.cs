@@ -1,68 +1,106 @@
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using SqlPlanViz.Capture;
 using SqlPlanViz.Editing;
+using SqlPlanViz.Themes;
 
 namespace SqlPlanViz.Views;
 
 /// <summary>
-/// The guard on the actual run (live-plan-editor-plan.md Phase 7).
+/// The guard on the actual run (live-plan-editor-plan.md Phase 7), in the Gauge dialog.
 ///
 /// The plan is explicit that the guard is the point of the phase and that it should err
-/// toward too much friction. So: the connected server and database are the largest thing on
-/// the dialog, every modifying statement is named with its line rather than summarised, and
-/// the confirmation is a tick box the user has to set before the run button will even enable
-/// — a deliberate second action, and never the default one.
+/// toward too much friction. So: the connected server, database and login are named in the
+/// dialog's header, every modifying statement is listed with its line rather than summarised,
+/// and the confirmation is a tick box the user has to set before the run button will even
+/// enable — a deliberate second action, and never the default one.
 /// </summary>
 public sealed partial class ConfirmRunDialog : UserControl
 {
     private readonly BatchSafetyReport _report;
+    private readonly string _target;
+    private readonly string _login;
 
     public ConfirmRunDialog(ConnectionSettings connection, BatchSafetyReport report)
     {
         InitializeComponent();
         _report = report;
+        _target = connection.DescribeTarget();
+        _login = connection.Auth switch
+        {
+            AuthMode.SqlLogin => connection.UserId,
+            AuthMode.EntraMfa => string.IsNullOrWhiteSpace(connection.UserId) ? "your Entra account" : connection.UserId,
+            _ => Environment.UserName,
+        };
 
-        TargetText.Text = string.IsNullOrWhiteSpace(connection.Database)
-            ? connection.Server
-            : $"{connection.Server}  ·  {connection.Database}";
+        var tokens = GaugeTokens.For(ThemeService.ActualTheme);
 
-        AuthText.Text = connection.Auth == AuthMode.Windows
-            ? "Windows authentication"
-            : $"SQL login {connection.UserId}";
-
-        HeadlineText.Text = report.Headline;
-
-        var risky = report.Risky.Select(s => s.Describe()).ToList();
+        // The headline is a severity word first: crit when anything will change, neutral when
+        // the batch only reads.
+        var risky = report.Risky;
+        HeadlineText.FontSize = 12.5;
+        HeadlineText.FontWeight = FontWeights.SemiBold;
         if (report.ParseFailed)
         {
-            risky.Add("The batch did not parse, so its statements could not be listed.");
+            HeadlineText.Text = "The batch did not parse, so what it would do is unknown";
+            HeadlineText.Foreground = new SolidColorBrush(tokens.Crit);
+        }
+        else if (risky.Count > 0)
+        {
+            HeadlineText.Text = report.WorstRisk == StatementRisk.Modifying
+                ? $"{risky.Count} statement{(risky.Count == 1 ? string.Empty : "s")} will modify rows"
+                : report.Headline.TrimEnd('.');
+            HeadlineText.Foreground = new SolidColorBrush(tokens.Crit);
+        }
+        else
+        {
+            HeadlineText.Text = "This batch only reads";
+            HeadlineText.Foreground = new SolidColorBrush(tokens.Fg2);
         }
 
-        StatementsHost.ItemsSource = risky;
+        // Each risky statement as a row: "Ln 7" then the statement in mono.
+        for (var i = 0; i < risky.Count; i++)
+        {
+            var statement = risky[i];
+            var row = new Grid
+            {
+                Padding = new Thickness(10, 6, 10, 6),
+                ColumnSpacing = 10,
+                BorderBrush = new SolidColorBrush(tokens.Line),
+                BorderThickness = new Thickness(0, i == 0 ? 0 : 1, 0, 0),
+            };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            row.Children.Add(new TextBlock
+            {
+                Text = $"Ln {statement.Line}",
+                FontFamily = GaugeFonts.Mono,
+                FontSize = 11.5,
+                Foreground = new SolidColorBrush(tokens.Fg2),
+            });
+
+            var text = new TextBlock
+            {
+                Text = string.IsNullOrEmpty(statement.Target) ? $"{statement.Kind} …" : $"{statement.Kind} {statement.Target} …",
+                FontFamily = GaugeFonts.Mono,
+                FontSize = 12,
+                Foreground = new SolidColorBrush(tokens.Fg0),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            };
+            Grid.SetColumn(text, 1);
+            row.Children.Add(text);
+            StatementsHost.Items.Add(row);
+        }
+
         StatementsCard.Visibility = risky.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
         ConfirmText.Text = report.IsReadOnly
-            ? $"Yes, run this read-only batch against {TargetText.Text}."
-            : $"I understand this will change {TargetText.Text}.";
-
-        var (glyph, brushKey) = report.WorstRisk switch
-        {
-            // Info, warning, warning, warning, caution — the glyph distinguishes the
-            // read-only case from every other one without relying on colour alone.
-            StatementRisk.ReadOnly => ("\uE946", "SystemFillColorNeutralBrush"),
-            StatementRisk.Modifying => ("\uE7BA", "SystemFillColorCriticalBrush"),
-            StatementRisk.Ddl => ("\uE7BA", "SystemFillColorCriticalBrush"),
-            StatementRisk.Administrative => ("\uE7BA", "SystemFillColorCriticalBrush"),
-            _ => ("\uE9CE", "SystemFillColorCautionBrush"),
-        };
-
-        RiskGlyph.Glyph = glyph;
-        if (Application.Current.Resources.TryGetValue(brushKey, out var brush))
-        {
-            RiskGlyph.Foreground = (Brush)brush;
-        }
+            ? $"Yes, run this read-only batch against {_target}."
+            : $"I understand this will change {_target}.";
     }
 
     /// <summary>Raised when the tick box changes, so the host can enable or disable its run button.</summary>
@@ -70,10 +108,27 @@ public sealed partial class ConfirmRunDialog : UserControl
 
     public bool IsConfirmed => ConfirmCheck.IsChecked == true;
 
-    /// <summary>Wording for the dialog's primary button — never just "OK".</summary>
-    public string RunButtonText => _report.IsReadOnly
-        ? "Run and capture the actual plan"
-        : "Run anyway and change data";
+    /// <summary>Wording for the dialog's primary button.</summary>
+    public string RunButtonText => "Run and capture";
+
+    /// <summary>
+    /// The dialog header's subtitle: "This will execute against <c>sql-dev01 · SalesDb</c> as
+    /// <c>khai@corp</c>." with the target and login in mono fg-0.
+    /// </summary>
+    public UIElement Subtitle
+    {
+        get
+        {
+            var tokens = GaugeTokens.For(ThemeService.ActualTheme);
+            var block = new TextBlock { Style = (Style)Application.Current.Resources["GaugeDialogSubtitle"] };
+            block.Inlines.Add(new Run { Text = "This will execute against " });
+            block.Inlines.Add(new Run { Text = _target, FontFamily = GaugeFonts.Mono, FontSize = 12, Foreground = new SolidColorBrush(tokens.Fg0) });
+            block.Inlines.Add(new Run { Text = " as " });
+            block.Inlines.Add(new Run { Text = _login, FontFamily = GaugeFonts.Mono, FontSize = 12, Foreground = new SolidColorBrush(tokens.Fg0) });
+            block.Inlines.Add(new Run { Text = "." });
+            return block;
+        }
+    }
 
     private void OnConfirmChanged(object sender, RoutedEventArgs e) =>
         ConfirmationChanged?.Invoke(this, IsConfirmed);

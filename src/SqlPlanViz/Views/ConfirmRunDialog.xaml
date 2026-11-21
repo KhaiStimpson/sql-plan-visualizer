@@ -7,84 +7,48 @@
     mc:Ignorable="d">
 
     <!--
-        docs/live-plan-editor-plan.md Phase 7. The mistake this exists to prevent is running a
-        dev query against production, so the server and database are the largest thing on it
-        and the modifying statements are named individually rather than warned about in the
-        abstract. Running is never the default action.
+        docs/live-plan-editor-plan.md Phase 7, in the Gauge dialog (gauge-mockup.html#run). The
+        mistake this exists to prevent is running a dev query against production: the server
+        and login are named in the header (see Subtitle), every modifying statement is listed
+        with its line, and running stays behind a tick box and is never the default action.
     -->
-    <StackPanel MinWidth="440" Spacing="14">
-        <Border
-            Padding="12,10"
-            Background="{ThemeResource LayerFillColorAltBrush}"
-            CornerRadius="6">
-            <StackPanel Spacing="2">
-                <TextBlock
-                    FontSize="11"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Text="This will execute against" />
-                <TextBlock
-                    x:Name="TargetText"
-                    FontSize="17"
-                    FontWeight="SemiBold"
-                    TextWrapping="Wrap" />
-                <TextBlock
-                    x:Name="AuthText"
-                    FontSize="11"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
-        </Border>
+    <StackPanel Width="464" Spacing="12">
+        <StackPanel Spacing="4">
+            <TextBlock x:Name="HeadlineText" TextWrapping="Wrap" />
 
-        <StackPanel Orientation="Horizontal" Spacing="10">
-            <FontIcon
-                x:Name="RiskGlyph"
-                VerticalAlignment="Top"
-                FontFamily="Segoe Fluent Icons"
-                FontSize="18"
-                Glyph="&#xE7BA;" />
-            <TextBlock
-                x:Name="HeadlineText"
-                VerticalAlignment="Center"
-                FontSize="13"
-                FontWeight="SemiBold"
-                TextWrapping="Wrap" />
+            <Border
+                x:Name="StatementsCard"
+                MaxHeight="180"
+                BorderBrush="{ThemeResource GaugeLineBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource GaugeR3}">
+                <ScrollViewer>
+                    <ItemsControl x:Name="StatementsHost" IsTabStop="False" />
+                </ScrollViewer>
+            </Border>
         </StackPanel>
 
-        <Border
-            x:Name="StatementsCard"
-            MaxHeight="180"
-            Padding="12,8"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="1"
-            CornerRadius="6">
-            <ScrollViewer>
-                <ItemsControl x:Name="StatementsHost">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock
-                                Margin="0,1"
-                                FontFamily="{StaticResource GaugeMono}"
-                                FontSize="12"
-                                Text="{Binding}"
-                                TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
-
-        <TextBlock
-            FontSize="11"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            TextWrapping="Wrap"
-            Text="An estimated plan needs none of this — Ctrl+Enter compiles without executing. Run this only when you need measured row counts and timings." />
+        <RichTextBlock
+            FontSize="13"
+            Foreground="{ThemeResource GaugeFg2Brush}"
+            IsTextSelectionEnabled="False"
+            LineHeight="19">
+            <Paragraph>
+                <Run Text="An estimated plan needs none of this. " />
+                <InlineUIContainer>
+                    <Border Margin="0,0,0,-4" Style="{StaticResource GaugeKbd}">
+                        <TextBlock Style="{StaticResource GaugeKbdText}" Text="Ctrl &#x21B5;" />
+                    </Border>
+                </InlineUIContainer>
+                <Run Text=" compiles without executing. Run this only when you need measured row counts and timings." />
+            </Paragraph>
+        </RichTextBlock>
 
         <CheckBox
             x:Name="ConfirmCheck"
             Checked="OnConfirmChanged"
             Unchecked="OnConfirmChanged">
-            <TextBlock
-                x:Name="ConfirmText"
-                TextWrapping="Wrap" />
+            <TextBlock x:Name="ConfirmText" TextWrapping="Wrap" />
         </CheckBox>
     </StackPanel>
 </UserControl>

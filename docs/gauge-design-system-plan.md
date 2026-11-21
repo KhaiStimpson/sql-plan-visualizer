@@ -238,7 +238,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
       recent-server suggestion list as a Gauge menu, a checkbox row with ghost "Forget saved
       password", the InfoBar as a `GaugeCallout`, Save as profile, and a footer with
       Test connection + `GaugeSevOk` / `GaugeSevCrit` result + Cancel / **Connect**.
-- [ ] `ConfirmRunDialog`: "Run for an actual plan?" with the server and login in mono, a
+- [x] `ConfirmRunDialog`: "Run for an actual plan?" with the server and login in mono, a
       `GaugeSevCrit` "N statements will modify rows" list (Ln + mono statement), the
       estimated-plan note with a `Ctrl ↵` kbd, and Cancel / **Run and capture**.
 - [ ] Ranked operators, Query Store history and Anti-pattern library panes: `GaugePaneHeader`
