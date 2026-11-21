@@ -247,7 +247,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
 
 ## Phase 9 — Command palette and finish
 
-- [ ] `CommandPalette` control: `scrim` overlay, 600px panel 70px from the top, 15px input,
+- [x] `CommandPalette` control: `scrim` overlay, 600px panel 70px from the top, 15px input,
       grouped list with 12px `fg-2` group labels, active option in the selected-record treatment.
       Ctrl+K toggles. Typing filters, Up/Down wrap, Enter runs, Escape or a scrim click closes,
       and focus returns to the opener.

@@ -2491,5 +2491,11 @@
                 </StackPanel>
             </Grid>
         </Border>
+
+        <!--  Ctrl+K command palette, over everything (Phase 9).  -->
+        <controls:CommandPalette
+            x:Name="Palette"
+            Grid.Row="0"
+            Grid.RowSpan="4" />
     </Grid>
 </Page>

@@ -120,6 +120,15 @@ public sealed partial class MainPage : Page
         };
         KeyboardAccelerators.Add(replan);
 
+        // Ctrl+K toggles the command palette from anywhere in the page.
+        var palette = new KeyboardAccelerator { Key = VirtualKey.K, Modifiers = VirtualKeyModifiers.Control };
+        palette.Invoked += (_, args) =>
+        {
+            args.Handled = true;
+            TogglePalette();
+        };
+        KeyboardAccelerators.Add(palette);
+
         // Shift+Alt+F formats from anywhere in the page, matching the toolbar button.
         var format = new KeyboardAccelerator { Key = VirtualKey.F, Modifiers = VirtualKeyModifiers.Shift | VirtualKeyModifiers.Menu };
         format.Invoked += (_, args) =>
@@ -1350,9 +1359,34 @@ public sealed partial class MainPage : Page
         };
     }
 
-    /// <summary>Opens the command palette; wired up in Phase 9 of the Gauge plan.</summary>
-    private void OnOpenPalette(object sender, RoutedEventArgs e)
+    /// <summary>The title bar's "Find a command or operator" button opens the palette.</summary>
+    private void OnOpenPalette(object sender, RoutedEventArgs e) => TogglePalette();
+
+    /// <summary>Ctrl+K and the title bar button: open the palette, or close it if it is open.</summary>
+    private void TogglePalette()
     {
+        if (Palette.IsOpen)
+        {
+            Palette.Close();
+            return;
+        }
+
+        Palette.Open(BuildPaletteCommands());
+    }
+
+    /// <summary>Everything the palette can reach, grouped as Plan / Connection / View / Operators.</summary>
+    private List<PaletteCommand> BuildPaletteCommands()
+    {
+        var commands = new List<PaletteCommand>
+        {
+            new("View", "Plan tree", () => SetFlameMode(false)),
+            new("View", "Flame view", () => SetFlameMode(true)),
+            new("View", "Ranked by self time", () => SetViewMode(ViewMode.Ranked)),
+            new("View", "Query Store history", () => SetViewMode(ViewMode.History)),
+            new("View", "Anti-pattern library", () => SetViewMode(ViewMode.Library)),
+        };
+
+        return commands;
     }
 
     /// <summary>
