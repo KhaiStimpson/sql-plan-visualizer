@@ -520,92 +520,110 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="EditorPaneRow" Height="240" />
                 </Grid.RowDefinitions>
-                <!--  Centre pane header: statement, canvas metric and view controls.  -->
+                <!--
+                    Centre pane header: which statement, then the canvas controls - Weigh by
+                    (7 metrics, so a select rather than a segmented control), Blame, the
+                    Detail cycle and the Tree/Flame segmented control.
+                -->
                 <Border
                     x:Name="CentreHeader"
                     Grid.Row="0"
                     Style="{StaticResource GaugePaneHeader}"
                     Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <Grid ColumnSpacing="8">
+                    <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                <ComboBox
-                    Grid.Column="0"
-                    MaxWidth="260"
-                    VerticalAlignment="Center"
-                    ItemsSource="{x:Bind ViewModel.Statements, Mode=OneWay}"
-                    SelectedItem="{x:Bind ViewModel.SelectedStatement, Mode=TwoWay}"
-                    ToolTipService.ToolTip="Statement in this batch"
-                    Visibility="{x:Bind ViewModel.HasMultipleStatements, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="model:PlanStatement">
-                            <TextBlock Text="{x:Bind Summary.ShortText}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                        <TextBlock
+                            Grid.Column="0"
+                            Style="{StaticResource GaugePaneTitle}"
+                            Text="{x:Bind ViewModel.StatementTitle, Mode=OneWay}" />
+                        <ComboBox
+                            x:Name="StatementPicker"
+                            Grid.Column="1"
+                            MaxWidth="260"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Statement in this batch"
+                            ItemsSource="{x:Bind ViewModel.Statements, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.SelectedStatement, Mode=TwoWay}"
+                            ToolTipService.ToolTip="Statement in this batch"
+                            Visibility="{x:Bind ViewModel.HasMultipleStatements, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="model:PlanStatement">
+                                    <TextBlock Text="{x:Bind Summary.ShortText}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock
+                            Grid.Column="2"
+                            Style="{StaticResource GaugeFacts}"
+                            Text="{x:Bind ViewModel.StatementFacts, Mode=OneWay}" />
 
-                <StackPanel
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal"
-                    Spacing="10"
-                    Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <SelectorBar
-                        x:Name="MetricSelector"
-                        VerticalAlignment="Center"
-                        SelectionChanged="OnMetricChanged">
-                        <SelectorBarItem IsSelected="True" Text="Subtree cost" />
-                        <SelectorBarItem Text="Operator cost" />
-                        <SelectorBarItem
-                            x:Name="RowsMetricItem"
-                            Text="Actual rows" />
-                        <SelectorBarItem
-                            x:Name="TimeMetricItem"
-                            Text="Elapsed time" />
-                        <SelectorBarItem
-                            x:Name="SelfTimeMetricItem"
-                            Text="Self time" />
-                        <SelectorBarItem
-                            x:Name="EfficiencyMetricItem"
-                            Text="Efficiency" />
-                        <SelectorBarItem
-                            x:Name="EstimateSkewMetricItem"
-                            Text="Estimate skew" />
-                    </SelectorBar>
+                        <StackPanel
+                            Grid.Column="3"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <TextBlock Style="{StaticResource GaugeInlineLabel}" Text="Weigh by" />
+                            <ComboBox
+                                x:Name="MetricSelector"
+                                MinWidth="122"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Weigh nodes by"
+                                FontSize="12.5"
+                                SelectedIndex="0"
+                                SelectionChanged="OnMetricChanged"
+                                ToolTipService.ToolTip="What sizes and heats each node card">
+                                <ComboBoxItem Content="Subtree cost" />
+                                <ComboBoxItem Content="Operator cost" />
+                                <ComboBoxItem x:Name="RowsMetricItem" Content="Actual rows" />
+                                <ComboBoxItem x:Name="TimeMetricItem" Content="Elapsed time" />
+                                <ComboBoxItem x:Name="SelfTimeMetricItem" Content="Self time" />
+                                <ComboBoxItem x:Name="EfficiencyMetricItem" Content="Efficiency" />
+                                <ComboBoxItem x:Name="EstimateSkewMetricItem" Content="Estimate skew" />
+                            </ComboBox>
+                            <ToggleButton
+                                x:Name="BlameToggleButton"
+                                Click="OnToggleColorMode"
+                                Content="Blame"
+                                FontSize="12.5"
+                                ToolTipService.ToolTip="Colour nodes by finding severity instead of the selected metric" />
+                            <Button
+                                x:Name="LabelDetailButton"
+                                Click="OnToggleLabelDetail"
+                                Content="Detail: Full"
+                                FontSize="12.5"
+                                Style="{StaticResource GaugeGhostButton}"
+                                ToolTipService.ToolTip="Cycle how much text each node card shows: full, standard, or operator name only" />
+                            <Button
+                                x:Name="VerbosityButton"
+                                VerticalAlignment="Center"
+                                Click="OnToggleVerbosity"
+                                Content="Detailed"
+                                ToolTipService.ToolTip="Toggle terse or expansive explanations" />
 
-                    <Button
-                        x:Name="BlameToggleButton"
-                        VerticalAlignment="Center"
-                        Click="OnToggleColorMode"
-                        Content="Blame"
-                        ToolTipService.ToolTip="Colour nodes by finding severity instead of the selected metric" />
-
-                    <Button
-                        x:Name="VerbosityButton"
-                        VerticalAlignment="Center"
-                        Click="OnToggleVerbosity"
-                        Content="Detailed"
-                        ToolTipService.ToolTip="Toggle terse or expansive explanations" />
-
-                    <Button
-                        x:Name="LabelDetailButton"
-                        VerticalAlignment="Center"
-                        Click="OnToggleLabelDetail"
-                        Content="Detail: Full"
-                        ToolTipService.ToolTip="Cycle how much text each node card shows: full, standard, or operator name only" />
-                </StackPanel>
-
-                    <Button
-                        x:Name="FlameViewButton"
-                        Click="OnToggleFlameView"
-                        ToolTipService.ToolTip="Toggle the time-attribution flame view">
-                        <FontIcon
-                            FontFamily="Segoe Fluent Icons"
-                            FontSize="14"
-                            Glyph="&#xE9D9;" />
-                    </Button>
+                            <Border AutomationProperties.Name="Canvas view" Style="{StaticResource GaugeSegmented}">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton
+                                        x:Name="TreeModeRadio"
+                                        Checked="OnCanvasModeChecked"
+                                        Content="Tree"
+                                        GroupName="CanvasMode"
+                                        IsChecked="True"
+                                        Style="{StaticResource GaugeSegmentItemFirst}"
+                                        ToolTipService.ToolTip="The plan as a tree of operators" />
+                                    <RadioButton
+                                        x:Name="FlameModeRadio"
+                                        Checked="OnCanvasModeChecked"
+                                        Content="Flame"
+                                        GroupName="CanvasMode"
+                                        Style="{StaticResource GaugeSegmentItem}"
+                                        ToolTipService.ToolTip="Time attribution as a flame view" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </Grid>
                 </Border>
 

@@ -282,6 +282,28 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>The centre header's title: "Statement 1 of 3".</summary>
+    public string StatementTitle => SelectedStatement is { } s && Statements.IndexOf(s) is var i and >= 0
+        ? $"Statement {i + 1} of {Statements.Count}"
+        : "Statement";
+
+    /// <summary>The centre header's facts: "actual plan · captured 9:33 PM".</summary>
+    public string StatementFacts
+    {
+        get
+        {
+            if (SelectedStatement is not { } s)
+            {
+                return string.Empty;
+            }
+
+            var kind = s.HasRuntimeStats ? "actual plan" : "estimated plan";
+            return SessionPlans.FirstOrDefault(p => p.IsCurrent) is { } current
+                ? $"{kind} · captured {current.CapturedAt:t}"
+                : kind;
+        }
+    }
+
     public string PlanKindLabel => SelectedStatement?.HasRuntimeStats == true ? "Actual" : "Estimated";
 
     /// <summary>Metrics that need runtime data are meaningless on an estimated plan.</summary>
@@ -740,6 +762,8 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(StatementSummary));
+        OnPropertyChanged(nameof(StatementTitle));
+        OnPropertyChanged(nameof(StatementFacts));
         OnPropertyChanged(nameof(PlanKindLabel));
         OnPropertyChanged(nameof(RuntimeMetricsAvailable));
         OnPropertyChanged(nameof(WarningCount));

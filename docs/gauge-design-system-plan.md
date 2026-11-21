@@ -141,7 +141,7 @@ The chrome around the canvas, matching `gauge-mockup-main-*.png`.
       `server · database` + auth in `fg-2` + ghost Disconnect, or "Not connected" + Connect),
       separator, ghost Compare / Re-run / Baseline (menu), then right-aligned search, playback,
       zoom −/+, fit and the collapse menu as `GaugeIconButton`s.
-- [ ] Add the centre pane header: "Statement N of M" title (keep the statement picker behaviour),
+- [x] Add the centre pane header: "Statement N of M" title (keep the statement picker behaviour),
       facts, then a Weigh-by `ComboBox` replacing the metric `SelectorBar` (same 7 metrics, same
       `OnMetricChanged` effect), Blame toggle, Detail cycle button, and a Tree/Flame
       `GaugeSegmented` that replaces `FlameViewButton`.

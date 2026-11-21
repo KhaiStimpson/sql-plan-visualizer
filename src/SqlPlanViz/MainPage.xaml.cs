@@ -37,7 +37,7 @@ public sealed partial class MainPage : Page
         UpdateMetricAvailability();
 
         // Start on the canvas rather than letting the first title-bar control take focus.
-        Loaded += (_, _) => Canvas.Focus(FocusState.Programmatic);
+        Loaded += (_, _) => Canvas.Focus(FocusState.Pointer);
         RefreshConnectionProfiles();
     }
 
@@ -537,9 +537,9 @@ public sealed partial class MainPage : Page
             _ => 0,
         };
 
-        if (MetricSelector.SelectedItem != MetricSelector.Items[index])
+        if (MetricSelector is not null && MetricSelector.SelectedIndex != index)
         {
-            MetricSelector.SelectedItem = MetricSelector.Items[index];
+            MetricSelector.SelectedIndex = index;
         }
     }
 
@@ -733,10 +733,9 @@ public sealed partial class MainPage : Page
         }
     }
 
-    private void OnMetricChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    private void OnMetricChanged(object sender, SelectionChangedEventArgs e)
     {
-        var index = sender.Items.IndexOf(sender.SelectedItem);
-        ViewModel.Metric = index switch
+        ViewModel.Metric = ((ComboBox)sender).SelectedIndex switch
         {
             1 => SizeMetric.OperatorCost,
             2 => SizeMetric.ActualRows,
@@ -761,7 +760,7 @@ public sealed partial class MainPage : Page
     private void OnCanvasLayoutChanged(object? sender, EventArgs e) => UpdateColorModeButton();
 
     private void UpdateColorModeButton() =>
-        BlameToggleButton.Content = Canvas.ColorMode == ColorMode.Blame ? "Blame ●" : "Blame";
+        BlameToggleButton.IsChecked = Canvas.ColorMode == ColorMode.Blame;
 
     private void OnZoomIn(object sender, RoutedEventArgs e) => Canvas.ZoomBy(1.25f);
 
@@ -814,6 +813,8 @@ public sealed partial class MainPage : Page
             RailRanked.IsChecked = mode == ViewMode.Ranked;
             RailHistory.IsChecked = mode == ViewMode.History;
             RailLibrary.IsChecked = mode == ViewMode.Library;
+            TreeModeRadio.IsChecked = !_flameMode;
+            FlameModeRadio.IsChecked = _flameMode;
         }
         finally
         {
@@ -853,6 +854,15 @@ public sealed partial class MainPage : Page
         SetViewMode(ViewModel.ViewMode == ViewMode.Ranked ? ViewMode.Tree : ViewMode.Ranked);
 
     private void OnToggleFlameView(object sender, RoutedEventArgs e) => SetFlameMode(!_flameMode);
+
+    private void OnCanvasModeChecked(object sender, RoutedEventArgs e)
+    {
+        // IsChecked="True" in XAML raises Checked while the page is still being built.
+        if (!_syncingRail && Canvas is not null && FlameModeRadio is not null)
+        {
+            SetFlameMode(sender == FlameModeRadio);
+        }
+    }
 
     private void OnBackToTree(object sender, RoutedEventArgs e) => SetViewMode(ViewMode.Tree);
 
