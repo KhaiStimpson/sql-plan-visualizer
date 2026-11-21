@@ -20,11 +20,14 @@ Execution plans contain a lot of useful evidence, but finding the part that dese
 - Edit the query in place and re-plan it against the live connection, with syntax highlighting, completions, typed parameter fields, and on-demand reformatting that one undo takes back.
 - See whether an edit helped: a cost delta bar against a pinned baseline, gutter marks and inline annotations on the lines that moved, and the plan canvas recoloured by delta.
 - Search, zoom, pan, collapse subtrees, focus the hot path, and replay operators in execution order.
+- Switch views from the left rail: the plan tree (or its flame view), operators ranked by self time, Query Store history, and the anti-pattern library. Every plan opened or captured in the session is listed under it.
+- Reach any command, view or operator from the command palette (`Ctrl+K`).
 - Compare captured plans and save regression baselines for later checks.
+- Follow the Windows theme or pin light or dark from the status bar. The interface uses the [Gauge](docs/design/gauge/) design system.
 
 ## Operator details
 
-Select a finding or operator to see the evidence behind it. The detail pane combines row-estimate accuracy, cost, CPU and I/O, runtime timing, executions, warnings, predicates, and output columns.
+Select a finding or operator to see the evidence behind it. The inspector's Operator view combines row-estimate accuracy, cost, CPU and I/O, runtime timing, executions, warnings, predicates, and output columns.
 
 ![Selected Sort operator with row estimates, cost, timing, and tempdb spill details](docs/operator-details.png)
 

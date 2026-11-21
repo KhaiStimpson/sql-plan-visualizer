@@ -258,7 +258,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
 - [x] Accessibility pass: tab order across rail, command bar, canvas, editor and inspector. A
       visible 2px accent focus everywhere. Windows contrast themes show selection, current nav
       and focus. Fix anything found.
-- [ ] Replace `docs/app-overview.png`, `docs/operator-details.png` and `docs/index-suggestions.png`
+- [x] Replace `docs/app-overview.png`, `docs/operator-details.png` and `docs/index-suggestions.png`
       with fresh captures, and update README wording that names removed controls (bottom strip,
       toolbar History/Library).
 - [ ] Final side-by-side: capture each mock-up state from the running app in both themes into
