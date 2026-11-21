@@ -230,7 +230,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
       Paste XML / Capture from server secondary, then "Or connect to a saved profile" as a
       `GaugeTable` (Profile entity link / mono server · database / authentication). The inspector
       shows its empty sentence. The editor pane is hidden.
-- [ ] A global `ContentDialog` style: `bg-2`, `line-2` border, 6px radius, shadow, `scrim`
+- [x] A global `ContentDialog` style: `bg-2`, `line-2` border, 6px radius, shadow, `scrim`
       overlay, header with a 15px title and a `fg-2` subtitle, footer on `bg-1` with a `line` top
       border. Primary uses `GaugePrimaryButton`.
 - [ ] `ConnectView`: profile row (ComboBox + ghost Rename/Delete), Connection input and

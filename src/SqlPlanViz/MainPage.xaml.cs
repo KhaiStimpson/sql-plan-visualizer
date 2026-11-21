@@ -211,18 +211,13 @@ public sealed partial class MainPage : Page
         var report = ViewModel.AnalyseBatchSafety();
         var view = new ConfirmRunDialog(ViewModel.Connection, report);
 
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = "Run this batch for real?",
-            Content = view,
-            PrimaryButtonText = view.RunButtonText,
-            CloseButtonText = "Cancel",
+        var dialog = CreateDialog("Run for an actual plan?", null, view);
+        dialog.PrimaryButtonText = view.RunButtonText;
+        dialog.CloseButtonText = "Cancel";
 
-            // Never make running the default action: Enter and Esc both back out.
-            DefaultButton = ContentDialogButton.Close,
-            IsPrimaryButtonEnabled = false,
-        };
+        // Never make running the default action: Enter and Esc both back out.
+        dialog.DefaultButton = ContentDialogButton.Close;
+        dialog.IsPrimaryButtonEnabled = false;
 
         view.ConfirmationChanged += (_, confirmed) => dialog.IsPrimaryButtonEnabled = confirmed;
 
@@ -681,7 +676,7 @@ public sealed partial class MainPage : Page
             AcceptsReturn = true,
             TextWrapping = TextWrapping.NoWrap,
             Height = 380,
-            Width = 720,
+            Width = 520,
             FontFamily = Themes.GaugeFonts.Mono,
             FontSize = 12,
             PlaceholderText = "Paste Showplan XML here…",
@@ -700,15 +695,10 @@ public sealed partial class MainPage : Page
             }
         }
 
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = "Paste Showplan XML",
-            Content = input,
-            PrimaryButtonText = "Visualize",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
-        };
+        var dialog = CreateDialog("Paste Showplan XML", "Paste the XML from SSMS (Show Execution Plan XML) or a .sqlplan file.", input);
+        dialog.PrimaryButtonText = "Visualize";
+        dialog.CloseButtonText = "Cancel";
+        dialog.DefaultButton = ContentDialogButton.Primary;
 
         if (await dialog.ShowAsync() == ContentDialogResult.Primary)
         {
@@ -720,15 +710,10 @@ public sealed partial class MainPage : Page
     {
         var view = new ConnectView(ViewModel.Connection) { ConnectOnly = true };
 
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = "Connect to a SQL Server",
-            Content = view,
-            PrimaryButtonText = "Connect",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
-        };
+        var dialog = CreateDialog("Connect to SQL Server", "Connect once, then re-plan edits and capture plans against this server.", view);
+        dialog.PrimaryButtonText = "Connect";
+        dialog.CloseButtonText = "Cancel";
+        dialog.DefaultButton = ContentDialogButton.Primary;
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -763,15 +748,10 @@ public sealed partial class MainPage : Page
     {
         var view = new ConnectView(ViewModel.Connection);
 
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = "Capture a plan from SQL Server",
-            Content = view,
-            PrimaryButtonText = "Capture",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
-        };
+        var dialog = CreateDialog("Capture a plan from SQL Server", "Compile a query for an estimated plan, or run it for an actual one.", view);
+        dialog.PrimaryButtonText = "Capture";
+        dialog.CloseButtonText = "Cancel";
+        dialog.DefaultButton = ContentDialogButton.Primary;
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
@@ -1008,13 +988,8 @@ public sealed partial class MainPage : Page
 
     private async Task ShowBaselineResultAsync(string title, string message)
     {
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = title,
-            Content = message,
-            CloseButtonText = "Close",
-        };
+        var dialog = CreateDialog(title, null, new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap });
+        dialog.CloseButtonText = "Close";
         await dialog.ShowAsync();
     }
 
@@ -1282,6 +1257,33 @@ public sealed partial class MainPage : Page
         SetViewMode(ViewMode.Tree);
         ViewModel.SelectedNode = node;
         Canvas.BringIntoView(node);
+    }
+
+    /// <summary>
+    /// A dialog in the Gauge style: a 15px title with an fg-2 subtitle in the header. Dialogs
+    /// open in the window's popup layer, outside this page, so the page's resolved theme is
+    /// handed to them explicitly.
+    /// </summary>
+    private ContentDialog CreateDialog(string title, object? subtitle, object? content)
+    {
+        var header = new StackPanel();
+        header.Children.Add(new TextBlock { Text = title, TextWrapping = TextWrapping.Wrap });
+        if (subtitle is string text)
+        {
+            header.Children.Add(new TextBlock { Text = text, Style = (Style)Application.Current.Resources["GaugeDialogSubtitle"] });
+        }
+        else if (subtitle is UIElement element)
+        {
+            header.Children.Add(element);
+        }
+
+        return new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = header,
+            Content = content,
+            RequestedTheme = ActualTheme,
+        };
     }
 
     /// <summary>A Gauge brush resolved against this page's current theme (code-built UI).</summary>
