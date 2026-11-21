@@ -1,5 +1,6 @@
 using System.Numerics;
 using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Geometry;
 using Microsoft.Graphics.Canvas.Text;
 using Microsoft.Graphics.Canvas.UI;
@@ -658,6 +659,10 @@ public sealed partial class PlanCanvas : UserControl
         _nodeGeometry = null;
         _accentGeometry = null;
         _warningGeometry = null;
+        _gridBrush?.Dispose();
+        _gridTile?.Dispose();
+        _gridBrush = null;
+        _gridTile = null;
     }
 
     private void DisposeEdgeGeometry()
@@ -917,6 +922,8 @@ public sealed partial class PlanCanvas : UserControl
 
         _edgeGeometries ??= BuildEdgeGeometry(sender);
 
+        DrawGrid(ds, sender);
+
         ds.Transform = view;
         ds.Antialiasing = CanvasAntialiasing.Antialiased;
 
@@ -977,6 +984,41 @@ public sealed partial class PlanCanvas : UserControl
         ds.Transform = Matrix3x2.Identity;
         DrawMinimap(ds, sender, left, top, right, bottom);
     }
+
+    /// <summary>
+    /// The canvas surface: bg-0 with an 18px dotted grid in line, fixed to the screen like the
+    /// mock-up's CSS background so it reads as a surface rather than as part of the plan.
+    /// </summary>
+    private void DrawGrid(CanvasDrawingSession ds, CanvasControl sender)
+    {
+        ds.Transform = Matrix3x2.Identity;
+        ds.Clear(_palette.Surface);
+
+        if (_gridBrush is null || _gridBrushColor != _palette.Grid)
+        {
+            _gridBrush?.Dispose();
+            _gridTile?.Dispose();
+            _gridTile = new CanvasRenderTarget(sender, 18, 18, sender.Dpi);
+            using (var tile = _gridTile.CreateDrawingSession())
+            {
+                tile.Clear(Microsoft.UI.Colors.Transparent);
+                tile.FillCircle(1f, 1f, 1f, _palette.Grid);
+            }
+
+            _gridBrush = new CanvasImageBrush(sender, _gridTile)
+            {
+                ExtendX = CanvasEdgeBehavior.Wrap,
+                ExtendY = CanvasEdgeBehavior.Wrap,
+            };
+            _gridBrushColor = _palette.Grid;
+        }
+
+        ds.FillRectangle(0, 0, (float)sender.ActualWidth, (float)sender.ActualHeight, _gridBrush);
+    }
+
+    private CanvasRenderTarget? _gridTile;
+    private CanvasImageBrush? _gridBrush;
+    private Color _gridBrushColor;
 
     private void DrawRemovedDiffNodes(CanvasDrawingSession ds, Matrix3x2 view)
     {

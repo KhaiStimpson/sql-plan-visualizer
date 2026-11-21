@@ -1,4 +1,5 @@
 using SqlPlanViz.Diagnostics;
+using SqlPlanViz.Themes;
 using Windows.UI;
 
 namespace SqlPlanViz.Controls;
@@ -45,79 +46,135 @@ public enum LabelDetail
 }
 
 /// <summary>
-/// Theme-aware colours for the plan canvas. Win2D draws outside the XAML resource system,
-/// so the Fluent palette is mirrored here and rebuilt whenever the app theme changes.
+/// Theme-aware colours for the plan canvas and flame view. Win2D draws outside the XAML
+/// resource system, so every value comes from <see cref="GaugeTokens"/> (generated from the
+/// same tokens.json as Themes/GaugeTheme.xaml) and is rebuilt whenever the app theme changes.
+/// Never hand-copy hex here.
 /// </summary>
 public sealed class PlanPalette
 {
     public required bool IsDark { get; init; }
 
+    /// <summary>The raw Gauge roles, for anything the named properties below do not cover.</summary>
+    public required GaugeTokenSet Tokens { get; init; }
+
+    /// <summary>Canvas surface: bg-0.</summary>
     public required Color Surface { get; init; }
 
+    /// <summary>Dotted background grid: line.</summary>
+    public required Color Grid { get; init; }
+
+    /// <summary>Node card fill: bg-1.</summary>
     public required Color NodeBase { get; init; }
 
+    /// <summary>Node card fill on hover: bg-2.</summary>
+    public required Color NodeHover { get; init; }
+
+    /// <summary>Node card border and neutral edges: line-ctl.</summary>
     public required Color NodeBorder { get; init; }
 
+    /// <summary>Operator name and emphasised facts: fg-0.</summary>
     public required Color TextPrimary { get; init; }
 
+    /// <summary>Body text (the finding headline): fg-1.</summary>
+    public required Color TextBody { get; init; }
+
+    /// <summary>Facts and labels: fg-2.</summary>
     public required Color TextSecondary { get; init; }
 
+    /// <summary>Quiet metadata: fg-3.</summary>
     public required Color TextTertiary { get; init; }
+
+    /// <summary>The mono object line: code.</summary>
+    public required Color Code { get; init; }
 
     public required Color Edge { get; init; }
 
     public required Color EdgeEstimated { get; init; }
 
+    /// <summary>The one accent: hot path, cost bar, focus, minimap viewport.</summary>
     public required Color Selection { get; init; }
 
     public required Color Danger { get; init; }
 
     public required Color Caution { get; init; }
 
-    /// <summary>Heat ramp stops: cool → warm → hot.</summary>
+    public required Color Ok { get; init; }
+
+    /// <summary>Selected record: sel fill, sel-fg text, sel-crit / sel-warn state words, sel-edge.</summary>
+    public required Color Sel { get; init; }
+
+    public required Color SelFg { get; init; }
+
+    public required Color SelCrit { get; init; }
+
+    public required Color SelWarn { get; init; }
+
+    public required Color SelEdge { get; init; }
+
+    /// <summary>Raised chrome on the canvas (minimap, legend): bg-2, with line-2 / line borders.</summary>
+    public required Color Chrome { get; init; }
+
+    public required Color ChromeBorder { get; init; }
+
+    /// <summary>Cost bar track and collapse handle: bg-3.</summary>
+    public required Color Track { get; init; }
+
+    /// <summary>Heat ramp stops: cool → warm → hot (minimap and legacy callers).</summary>
     public required Color HeatCool { get; init; }
 
     public required Color HeatWarm { get; init; }
 
     public required Color HeatHot { get; init; }
 
-    public static PlanPalette For(bool isDark) => isDark
-        ? new PlanPalette
+    /// <summary>The sequential tm-1 (hottest) … tm-9 ramp for the flame view.</summary>
+    public required IReadOnlyList<Color> Ramp { get; init; }
+
+    public static PlanPalette For(bool isDark)
+    {
+        var t = isDark ? GaugeTokens.Dark : GaugeTokens.Light;
+        return new PlanPalette
         {
-            IsDark = true,
-            Surface = Rgb(0x1A, 0x1A, 0x1E),
-            NodeBase = Rgb(0x2A, 0x2D, 0x34),
-            NodeBorder = Rgb(0x3E, 0x43, 0x4C),
-            TextPrimary = Rgb(0xF2, 0xF3, 0xF5),
-            TextSecondary = Rgb(0xA8, 0xAE, 0xB8),
-            TextTertiary = Rgb(0x7C, 0x83, 0x8E),
-            Edge = Rgb(0x6E, 0x78, 0x86),
-            EdgeEstimated = Rgb(0x4C, 0x54, 0x60),
-            Selection = Rgb(0x60, 0xB0, 0xFF),
-            Danger = Rgb(0xFF, 0x6B, 0x63),
-            Caution = Rgb(0xFF, 0xC1, 0x4E),
-            HeatCool = Rgb(0x4A, 0x9E, 0xFF),
-            HeatWarm = Rgb(0xF2, 0xB0, 0x3C),
-            HeatHot = Rgb(0xFF, 0x5A, 0x52),
-        }
-        : new PlanPalette
-        {
-            IsDark = false,
-            Surface = Rgb(0xF7, 0xF8, 0xFA),
-            NodeBase = Rgb(0xFF, 0xFF, 0xFF),
-            NodeBorder = Rgb(0xD8, 0xDD, 0xE4),
-            TextPrimary = Rgb(0x17, 0x1A, 0x1F),
-            TextSecondary = Rgb(0x5A, 0x63, 0x70),
-            TextTertiary = Rgb(0x8A, 0x93, 0xA0),
-            Edge = Rgb(0x9A, 0xA4, 0xB2),
-            EdgeEstimated = Rgb(0xC4, 0xCC, 0xD6),
-            Selection = Rgb(0x00, 0x67, 0xC0),
-            Danger = Rgb(0xC4, 0x2B, 0x1C),
-            Caution = Rgb(0xB8, 0x7A, 0x00),
-            HeatCool = Rgb(0x3C, 0x84, 0xD8),
-            HeatWarm = Rgb(0xE8, 0x9A, 0x1C),
-            HeatHot = Rgb(0xD9, 0x3A, 0x2F),
+            IsDark = isDark,
+            Tokens = t,
+            Surface = t.Bg0,
+            Grid = t.Line,
+            NodeBase = t.Bg1,
+            NodeHover = t.Bg2,
+            NodeBorder = t.LineCtl,
+            TextPrimary = t.Fg0,
+            TextBody = t.Fg1,
+            TextSecondary = t.Fg2,
+            TextTertiary = t.Fg3,
+            Code = t.Code,
+            Edge = t.LineCtl,
+            EdgeEstimated = t.LineCtl,
+            Selection = t.Accent,
+            Danger = t.Crit,
+            Caution = t.Warn,
+            Ok = t.Ok,
+            Sel = t.Sel,
+            SelFg = t.SelFg,
+            SelCrit = t.SelCrit,
+            SelWarn = t.SelWarn,
+            SelEdge = t.SelEdge,
+            Chrome = t.Bg2,
+            ChromeBorder = t.Line2,
+            Track = t.Bg3,
+            HeatCool = t.LineCtl,
+            HeatWarm = t.Warn,
+            HeatHot = t.Crit,
+            Ramp = [t.Tm1, t.Tm2, t.Tm3, t.Tm4, t.Tm5, t.Tm6, t.Tm7, t.Tm8, t.Tm9],
         };
+    }
+
+    /// <summary>The tm-1 … tm-9 step for a 0..1 share: the largest share gets tm-1.</summary>
+    public Color RampStep(double fraction)
+    {
+        var t = Math.Clamp(double.IsNaN(fraction) ? 0 : fraction, 0, 1);
+        var index = (int)Math.Round((1 - Math.Pow(t, 0.55)) * (Ramp.Count - 1));
+        return Ramp[Math.Clamp(index, 0, Ramp.Count - 1)];
+    }
 
     /// <summary>Saturated heat colour for the left accent strip and edge emphasis.</summary>
     public Color Heat(double fraction)
@@ -183,5 +240,4 @@ public sealed class PlanPalette
             (byte)Math.Round(a.B + ((b.B - a.B) * t)));
     }
 
-    private static Color Rgb(byte r, byte g, byte b) => Color.FromArgb(255, r, g, b);
 }

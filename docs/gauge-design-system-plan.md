@@ -155,7 +155,7 @@ The chrome around the canvas, matching `gauge-mockup-main-*.png`.
 
 Win2D drawing driven by `GaugeTokens`, matching the mock-up's node cards and edges.
 
-- [ ] Rebuild `PlanPalette` dark/light from `GaugeTokens`: surface `bg-0`, dotted grid in `line`,
+- [x] Rebuild `PlanPalette` dark/light from `GaugeTokens`: surface `bg-0`, dotted grid in `line`,
       node fill `bg-1`, border `line-ctl`, text `fg-0`/`fg-2`, object line `code`, selection
       `sel` / `sel-fg` / `sel-edge`, crit/warn/ok, accent. Keep the `PlanPalette` API stable.
 - [ ] Node cards: neutral fill, 3px crit/warn left edge, severity word top-right, a mono object
