@@ -66,7 +66,7 @@ Everything later references these resources, so they land first and change nothi
       and vendor the Gauge kit (`tokens.json`, `DESIGN.md`, `COMPONENTS.md`, `PLATFORMS.md`,
       `reference.html`, `theme.css`, `components.css` from
       https://github.com/KhaiStimpson/gauge-design-kit) into `docs/design/gauge/`.
-- [ ] Add `Themes/GaugeTheme.xaml` with `ThemeDictionaries` (Default = dark, Light, HighContrast
+- [x] Add `Themes/GaugeTheme.xaml` with `ThemeDictionaries` (Default = dark, Light, HighContrast
       placeholder) holding a `Color` and a `SolidColorBrush` for every token role (`GaugeBg0Brush`
       … `GaugeTm9Brush`), plus fonts (`GaugeSans`, `GaugeMono`) and radii. Merge it in `App.xaml`.
 - [ ] Add `Themes/GaugeTokens.cs` with the same values as `static` `Color`s per theme, for Win2D.
