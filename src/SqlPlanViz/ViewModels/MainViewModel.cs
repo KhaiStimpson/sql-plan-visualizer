@@ -176,6 +176,13 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool IsConnected => Connection.HasTarget;
 
+    public bool IsNotConnected => !Connection.HasTarget;
+
+    /// <summary>"server · database" for the command bar's connection cluster.</summary>
+    public string ConnectionTarget => Connection.DescribeTarget();
+
+    public string ConnectionAuthLabel => Connection.DescribeAuth();
+
     public bool HasSessionPlans => SessionPlans.Count > 0;
 
     public bool CanCompare => SessionPlans.Count >= 2;
@@ -304,6 +311,9 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanBrowseQueryStore));
         OnPropertyChanged(nameof(ConnectionDescription));
         OnPropertyChanged(nameof(IsConnected));
+        OnPropertyChanged(nameof(IsNotConnected));
+        OnPropertyChanged(nameof(ConnectionTarget));
+        OnPropertyChanged(nameof(ConnectionAuthLabel));
         OnPropertyChanged(nameof(CanRefreshCatalog));
     }
 
@@ -345,6 +355,9 @@ public sealed partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(CanRerun));
             OnPropertyChanged(nameof(ConnectionDescription));
             OnPropertyChanged(nameof(IsConnected));
+            OnPropertyChanged(nameof(IsNotConnected));
+            OnPropertyChanged(nameof(ConnectionTarget));
+            OnPropertyChanged(nameof(ConnectionAuthLabel));
         }
         catch (PlanCaptureException ex)
         {

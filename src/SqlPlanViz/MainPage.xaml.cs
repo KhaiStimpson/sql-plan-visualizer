@@ -35,6 +35,9 @@ public sealed partial class MainPage : Page
         SetUpEditor();
         SetViewMode(ViewMode.Tree);
         UpdateMetricAvailability();
+
+        // Start on the canvas rather than letting the first title-bar control take focus.
+        Loaded += (_, _) => Canvas.Focus(FocusState.Programmatic);
         RefreshConnectionProfiles();
     }
 
@@ -1051,6 +1054,35 @@ public sealed partial class MainPage : Page
     private void OnSaveAnnotation(object sender, RoutedEventArgs e) => ViewModel.SaveSelectedAnnotation();
 
     #endregion
+
+    /// <summary>Opens the command palette; wired up in Phase 9 of the Gauge plan.</summary>
+    private void OnOpenPalette(object sender, RoutedEventArgs e)
+    {
+    }
+
+    /// <summary>
+    /// Controls inside the custom title bar are part of the drag region unless they are
+    /// marked as passthrough, so the palette button gets its own non-client region.
+    /// </summary>
+    public void UpdateTitleBarPassthrough(Microsoft.UI.Windowing.AppWindow appWindow)
+    {
+        if (XamlRoot is null || PaletteButton.ActualWidth <= 0)
+        {
+            return;
+        }
+
+        var scale = XamlRoot.RasterizationScale;
+        var transform = PaletteButton.TransformToVisual(null);
+        var bounds = transform.TransformBounds(new Windows.Foundation.Rect(0, 0, PaletteButton.ActualWidth, PaletteButton.ActualHeight));
+        var rect = new Windows.Graphics.RectInt32(
+            (int)Math.Round(bounds.X * scale),
+            (int)Math.Round(bounds.Y * scale),
+            (int)Math.Round(bounds.Width * scale),
+            (int)Math.Round(bounds.Height * scale));
+
+        Microsoft.UI.Input.InputNonClientPointerSource.GetForWindowId(appWindow.Id)
+            .SetRegionRects(Microsoft.UI.Input.NonClientRegionKind.Passthrough, [rect]);
+    }
 
     /// <summary>The inspector is minmax(340px, 29%) of the content width, as in the mock-up.</summary>
     private void OnContentSizeChanged(object sender, SizeChangedEventArgs e) =>

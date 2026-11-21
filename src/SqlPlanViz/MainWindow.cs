@@ -38,6 +38,10 @@ public sealed class MainWindow : Window
         ThemeService.Attach(this, page);
         SetTitleBar(page.TitleBar);
 
+        // Keep the palette button in the title bar clickable as the window resizes.
+        page.SizeChanged += (_, _) => page.UpdateTitleBarPassthrough(AppWindow);
+        page.Loaded += (_, _) => page.UpdateTitleBarPassthrough(AppWindow);
+
         // "Open with" / command line: SqlPlanViz.exe some-plan.sqlplan
         if (args.Length > 1 && File.Exists(args[1]))
         {

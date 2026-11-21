@@ -133,7 +133,7 @@ The structural change from the mock-up: one view mode, a left rail, session plan
 
 The chrome around the canvas, matching `gauge-mockup-main-*.png`.
 
-- [ ] Rebuild the custom title bar: 32px, `bg-2`, `line` border, app glyph in accent, name + file
+- [x] Rebuild the custom title bar: 32px, `bg-2`, `line` border, app glyph in accent, name + file
       in `fg-2`, and a ghost "Find a command or operator Ctrl K" button (wired in Phase 9; disabled
       until then is fine).
 - [ ] Rebuild the command bar (`bg-2`, `line` border, 6×12 padding): Open plan (secondary),

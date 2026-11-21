@@ -146,6 +146,38 @@ public sealed class ConnectionSettings
         return $"{Server}{database} · {AuthLabel(Auth)}";
     }
 
+    /// <summary>"server · database" for the command bar's connection cluster (mono).</summary>
+    public string DescribeTarget()
+    {
+        if (UseConnectionString && !string.IsNullOrWhiteSpace(RawConnectionString))
+        {
+            try
+            {
+                var builder = new SqlConnectionStringBuilder(RawConnectionString);
+                return string.IsNullOrWhiteSpace(builder.InitialCatalog)
+                    ? builder.DataSource
+                    : $"{builder.DataSource} · {builder.InitialCatalog}";
+            }
+            catch
+            {
+                return "Connection string";
+            }
+        }
+
+        return string.IsNullOrWhiteSpace(Database) ? Server : $"{Server} · {Database}";
+    }
+
+    /// <summary>The short authentication label beside the target ("Entra MFA", "Windows").</summary>
+    public string DescribeAuth() =>
+        UseConnectionString && !string.IsNullOrWhiteSpace(RawConnectionString)
+            ? "connection string"
+            : Auth switch
+            {
+                AuthMode.SqlLogin => "SQL login",
+                AuthMode.EntraMfa => "Entra MFA",
+                _ => "Windows",
+            };
+
     private string DescribeRawConnectionString()
     {
         try
