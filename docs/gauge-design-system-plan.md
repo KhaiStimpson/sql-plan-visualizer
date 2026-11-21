@@ -251,7 +251,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
       grouped list with 12px `fg-2` group labels, active option in the selected-record treatment.
       Ctrl+K toggles. Typing filters, Up/Down wrap, Enter runs, Escape or a scrim click closes,
       and focus returns to the opener.
-- [ ] Command registry: Plan (open, paste, re-plan, run for actual, compare, re-run, pin baseline,
+- [x] Command registry: Plan (open, paste, re-plan, run for actual, compare, re-run, pin baseline,
       save/check baseline), Connection (connect, disconnect, connect to each saved profile), View
       (four rail views, flame, focus hot path, collapse cheap / all, expand all, theme),
       Operators (every node in the current statement, which selects it). Wire the title bar button.

@@ -112,7 +112,7 @@
                     <Button
                         AutomationProperties.Name="Open plan"
                         Click="OnOpenFile"
-                        ToolTipService.ToolTip="Open a .sqlplan file (Ctrl+O)">
+                        ToolTipService.ToolTip="Open a .sqlplan file">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon
                                 FontFamily="Segoe Fluent Icons"

@@ -55,6 +55,10 @@ public sealed partial class MainPage : Page
             }
         };
 
+        // The palette button's passthrough rect follows the button whenever it moves or resizes.
+        PaletteButton.SizeChanged += (_, _) => TitleBarLayoutChanged?.Invoke(this, EventArgs.Empty);
+        AppTitleBar.SizeChanged += (_, _) => TitleBarLayoutChanged?.Invoke(this, EventArgs.Empty);
+
         // Start on the canvas rather than letting the first title-bar control take focus.
         Loaded += (_, _) => Canvas.Focus(FocusState.Pointer);
         RefreshConnectionProfiles();
@@ -392,11 +396,14 @@ public sealed partial class MainPage : Page
 
     private void OnConnectProfile(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is not ConnectionProfile profile)
+        if ((sender as FrameworkElement)?.DataContext is ConnectionProfile profile)
         {
-            return;
+            ConnectProfile(profile);
         }
+    }
 
+    private void ConnectProfile(ConnectionProfile profile)
+    {
         var password = profile.PasswordIsVaulted
             ? _profilePasswords.Retrieve(profile.Server, profile.UserId)
             : null;
@@ -1374,20 +1381,94 @@ public sealed partial class MainPage : Page
         Palette.Open(BuildPaletteCommands());
     }
 
-    /// <summary>Everything the palette can reach, grouped as Plan / Connection / View / Operators.</summary>
+    /// <summary>
+    /// Everything the palette can reach, grouped as Plan / Connection / View / Operators. Only
+    /// commands that can run right now are listed, so nothing in the palette is a dead end.
+    /// </summary>
     private List<PaletteCommand> BuildPaletteCommands()
     {
+        var none = new RoutedEventArgs();
         var commands = new List<PaletteCommand>
         {
-            new("View", "Plan tree", () => SetFlameMode(false)),
-            new("View", "Flame view", () => SetFlameMode(true)),
-            new("View", "Ranked by self time", () => SetViewMode(ViewMode.Ranked)),
-            new("View", "Query Store history", () => SetViewMode(ViewMode.History)),
-            new("View", "Anti-pattern library", () => SetViewMode(ViewMode.Library)),
+            new("Plan", "Open plan…", () => OnOpenFile(this, none)),
+            new("Plan", "Paste Showplan XML", () => OnPasteXml(this, none)),
+            new("Plan", "Capture a plan from SQL Server…", () => OnCapture(this, none)),
         };
+
+        if (ViewModel.HasPlan)
+        {
+            commands.Add(new("Plan", "Re-plan edited batch", () => _ = ReplanAsync(), "Ctrl+Enter"));
+            if (ViewModel.Editor.CanReplan && ViewModel.Connection.HasTarget)
+            {
+                commands.Add(new("Plan", "Run for actual…", () => OnRunActual(this, none)));
+            }
+
+            commands.Add(new("Plan", "Pin current as baseline", () => OnPinBaseline(this, none)));
+        }
+
+        if (ViewModel.CanCompare)
+        {
+            commands.Add(new("Plan", "Compare the two latest plans", () => OnCompareLatest(this, none)));
+        }
+
+        if (ViewModel.CanRerun)
+        {
+            commands.Add(new("Plan", "Re-run and compare", () => OnRerunAndCompare(this, none)));
+        }
+
+        if (ViewModel.CanUseRegressionBaseline)
+        {
+            commands.Add(new("Plan", "Save baseline beside plan", () => OnSaveRegressionBaseline(this, none)));
+            commands.Add(new("Plan", "Check current plan against baseline", () => OnCheckRegressionBaseline(this, none)));
+        }
+
+        commands.Add(new("Connection", "Connect…", () => OnConnect(this, none)));
+        if (ViewModel.IsConnected)
+        {
+            commands.Add(new("Connection", "Disconnect", () => OnDisconnect(this, none), ViewModel.ConnectionTarget));
+        }
+
+        foreach (var profile in ConnectionProfiles)
+        {
+            var captured = profile;
+            commands.Add(new("Connection", $"Connect to \u201c{profile.Name}\u201d", () => ConnectProfile(captured), ProfileTarget(profile.Server, profile.Database)));
+        }
+
+        commands.Add(new("View", "Plan tree", () => SetFlameMode(false)));
+        commands.Add(new("View", "Flame view", () => SetFlameMode(true)));
+        commands.Add(new("View", "Ranked by self time", () => SetViewMode(ViewMode.Ranked)));
+        commands.Add(new("View", "Query Store history", () => SetViewMode(ViewMode.History)));
+        commands.Add(new("View", "Anti-pattern library", () => SetViewMode(ViewMode.Library)));
+        if (ViewModel.HasPlan)
+        {
+            commands.Add(new("View", "Focus the hot path", () => { SetViewMode(ViewMode.Tree); OnFocusHotPath(this, none); }));
+            commands.Add(new("View", "Collapse cheap subtrees", () => { SetViewMode(ViewMode.Tree); OnCollapseCheap(this, none); }));
+            commands.Add(new("View", "Collapse all subtrees", () => { SetViewMode(ViewMode.Tree); OnCollapseAll(this, none); }));
+            commands.Add(new("View", "Expand everything", () => { SetViewMode(ViewMode.Tree); OnExpandAll(this, none); }));
+        }
+
+        commands.Add(new("View", "Theme: follow the system", () => ThemePicker.SelectedIndex = (int)ThemePreference.System));
+        commands.Add(new("View", "Theme: light", () => ThemePicker.SelectedIndex = (int)ThemePreference.Light));
+        commands.Add(new("View", "Theme: dark", () => ThemePicker.SelectedIndex = (int)ThemePreference.Dark));
+
+        // Every operator in the current statement; choosing one selects it on the canvas.
+        if (ViewModel.SelectedStatement is { } statement)
+        {
+            foreach (var node in statement.AllNodes.OrderBy(n => n.NodeId))
+            {
+                var captured = node;
+                var label = string.IsNullOrEmpty(node.ObjectName)
+                    ? $"{node.PhysicalOp} \u00b7 node {node.NodeId}"
+                    : $"{node.PhysicalOp} \u00b7 node {node.NodeId} \u00b7 {Diagnostics.NodeLabeller.TruncateObjectName(node.ObjectName)}";
+                commands.Add(new("Operators", label, () => ShowNodeInPlan(captured)));
+            }
+        }
 
         return commands;
     }
+
+    /// <summary>Raised when the title bar or its palette button is laid out again.</summary>
+    public event EventHandler? TitleBarLayoutChanged;
 
     /// <summary>
     /// Controls inside the custom title bar are part of the drag region unless they are
