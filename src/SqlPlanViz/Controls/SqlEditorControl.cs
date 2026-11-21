@@ -298,7 +298,7 @@ public sealed partial class SqlEditorControl : UserControl
 
     private void ApplyTheme()
     {
-        _theme = SqlSyntaxTheme.For(ActualTheme == ElementTheme.Dark);
+        _theme = SqlSyntaxTheme.Current(ActualTheme == ElementTheme.Dark);
         InvalidateLineCache();
         Redraw();
     }

@@ -72,6 +72,7 @@ public sealed partial class PlanCanvas : UserControl
     private PlanLayout? _layout;
     private PlanNode? _focusRoot;
     private PlanPalette _palette = PlanPalette.For(isDark: false);
+    private readonly Windows.UI.ViewManagement.UISettings _uiSettings = new();
 
     private float _scale = 1f;
     private Vector2 _offset = Vector2.Zero;
@@ -153,6 +154,10 @@ public sealed partial class PlanCanvas : UserControl
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         ActualThemeChanged += (_, _) => RefreshPalette();
+
+        // A contrast theme can switch on without the app theme changing; the system colours
+        // changing is the signal a desktop app gets for it.
+        _uiSettings.ColorValuesChanged += (_, _) => DispatcherQueue?.TryEnqueue(RefreshPalette);
     }
 
     /// <summary>Raised when the user asks to collapse/expand, so the shell can update counts.</summary>
@@ -679,7 +684,7 @@ public sealed partial class PlanCanvas : UserControl
 
     private void RefreshPalette()
     {
-        _palette = PlanPalette.For(ActualTheme == ElementTheme.Dark);
+        _palette = PlanPalette.Current(ActualTheme == ElementTheme.Dark);
         Redraw();
     }
 

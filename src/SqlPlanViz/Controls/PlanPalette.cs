@@ -168,6 +168,62 @@ public sealed class PlanPalette
         };
     }
 
+    /// <summary>
+    /// A Windows contrast theme replaces Gauge's palette (PLATFORMS.md): every role maps to a
+    /// system colour, so selection, focus and the hot path stay visible.
+    /// </summary>
+    public static PlanPalette HighContrast()
+    {
+        var ui = new Windows.UI.ViewManagement.UISettings();
+        Color C(Windows.UI.ViewManagement.UIElementType type) => ui.UIElementColor(type);
+        var window = C(Windows.UI.ViewManagement.UIElementType.Window);
+        var text = C(Windows.UI.ViewManagement.UIElementType.WindowText);
+        var highlight = C(Windows.UI.ViewManagement.UIElementType.Highlight);
+        var highlightText = C(Windows.UI.ViewManagement.UIElementType.HighlightText);
+        var gray = C(Windows.UI.ViewManagement.UIElementType.GrayText);
+        var link = C(Windows.UI.ViewManagement.UIElementType.Hotlight);
+        var tokens = GaugeTokens.Dark;
+        return new PlanPalette
+        {
+            IsDark = true,
+            Tokens = tokens,
+            Surface = window,
+            Grid = window,
+            NodeBase = window,
+            NodeHover = window,
+            NodeBorder = text,
+            TextPrimary = text,
+            TextBody = text,
+            TextSecondary = text,
+            TextTertiary = gray,
+            Code = text,
+            Edge = text,
+            EdgeEstimated = text,
+            Selection = highlight,
+            Danger = text,
+            Caution = text,
+            Ok = text,
+            Sel = highlight,
+            SelFg = highlightText,
+            SelCrit = highlightText,
+            SelWarn = highlightText,
+            SelEdge = highlightText,
+            Chrome = window,
+            ChromeBorder = text,
+            Track = gray,
+            HeatCool = text,
+            HeatWarm = text,
+            HeatHot = link,
+            Ramp = [window, window, window, window, window, window, window, window, window],
+        };
+    }
+
+    /// <summary>Whether a Windows contrast theme is on.</summary>
+    public static bool IsHighContrast => new Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
+
+    /// <summary>The palette for the current state: high contrast wins over the app theme.</summary>
+    public static PlanPalette Current(bool isDark) => IsHighContrast ? HighContrast() : For(isDark);
+
     /// <summary>The tm-1 … tm-9 step for a 0..1 share: the largest share gets tm-1.</summary>
     public Color RampStep(double fraction)
     {

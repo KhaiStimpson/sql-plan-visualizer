@@ -255,7 +255,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
       save/check baseline), Connection (connect, disconnect, connect to each saved profile), View
       (four rail views, flame, focus hot path, collapse cheap / all, expand all, theme),
       Operators (every node in the current statement, which selects it). Wire the title bar button.
-- [ ] Accessibility pass: tab order across rail, command bar, canvas, editor and inspector. A
+- [x] Accessibility pass: tab order across rail, command bar, canvas, editor and inspector. A
       visible 2px accent focus everywhere. Windows contrast themes show selection, current nav
       and focus. Fix anything found.
 - [ ] Replace `docs/app-overview.png`, `docs/operator-details.png` and `docs/index-suggestions.png`

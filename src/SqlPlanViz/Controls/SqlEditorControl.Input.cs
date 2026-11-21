@@ -262,6 +262,18 @@ public sealed partial class SqlEditorControl
     /// </summary>
     protected override void OnPreviewKeyDown(KeyRoutedEventArgs e)
     {
+        // Ctrl+Tab (Ctrl+Shift+Tab backwards) leaves the editor. Tab itself indents, so without
+        // this a keyboard-only user could not get past the editor to the parameters or the
+        // inspector.
+        if (e.Key == VirtualKey.Tab && _hasFocus && !FindOverlayHasFocus && IsDown(VirtualKey.Control) && XamlRoot?.Content is { } root)
+        {
+            FocusManager.TryMoveFocus(
+                IsDown(VirtualKey.Shift) ? FocusNavigationDirection.Previous : FocusNavigationDirection.Next,
+                new FindNextElementOptions { SearchRoot = root });
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key == VirtualKey.Tab && !IsReadOnly && _hasFocus && !FindOverlayHasFocus)
         {
             if (HandleCompletionKey(e.Key))

@@ -1259,7 +1259,10 @@
                             </Grid>
                         </Border>
 
-                        <controls:SqlEditorControl x:Name="SqlEditor" Grid.Row="2" />
+                        <controls:SqlEditorControl
+                            x:Name="SqlEditor"
+                            Grid.Row="2"
+                            AutomationProperties.HelpText="Tab indents. Ctrl+Tab moves to the next control; Ctrl+Shift+Tab to the previous one." />
 
                         <views:ParameterStrip x:Name="Parameters" Grid.Row="3" />
                     </Grid>

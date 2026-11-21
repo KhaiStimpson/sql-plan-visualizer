@@ -92,6 +92,7 @@
         <ItemsControl
             x:Name="ItemsHost"
             Grid.Row="2"
+            IsTabStop="False"
             Margin="14,0,14,10">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -144,6 +145,7 @@
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    AutomationProperties.Name="{x:Bind TypeFieldName}"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"
@@ -168,6 +170,7 @@
                                         FontSize="12"
                                         IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
                                         IsSpellCheckEnabled="False"
+                                        AutomationProperties.Name="{x:Bind ValueFieldName}"
                                         PlaceholderText="value"
                                         Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -237,6 +240,7 @@
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    AutomationProperties.Name="{x:Bind TypeFieldName}"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"
@@ -260,6 +264,7 @@
                                         FontFamily="{StaticResource GaugeMono}"
                                         FontSize="12"
                                         IsEnabled="{x:Bind IsNull, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                        AutomationProperties.Name="{x:Bind ValueFieldName}"
                                         PlaceholderText="value"
                                         SpinButtonPlacementMode="Compact"
                                         Value="{x:Bind Value, Mode=TwoWay, Converter={StaticResource StringToDouble}}" />
@@ -330,6 +335,7 @@
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    AutomationProperties.Name="{x:Bind TypeFieldName}"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"
@@ -425,6 +431,7 @@
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    AutomationProperties.Name="{x:Bind TypeFieldName}"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"

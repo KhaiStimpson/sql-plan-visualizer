@@ -98,6 +98,11 @@ public sealed partial class ParameterBindingItem : ObservableObject
         Validate();
     }
 
+    /// <summary>Accessible names for the strip's fields: "Type of @CustomerId".</summary>
+    public string TypeFieldName => $"Type of {Name}";
+
+    public string ValueFieldName => $"Value of {Name}";
+
     public string Name { get; }
 
     public ParameterTypeSource TypeSource { get; }

@@ -81,7 +81,7 @@ public sealed partial class FlameView : UserControl
 
     private void Rebuild()
     {
-        _palette = PlanPalette.For(ActualTheme == ElementTheme.Dark);
+        _palette = PlanPalette.Current(ActualTheme == ElementTheme.Dark);
         FlameCanvas.Children.Clear();
         _frameElements.Clear();
 

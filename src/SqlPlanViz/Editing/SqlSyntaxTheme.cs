@@ -109,6 +109,57 @@ public sealed class SqlSyntaxTheme
     /// comments fg-3 (drawn italic), operators fg-1, on a bg-0 surface with fg-3 line numbers.
     /// Every value comes from <see cref="GaugeTokens"/>; never hand-copy hex here.
     /// </summary>
+    /// <summary>Under a Windows contrast theme the editor takes the system colours (PLATFORMS.md).</summary>
+    public static SqlSyntaxTheme Current(bool isDark)
+    {
+        if (!new Windows.UI.ViewManagement.AccessibilitySettings().HighContrast)
+        {
+            return For(isDark);
+        }
+
+        var ui = new Windows.UI.ViewManagement.UISettings();
+        var window = ui.UIElementColor(Windows.UI.ViewManagement.UIElementType.Window);
+        var text = ui.UIElementColor(Windows.UI.ViewManagement.UIElementType.WindowText);
+        var highlight = ui.UIElementColor(Windows.UI.ViewManagement.UIElementType.Highlight);
+        var gray = ui.UIElementColor(Windows.UI.ViewManagement.UIElementType.GrayText);
+        var link = ui.UIElementColor(Windows.UI.ViewManagement.UIElementType.Hotlight);
+        return new SqlSyntaxTheme
+        {
+            IsDark = isDark,
+            Background = window,
+            Foreground = text,
+            Caret = text,
+            SelectionFill = highlight,
+            CurrentLineFill = Colors.Transparent,
+            BracketMatchFill = Colors.Transparent,
+            BracketMatchOutline = text,
+            FindMatchFill = highlight,
+            FindMatchActiveFill = highlight,
+            ClauseFill = window,
+            ClauseEdge = highlight,
+            GutterBackground = window,
+            LineNumber = gray,
+            LineNumberActive = text,
+            Divider = window,
+            Keyword = link,
+            DataType = link,
+            Function = link,
+            Identifier = text,
+            QuotedIdentifier = text,
+            Variable = text,
+            StringLiteral = text,
+            NumberLiteral = text,
+            Comment = gray,
+            Operator = text,
+            Punctuation = text,
+            Error = text,
+            Improved = text,
+            Regressed = text,
+            Added = text,
+            Annotation = text,
+        };
+    }
+
     public static SqlSyntaxTheme For(bool isDark)
     {
         var t = isDark ? GaugeTokens.Dark : GaugeTokens.Light;
