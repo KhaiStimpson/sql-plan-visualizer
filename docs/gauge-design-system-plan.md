@@ -171,7 +171,7 @@ Win2D drawing driven by `GaugeTokens`, matching the mock-up's node cards and edg
       by 10× or more, row labels in 11px mono `fg-2`. Minimap: `bg-2`, `line-2` border, nodes in
       `line-ctl`, viewport in accent. Add the legend chip (Hot path / Rows (width) /
       Estimate off ≥10×) bottom-left.
-- [ ] `FlameView`: bars on the `tm-1…tm-9` ramp with `tm-fg` labels, hot or selected frame in
+- [x] `FlameView`: bars on the `tm-1…tm-9` ramp with `tm-fg` labels, hot or selected frame in
       accent with a `sel-edge`, header and empty state as a `GaugePaneHeader` / callout. Run and
       screenshot both views in both themes.
 

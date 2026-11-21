@@ -56,33 +56,28 @@ public sealed partial class FlameView : UserControl
         set => SetValue(SelectedNodeProperty, value);
     }
 
-    private void OnBasisChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    private void OnBasisChanged(object sender, RoutedEventArgs e)
     {
-        _basis = sender.SelectedItem?.Text switch
+        _basis = sender switch
         {
-            "CPU time" => TimeAttributionBasis.Cpu,
-            "Rows read" => TimeAttributionBasis.RowsRead,
+            RadioButton { Content: "CPU time" } => TimeAttributionBasis.Cpu,
+            RadioButton { Content: "Rows read" } => TimeAttributionBasis.RowsRead,
             _ => TimeAttributionBasis.Elapsed,
         };
-        Rebuild();
+
+        // Checked fires while the XAML is still being built; the first real build follows.
+        if (FlameCanvas is not null)
+        {
+            Rebuild();
+        }
     }
 
     private void OnScrollerSizeChanged(object sender, SizeChangedEventArgs e) => Rebuild();
 
-    private void OnSelectedNodeChanged(PlanNode? oldNode, PlanNode? newNode)
-    {
-        if (oldNode is not null && _frameElements.TryGetValue(oldNode.NodeId, out var oldBorder))
-        {
-            oldBorder.BorderBrush = new SolidColorBrush(_palette.NodeBorder);
-            oldBorder.BorderThickness = new Thickness(1);
-        }
+    private void OnSelectedNodeChanged(PlanNode? oldNode, PlanNode? newNode) => Rebuild();
 
-        if (newNode is not null && _frameElements.TryGetValue(newNode.NodeId, out var newBorder))
-        {
-            newBorder.BorderBrush = new SolidColorBrush(_palette.Selection);
-            newBorder.BorderThickness = new Thickness(2);
-        }
-    }
+    /// <summary>The operator with the most self time: its frame gets an accent outline.</summary>
+    private int? _hotNodeId;
 
     private void Rebuild()
     {
@@ -94,18 +89,19 @@ public sealed partial class FlameView : UserControl
         var available = statement?.HasRuntimeStats == true;
         DisabledPanel.Visibility = available ? Visibility.Collapsed : Visibility.Visible;
         FlameScroller.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
-        BasisSelector.IsEnabled = available;
+        BasisSelector.IsHitTestVisible = available;
+        BasisSelector.Opacity = available ? 1 : 0.45;
 
         if (!available || statement is null)
         {
-            ApproximateWarning.IsOpen = false;
-            NegativeSelfWarning.IsOpen = false;
+            ApproximateWarning.Visibility = Visibility.Collapsed;
+            NegativeSelfWarning.Visibility = Visibility.Collapsed;
             return;
         }
 
         var result = TimeAttribution.Build(statement, _basis);
-        ApproximateWarning.IsOpen = result.Frames.Any(f => f.IsApproximate);
-        NegativeSelfWarning.IsOpen = result.ClampedNegativeSelfCount > 0;
+        ApproximateWarning.Visibility = result.Frames.Any(f => f.IsApproximate) ? Visibility.Visible : Visibility.Collapsed;
+        NegativeSelfWarning.Visibility = result.ClampedNegativeSelfCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (result.ClampedNegativeSelfCount > 0)
         {
             NegativeSelfWarningBody.Text =
@@ -129,6 +125,7 @@ public sealed partial class FlameView : UserControl
 
         var nodesById = statement.AllNodes.ToDictionary(n => n.NodeId);
         var maxDepth = result.Frames.Max(f => f.Depth);
+        _hotNodeId = statement.AllNodes.MaxBy(n => n.SelfTimeMs ?? 0)?.NodeId;
 
         foreach (var frame in result.Frames)
         {
@@ -141,21 +138,24 @@ public sealed partial class FlameView : UserControl
             var xPx = frame.Offset * pxPerUnit;
             var yPx = frame.Depth * (RowHeight + RowGap);
 
+            // The sequential tm-1 … tm-9 ramp: the widest frames take the strongest step, and
+            // tm-fg reads on every step. Selected is the accent with a sel-edge; the hottest
+            // frame (largest self share) gets an accent outline.
             var fraction = totalWidth <= 0 ? 0 : frame.Width / totalWidth;
-            var fill = _palette.Heat(fraction);
-            if (frame.IsApproximate)
-            {
-                fill = _palette.Fade(fill, 0.55);
-            }
+            var isSelected = ReferenceEquals(SelectedNode, node);
+            var isHot = frame.NodeId == _hotNodeId;
+            var fill = isSelected ? _palette.Selection : _palette.RampStep(fraction);
+            var outline = isSelected ? _palette.SelEdge : isHot ? _palette.Selection : _palette.Surface;
 
             var border = new Border
             {
                 Width = widthPx,
                 Height = RowHeight,
                 Background = new SolidColorBrush(fill),
-                BorderBrush = new SolidColorBrush(_palette.NodeBorder),
-                BorderThickness = new Thickness(1),
+                BorderBrush = new SolidColorBrush(outline),
+                BorderThickness = new Thickness(isSelected || isHot ? 2 : 1),
                 CornerRadius = new CornerRadius(3),
+                Opacity = frame.IsApproximate && !isSelected ? 0.7 : 1,
                 Tag = node,
             };
 
@@ -166,8 +166,9 @@ public sealed partial class FlameView : UserControl
                 Margin = new Thickness(5, 0, 5, 0),
                 VerticalAlignment = VerticalAlignment.Center,
                 TextTrimming = TextTrimming.CharacterEllipsis,
-                Foreground = new SolidColorBrush(_palette.TextPrimary),
-                FontSize = 11,
+                Foreground = new SolidColorBrush(isSelected ? _palette.Tokens.AccentInk : _palette.Tokens.TmFg),
+                FontWeight = isSelected ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
+                FontSize = 11.5,
             };
             border.Child = text;
 
@@ -187,12 +188,6 @@ public sealed partial class FlameView : UserControl
 
         FlameCanvas.Width = canvasWidthPx;
         FlameCanvas.Height = ((maxDepth + 1) * (RowHeight + RowGap)) + 8;
-
-        if (SelectedNode is { } selected && _frameElements.TryGetValue(selected.NodeId, out var selectedBorder))
-        {
-            selectedBorder.BorderBrush = new SolidColorBrush(_palette.Selection);
-            selectedBorder.BorderThickness = new Thickness(2);
-        }
     }
 
     private static string BuildLabel(PlanNode node, TimeAttributionBasis basis)

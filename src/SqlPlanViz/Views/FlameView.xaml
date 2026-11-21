@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{ThemeResource GaugeBg0Brush}"
     mc:Ignorable="d">
 
     <Grid>
@@ -13,74 +14,94 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  Basis selector  -->
-        <StackPanel
-            x:Name="ControlBar"
-            Grid.Row="0"
-            Margin="14,14,14,8"
-            Orientation="Horizontal"
-            Spacing="10">
-            <TextBlock
-                VerticalAlignment="Center"
-                FontWeight="SemiBold"
-                Text="Time attribution" />
-            <SelectorBar x:Name="BasisSelector" SelectionChanged="OnBasisChanged">
-                <SelectorBarItem IsSelected="True" Text="Elapsed time" />
-                <SelectorBarItem Text="CPU time" />
-                <SelectorBarItem Text="Rows read" />
-            </SelectorBar>
-        </StackPanel>
+        <!--  Pane header: title, what the widths mean, and the basis as a segmented control.  -->
+        <Border x:Name="ControlBar" Style="{StaticResource GaugePaneHeader}">
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource GaugePaneTitle}" Text="Time attribution" />
+                <TextBlock
+                    x:Name="BasisFacts"
+                    Grid.Column="1"
+                    Style="{StaticResource GaugeFacts}"
+                    Text="Bar width is the operator's share; children sit under their parent" />
+                <Border
+                    x:Name="BasisSelector"
+                    Grid.Column="2"
+                    AutomationProperties.Name="Attribution basis"
+                    Style="{StaticResource GaugeSegmented}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton
+                            x:Name="ElapsedBasis"
+                            Checked="OnBasisChanged"
+                            Content="Elapsed time"
+                            GroupName="FlameBasis"
+                            IsChecked="True"
+                            Style="{StaticResource GaugeSegmentItemFirst}" />
+                        <RadioButton
+                            x:Name="CpuBasis"
+                            Checked="OnBasisChanged"
+                            Content="CPU time"
+                            GroupName="FlameBasis"
+                            Style="{StaticResource GaugeSegmentItem}" />
+                        <RadioButton
+                            x:Name="RowsBasis"
+                            Checked="OnBasisChanged"
+                            Content="Rows read"
+                            GroupName="FlameBasis"
+                            Style="{StaticResource GaugeSegmentItem}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
 
-        <!--  Basis-reliability warnings, shown only when relevant  -->
-        <StackPanel Grid.Row="1" Spacing="4">
-            <InfoBar
+        <!--  Basis-reliability notes, shown only when relevant  -->
+        <StackPanel
+            Grid.Row="1"
+            Margin="14,10,14,0"
+            Spacing="8">
+            <Border
                 x:Name="ApproximateWarning"
-                Margin="14,0,14,0"
-                IsClosable="False"
-                IsOpen="False"
-                Severity="Informational"
-                Title="Widths are approximate under parallelism">
-                <InfoBar.Content>
-                    <TextBlock
-                        Text="Elapsed time is a max-across-threads figure below a parallel operator, so sibling widths here don't literally add up to their parent's. Switch to CPU time for an additive basis."
-                        TextWrapping="Wrap" />
-                </InfoBar.Content>
-            </InfoBar>
+                Style="{StaticResource GaugeCallout}"
+                Visibility="Collapsed">
+                <StackPanel Spacing="2">
+                    <TextBlock Style="{StaticResource GaugeSevNeutral}" Text="Widths are approximate under parallelism" />
+                    <TextBlock Style="{StaticResource GaugeCalloutText}" Text="Elapsed time is a max-across-threads figure below a parallel operator, so sibling widths here don't literally add up to their parent's. Switch to CPU time for an additive basis." />
+                </StackPanel>
+            </Border>
 
-            <InfoBar
+            <Border
                 x:Name="NegativeSelfWarning"
-                Margin="14,0,14,8"
-                IsClosable="False"
-                IsOpen="False"
-                Severity="Warning"
-                Title="This basis doesn't fully account for its own children">
-                <InfoBar.Content>
-                    <TextBlock x:Name="NegativeSelfWarningBody" TextWrapping="Wrap" />
-                </InfoBar.Content>
-            </InfoBar>
+                Style="{StaticResource GaugeCallout}"
+                Visibility="Collapsed">
+                <StackPanel Spacing="2">
+                    <TextBlock Style="{StaticResource GaugeSevWarn}" Text="Warning · this basis doesn't fully account for its own children" />
+                    <TextBlock x:Name="NegativeSelfWarningBody" Style="{StaticResource GaugeCalloutText}" />
+                </StackPanel>
+            </Border>
         </StackPanel>
 
-        <!--  Disabled-state message, shown in place of the flame chart when there are no runtime stats  -->
-        <StackPanel
+        <!--  Shown in place of the flame chart when there are no runtime stats  -->
+        <Border
             x:Name="DisabledPanel"
             Grid.Row="2"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="8"
+            MaxWidth="520"
+            Margin="14"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Style="{StaticResource GaugeCallout}"
             Visibility="Collapsed">
-            <TextBlock
-                HorizontalAlignment="Center"
-                FontSize="16"
-                FontWeight="SemiBold"
-                Text="No runtime stats to attribute" />
-            <TextBlock
-                MaxWidth="360"
-                HorizontalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="This is an estimated plan — there's no actual elapsed time, CPU time, or row count to build a flame graph from. Capture an actual plan to use this view."
-                TextAlignment="Center"
-                TextWrapping="Wrap" />
-        </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock
+                    FontWeight="SemiBold"
+                    Foreground="{ThemeResource GaugeFg0Brush}"
+                    Text="No runtime stats to attribute" />
+                <TextBlock Style="{StaticResource GaugeCalloutText}" Text="This is an estimated plan, so there is no actual elapsed time, CPU time or row count to build a flame view from. Capture an actual plan (Run for actual…) to use this view." />
+            </StackPanel>
+        </Border>
 
         <ScrollViewer
             x:Name="FlameScroller"
@@ -88,7 +109,11 @@
             HorizontalScrollBarVisibility="Disabled"
             SizeChanged="OnScrollerSizeChanged"
             VerticalScrollBarVisibility="Auto">
-            <Canvas x:Name="FlameCanvas" Margin="14,4,14,14" />
+            <Canvas
+                x:Name="FlameCanvas"
+                Margin="14,12,14,14"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top" />
         </ScrollViewer>
     </Grid>
 </UserControl>
