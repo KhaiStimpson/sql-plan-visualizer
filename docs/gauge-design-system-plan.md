@@ -76,7 +76,7 @@ Everything later references these resources, so they land first and change nothi
       `ControlFillColor*`, `ControlStroke*`, `AccentFillColor*`, `CardBackground*`,
       `LayerFillColor*`, `SolidBackgroundFillColor*`, `SystemAccentColor*`) to Gauge roles, so
       untouched controls already read as Gauge.
-- [ ] Add `ThemeService` (System/Light/Dark in `ApplicationData.Current.LocalSettings`) and apply
+- [x] Add `ThemeService` (System/Light/Dark in `ApplicationData.Current.LocalSettings`) and apply
       it before `MainWindow` activates. Remove Mica, set the root background to `bg-0`, and colour
       the title bar and caption buttons per PLATFORMS.md, updating on theme change.
 - [ ] Set the app font to Gauge sans at 13px and mono at 12px. Update `SectionHeader`,

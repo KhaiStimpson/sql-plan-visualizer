@@ -1,6 +1,5 @@
-using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
+using SqlPlanViz.Themes;
 
 namespace SqlPlanViz;
 
@@ -15,12 +14,14 @@ public sealed class MainWindow : Window
     {
         Title = "SQL Plan Visualizer";
 
-        // Mica Alt is the layered "base" material — the right backdrop for a tool window
-        // with a command strip and a side pane sitting on top of it.
-        SystemBackdrop = new MicaBackdrop { Kind = MicaKind.BaseAlt };
-
+        // No backdrop material: Gauge paints the root bg-0 and the title bar bg-2 itself
+        // (docs/design/gauge/PLATFORMS.md, "Native window chrome").
         var page = new MainPage();
         Content = page;
+
+        // The stored theme goes on before the window is first shown, so it never paints in
+        // the system theme and then flips.
+        ThemeService.Attach(this, page);
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(page.TitleBar);
