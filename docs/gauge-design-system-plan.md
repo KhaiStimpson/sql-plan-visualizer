@@ -158,14 +158,14 @@ Win2D drawing driven by `GaugeTokens`, matching the mock-up's node cards and edg
 - [x] Rebuild `PlanPalette` dark/light from `GaugeTokens`: surface `bg-0`, dotted grid in `line`,
       node fill `bg-1`, border `line-ctl`, text `fg-0`/`fg-2`, object line `code`, selection
       `sel` / `sel-fg` / `sel-edge`, crit/warn/ok, accent. Keep the `PlanPalette` API stable.
-- [ ] Node cards: neutral fill, 3px crit/warn left edge, severity word top-right, a mono object
+- [x] Node cards: neutral fill, 3px crit/warn left edge, severity word top-right, a mono object
       line, the finding headline line (Full detail), rows · estimate-off and cost % line, self-time
       line, and a 4px cost bar in accent on `bg-3`. Keep the LabelDetail density rules.
-- [ ] Metric heat and Blame mode: express heat through the cost bar and, for Blame, the severity
+- [x] Metric heat and Blame mode: express heat through the cost bar and, for Blame, the severity
       edge and word, instead of fill colour. Estimate-skew keeps its diverging meaning through
       the edge colour plus the word "over" or "under". Delta recolouring uses `ok` / `crit`
       edges with "better" or "worse" words.
-- [ ] Selected node: `sel` fill, `sel-fg` text, `sel-crit` / `sel-warn` state words and a 2px
+- [x] Selected node: `sel` fill, `sel-fg` text, `sel-crit` / `sel-warn` state words and a 2px
       `sel-edge` inset. Collapse handles: 16px `bg-3` circle with a `line-ctl` border.
 - [ ] Edges: neutral `line-ctl`, hot path in accent and thicker, dashed when the estimate is off
       by 10× or more, row labels in 11px mono `fg-2`. Minimap: `bg-2`, `line-2` border, nodes in

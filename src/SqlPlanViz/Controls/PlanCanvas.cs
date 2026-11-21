@@ -36,10 +36,19 @@ namespace SqlPlanViz.Controls;
 /// </summary>
 public sealed partial class PlanCanvas : UserControl
 {
-    private const float AccentWidth = 6f;
-    private const float NodeCorner = 8f;
-    private const float TextLeftPad = AccentWidth + 12f;
-    private const float TextRightPad = 12f;
+    /// <summary>The coloured left edge of a node card (crit / warn / ok): 3px.</summary>
+    private const float AccentWidth = 3f;
+
+    /// <summary>Card corners: Gauge r-3.</summary>
+    private const float NodeCorner = 4f;
+
+    /// <summary>Card padding, as the mock-up's 7px 10px 8px 12px.</summary>
+    private const float TextLeftPad = 12f;
+    private const float TextRightPad = 10f;
+    private const float TextTopPad = 7f;
+
+    /// <summary>Collapse handle: a 16px bg-3 circle with a line-ctl border.</summary>
+    private const float HandleRadius = 8f;
     private const float LodTextThreshold = 0.45f;
 
     /// <summary>Below this zoom, nodes show the operator name only (hot-path-plan.md Phase 1) — above §8.7's all-text-off threshold but too dense for the full card.</summary>
@@ -83,6 +92,7 @@ public sealed partial class PlanCanvas : UserControl
     private int _findingCursor = -1;
     private PlanDiffResult? _diff;
     private Dictionary<PlanNode, PlanDiffKind> _diffKinds = [];
+    private Dictionary<PlanNode, PlanNodeDelta> _diffDeltas = [];
     private PlanLayout? _diffBeforeLayout;
 
     // Cached Win2D resources. Node geometry is shared by every node because all nodes are
@@ -357,6 +367,10 @@ public sealed partial class PlanCanvas : UserControl
             .Where(delta => delta.After is not null)
             .ToDictionary(delta => delta.After!, delta => delta.Kind)
             ?? [];
+        _diffDeltas = diff?.Nodes
+            .Where(delta => delta.After is not null)
+            .ToDictionary(delta => delta.After!)
+            ?? [];
         _diffBeforeLayout = diff is null ? null : _engine.Layout(diff.Before.Root);
         Redraw();
     }
@@ -562,57 +576,40 @@ public sealed partial class PlanCanvas : UserControl
 
     private void CreateTextFormats()
     {
-        _titleFormat = new CanvasTextFormat
+        CanvasTextFormat Format(string family, float size, bool semibold = false, CanvasHorizontalAlignment align = CanvasHorizontalAlignment.Left) => new()
         {
-            FontFamily = "Segoe UI Variable Display",
-            FontSize = 13.5f,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            FontFamily = family,
+            FontSize = size,
+            FontWeight = semibold ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
             WordWrapping = CanvasWordWrapping.NoWrap,
             TrimmingGranularity = CanvasTextTrimmingGranularity.Character,
             TrimmingSign = CanvasTrimmingSign.Ellipsis,
+            HorizontalAlignment = align,
             VerticalAlignment = CanvasVerticalAlignment.Top,
         };
 
-        _subtitleFormat = new CanvasTextFormat
-        {
-            FontFamily = "Segoe UI Variable Text",
-            FontSize = 11.5f,
-            WordWrapping = CanvasWordWrapping.NoWrap,
-            TrimmingGranularity = CanvasTextTrimmingGranularity.Character,
-            TrimmingSign = CanvasTrimmingSign.Ellipsis,
-            VerticalAlignment = CanvasVerticalAlignment.Top,
-        };
+        // Operator name: 13px 600 fg-0.
+        _titleFormat = Format(Themes.GaugeFonts.SansSingle, 13f, semibold: true);
 
-        _metaFormat = new CanvasTextFormat
-        {
-            FontFamily = "Segoe UI Variable Text",
-            FontSize = 11f,
-            WordWrapping = CanvasWordWrapping.NoWrap,
-            TrimmingGranularity = CanvasTextTrimmingGranularity.Character,
-            TrimmingSign = CanvasTrimmingSign.Ellipsis,
-            VerticalAlignment = CanvasVerticalAlignment.Top,
-        };
+        // Object line: 11.5px mono in the code role.
+        _subtitleFormat = Format(Themes.GaugeFonts.MonoSingle, 11.5f);
 
-        _badgeFormat = new CanvasTextFormat
-        {
-            FontFamily = "Segoe UI Variable Text",
-            FontSize = 10f,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            WordWrapping = CanvasWordWrapping.NoWrap,
-            HorizontalAlignment = CanvasHorizontalAlignment.Center,
-            VerticalAlignment = CanvasVerticalAlignment.Center,
-        };
+        // Headline and facts: 11.5px sans.
+        _metaFormat = Format(Themes.GaugeFonts.SansSingle, 11.5f);
 
-        _expanderFormat = new CanvasTextFormat
-        {
-            FontFamily = "Segoe UI Variable Text",
-            FontSize = 10.5f,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            WordWrapping = CanvasWordWrapping.NoWrap,
-            HorizontalAlignment = CanvasHorizontalAlignment.Center,
-            VerticalAlignment = CanvasVerticalAlignment.Center,
-        };
+        // Severity word, top-right: 11.5px 600.
+        _badgeFormat = Format(Themes.GaugeFonts.SansSingle, 11.5f, semibold: true, CanvasHorizontalAlignment.Right);
+
+        // Collapse handle glyph and edge row labels.
+        _expanderFormat = Format(Themes.GaugeFonts.SansSingle, 12f, align: CanvasHorizontalAlignment.Center);
+        _expanderFormat.VerticalAlignment = CanvasVerticalAlignment.Center;
+        _edgeLabelFormat = Format(Themes.GaugeFonts.MonoSingle, 11f);
+        _legendFormat = Format(Themes.GaugeFonts.SansSingle, 11.5f);
+        _legendFormat.VerticalAlignment = CanvasVerticalAlignment.Center;
     }
+
+    private CanvasTextFormat? _edgeLabelFormat;
+    private CanvasTextFormat? _legendFormat;
 
     private void OnCreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
     {
@@ -1290,187 +1287,186 @@ public sealed partial class PlanCanvas : UserControl
             : node.LogicalOp;
     }
 
+    /// <summary>The colour a node's left edge and state word take.</summary>
+    private enum NodeTone
+    {
+        None,
+        Crit,
+        Warn,
+        Ok,
+        Info,
+    }
+
+    /// <summary>
+    /// The state a node card shows as a coloured left edge plus a word (never colour alone).
+    /// A comparison on screen wins (better / worse); then Blame shows finding severity; the
+    /// Estimate-skew metric keeps its diverging meaning as under / over; otherwise the
+    /// Showplan's own warnings.
+    /// </summary>
+    private (string? Word, NodeTone Tone) NodeState(PlanNode node, Diagnostics.FindingSeverity? blameSeverity)
+    {
+        if (_diffDeltas.TryGetValue(node, out var delta))
+        {
+            return delta.Kind switch
+            {
+                PlanDiffKind.Added => ("new", NodeTone.None),
+                _ when delta.CostDelta < -1e-9 => ("better", NodeTone.Ok),
+                _ when delta.CostDelta > 1e-9 => ("worse", NodeTone.Crit),
+                PlanDiffKind.Changed => ("changed", NodeTone.None),
+                _ => (null, NodeTone.None),
+            };
+        }
+
+        if (ColorMode == ColorMode.Blame)
+        {
+            return blameSeverity switch
+            {
+                Diagnostics.FindingSeverity.Critical => ("Critical", NodeTone.Crit),
+                Diagnostics.FindingSeverity.Warning => ("Warning", NodeTone.Warn),
+                Diagnostics.FindingSeverity.Info => ("Info", NodeTone.None),
+                _ => (null, NodeTone.None),
+            };
+        }
+
+        if (Metric == SizeMetric.EstimateSkew && node.EstimateErrorFactor is double factor && factor >= 2)
+        {
+            // Diverging: an underestimate (more rows than planned) starves memory grants and
+            // picks the wrong joins; an overestimate wastes the grant. Different directions,
+            // different words, different edges.
+            return (node.ActualRows ?? 0) > node.EstimatedRowsTotal
+                ? ($"{Format.Factor(factor)} under", NodeTone.Crit)
+                : ($"{Format.Factor(factor)} over", NodeTone.Info);
+        }
+
+        return node.WorstWarning switch
+        {
+            WarningSeverity.Critical => ("Critical", NodeTone.Crit),
+            WarningSeverity.Warning => ("Warning", NodeTone.Warn),
+            _ => (null, NodeTone.None),
+        };
+    }
+
+    private Color ToneColor(NodeTone tone, bool selected) => tone switch
+    {
+        NodeTone.Crit => selected ? _palette.SelCrit : _palette.Danger,
+        NodeTone.Warn => selected ? _palette.SelWarn : _palette.Caution,
+        NodeTone.Ok => selected ? _palette.SelFg : _palette.Ok,
+        NodeTone.Info => selected ? _palette.SelFg : _palette.Selection,
+        _ => selected ? _palette.SelFg : _palette.TextSecondary,
+    };
+
+    /// <summary>
+    /// One node card, matching the mock-up: neutral bg-1 fill with a line-ctl border, a 3px
+    /// coloured left edge for its state, the operator name with the state word top-right, a
+    /// mono object line, the finding headline (Full detail), a rows line and a self-time line,
+    /// and a 4px accent cost bar on bg-3 that carries the selected metric. Heat lives in the
+    /// bar, not the fill, so the canvas never turns to confetti.
+    /// </summary>
     private void DrawNode(CanvasDrawingSession ds, NodeLayout nl, bool dimmed, bool drawText)
     {
         var node = nl.Node;
         var w = (float)nl.Width;
         var h = (float)nl.Height;
         var hairline = 1f / _scale;
-        var fraction = MetricFraction(node);
+        var fraction = Math.Clamp(MetricFraction(node), 0, 1);
         var isSelected = ReferenceEquals(SelectedNode, node);
+        var isHovered = !isSelected && ReferenceEquals(_hoveredNode, node);
 
-        Diagnostics.FindingSeverity? blameSeverity = ColorMode == ColorMode.Blame && _blame.TryGetValue(node.NodeId, out var bs)
-            ? bs
-            : null;
-        var blameUnimplicated = ColorMode == ColorMode.Blame && blameSeverity is null;
+        Diagnostics.FindingSeverity? blameSeverity = _blame.TryGetValue(node.NodeId, out var bs) ? bs : null;
+        var (word, tone) = NodeState(node, blameSeverity);
 
-        var fill = _palette.NodeFill(fraction, dimmed || blameUnimplicated);
-        var heat = ColorMode == ColorMode.Blame
-            ? (blameSeverity is { } sev ? _palette.FindingAccent(sev) : _palette.Fade(_palette.NodeBorder, 0.5))
-            : Metric == SizeMetric.EstimateSkew
-                ? _palette.Diverging(EstimateSkewSignedFraction(node))
-                : _palette.Heat(fraction);
-        if (_diffKinds.TryGetValue(node, out var diffKind))
-        {
-            heat = diffKind switch
-            {
-                PlanDiffKind.Added => DiffAddedColor,
-                PlanDiffKind.Changed => _palette.Caution,
-                _ => heat,
-            };
-        }
-        if (dimmed)
-        {
-            heat = _palette.Fade(heat, 0.4);
-        }
+        Color Dim(Color c) => dimmed ? _palette.Fade(c, 0.55) : c;
 
-        ds.FillGeometry(_nodeGeometry, fill);
-        ds.FillGeometry(_accentGeometry, heat);
-
-        // Redundant encoding (Phase 4.7): colour alone fails for ~8% of men and dies in
-        // greyscale, so the accent strip's width also tracks the same signal — mask the
-        // unused portion with the node's own fill colour rather than rebuilding geometry.
-        var accentT = ColorMode == ColorMode.Blame
-            ? blameSeverity switch
-            {
-                Diagnostics.FindingSeverity.Critical => 1.0,
-                Diagnostics.FindingSeverity.Warning => 0.7,
-                Diagnostics.FindingSeverity.Info => 0.5,
-                _ => 0.3,
-            }
-            : Math.Clamp(fraction, 0, 1);
-        var accentW = AccentWidth * (float)(0.3 + (0.7 * accentT));
-        if (accentW < AccentWidth - 0.5f)
-        {
-            ds.FillRectangle(accentW, 0, AccentWidth - accentW, h, fill);
-        }
-
-        var border = node.WorstWarning switch
-        {
-            WarningSeverity.Critical => _palette.Danger,
-            WarningSeverity.Warning => _palette.Caution,
-            _ => _palette.NodeBorder,
-        };
-
-        if (dimmed)
-        {
-            border = _palette.Fade(border, 0.4);
-        }
-
-        ds.DrawGeometry(_nodeGeometry, border, hairline * (node.WorstWarning is null ? 1f : 1.5f));
-
-        if (_hotPathNodeIds.Contains(node.NodeId))
-        {
-            ds.DrawGeometry(_nodeGeometry, _palette.Selection, hairline * 2f);
-        }
+        // Card: fill, then the state edge, then the border on top.
+        var fill = isSelected ? _palette.Sel : isHovered ? _palette.NodeHover : _palette.NodeBase;
+        ds.FillGeometry(_nodeGeometry, Dim(fill));
 
         if (isSelected)
         {
-            ds.DrawGeometry(_nodeGeometry, _palette.WithAlpha(_palette.Selection, 70), hairline * 6f);
-            ds.DrawGeometry(_nodeGeometry, _palette.Selection, hairline * 2f);
+            // Selected record: sel fill, a 2px inset leading edge and border in sel-edge.
+            ds.FillRectangle(0, 0, 2f, h, _palette.SelEdge);
+            ds.DrawGeometry(_nodeGeometry, _palette.SelEdge, hairline);
+        }
+        else
+        {
+            if (tone is not NodeTone.None)
+            {
+                ds.FillGeometry(_accentGeometry, Dim(ToneColor(tone, selected: false)));
+            }
+
+            ds.DrawGeometry(_nodeGeometry, Dim(_palette.NodeBorder), hairline);
         }
 
         if (!drawText)
         {
-            // §8.7 — below the LOD threshold the text would be unreadable, so skip it and
-            // let colour alone carry the shape of the plan.
+            // §8.7: below the LOD threshold text is unreadable, so the edge and bar carry it.
+            DrawCostBar(ds, w, h - 12f, fraction, isSelected, dimmed);
             return;
         }
 
         var textLeft = TextLeftPad;
         var textWidth = w - TextLeftPad - TextRightPad;
 
-        var primary = dimmed ? _palette.Fade(_palette.TextPrimary, 0.45) : _palette.TextPrimary;
-        var secondary = dimmed ? _palette.Fade(_palette.TextSecondary, 0.45) : _palette.TextSecondary;
-        var tertiary = dimmed ? _palette.Fade(_palette.TextTertiary, 0.45) : _palette.TextTertiary;
+        var primary = Dim(isSelected ? _palette.SelFg : _palette.TextPrimary);
+        var body = Dim(isSelected ? _palette.SelFg : _palette.TextBody);
+        var secondary = Dim(isSelected ? _palette.SelFg : _palette.TextSecondary);
+        var code = Dim(isSelected ? _palette.SelFg : _palette.Code);
 
-        var detail = EffectiveDetail();
-
-        if (detail == Controls.LabelDetail.Minimal)
+        // Title row: operator name, then the state word right-aligned on the same line.
+        var wordWidth = 0f;
+        if (word is not null)
         {
-            // §8.7 companion tier: still zoomed in enough to read text, but the card reads
-            // as operator name plus heat only — no subtitle, badges, or metric lines.
-            ds.DrawText(node.PhysicalOp, new Rect(textLeft, 9, Math.Max(10, textWidth), 18), primary, _titleFormat);
-            return;
+            using var wordLayout = new CanvasTextLayout(ds, word, _badgeFormat, textWidth, 18);
+            wordWidth = (float)wordLayout.LayoutBounds.Width + 8f;
+            ds.DrawText(word, new Rect(textLeft, TextTopPad + 1.5f, textWidth, 18), Dim(ToneColor(tone, isSelected)), _badgeFormat);
         }
 
-        // Reserve room on the title row for the severity glyph and the parallel marker.
-        // Phase 4.7: the glyph fires on either a Showplan warning or a blame finding, so a
-        // node the rule engine flagged is visibly marked even without a plan warning.
-        var showSeverityGlyph = node.Warnings.Count > 0 || blameSeverity is not null;
-        var badgeRoom = 0f;
-        if (showSeverityGlyph)
-        {
-            badgeRoom += 18f;
-        }
-
-        if (node.Parallel)
-        {
-            badgeRoom += 14f;
-        }
-
+        var parallelRoom = node.Parallel ? 12f : 0f;
         ds.DrawText(
             node.PhysicalOp,
-            new Rect(textLeft, 9, Math.Max(10, textWidth - badgeRoom), 18),
+            new Rect(textLeft, TextTopPad, Math.Max(10, textWidth - wordWidth - parallelRoom), 18),
             primary,
             _titleFormat);
 
-        var cursorY = 28f;
+        if (node.Parallel)
+        {
+            DrawParallelMarker(ds, textLeft + textWidth - wordWidth - 6f, TextTopPad + 4f, secondary);
+        }
+
+        var detail = EffectiveDetail();
+        if (detail == Controls.LabelDetail.Minimal)
+        {
+            // Operator name and heat only.
+            DrawCostBar(ds, w, h - 12f, fraction, isSelected, dimmed);
+            if (nl.HasChildren)
+            {
+                DrawExpander(ds, nl, w, h, hairline, dimmed);
+            }
+
+            return;
+        }
+
+        var cursorY = TextTopPad + 18f;
 
         var subtitle = DescribeSubtitle(node);
         if (!string.IsNullOrEmpty(subtitle))
         {
-            ds.DrawText(subtitle, new Rect(textLeft, cursorY, textWidth, 16), secondary, _subtitleFormat);
-            cursorY += 19f;
+            ds.DrawText(subtitle, new Rect(textLeft, cursorY, textWidth, 16), code, _subtitleFormat);
+            cursorY += 16f;
         }
 
-        if (detail == Controls.LabelDetail.Full
-            && _verdicts.TryGetValue(node.NodeId, out var verdict))
+        if (detail == Controls.LabelDetail.Full && _verdicts.TryGetValue(node.NodeId, out var verdict))
         {
-            ds.DrawLine(textLeft, cursorY, textLeft + textWidth, cursorY, _palette.Fade(tertiary, 0.5f), hairline);
-            cursorY += 5f;
-            ds.DrawText(
-                verdict.Title,
-                new Rect(textLeft, cursorY, textWidth, 15),
-                dimmed ? _palette.Fade(_palette.FindingAccent(verdict.Severity), 0.45) : _palette.FindingAccent(verdict.Severity),
-                _metaFormat);
-            cursorY += 18f;
+            cursorY += 3f;
+            ds.DrawText(verdict.Title, new Rect(textLeft, cursorY, textWidth, 16), body, _metaFormat);
+            cursorY += 16f;
         }
 
-        cursorY = DrawRowsLine(ds, node, textLeft, textWidth, cursorY, secondary, tertiary, dimmed);
+        cursorY += 2f;
+        cursorY = DrawRowsLine(ds, node, textLeft, textWidth, cursorY, primary, secondary);
+        DrawCostLine(ds, node, textLeft, textWidth, cursorY, secondary);
 
-        if (node.HasRuntimeStats
-            && Statement?.Summary.QueryElapsedMs is double queryElapsedMs
-            && queryElapsedMs > 0)
-        {
-            var share = Math.Clamp((node.SelfTimeMs ?? 0) / queryElapsedMs, 0, 1);
-            ds.DrawText(
-                $"self {Format.Milliseconds(node.SelfTimeMs ?? 0)} · {Format.Percent(share)} of query",
-                new Rect(textLeft, cursorY, textWidth, 15),
-                tertiary,
-                _metaFormat);
-            cursorY += 17f;
-        }
-
-        DrawCostLine(ds, node, textLeft, textWidth, cursorY, tertiary);
-
-        var badgeX = w - TextRightPad;
-        if (node.Parallel)
-        {
-            badgeX -= 10f;
-            DrawParallelMarker(ds, badgeX, 12f, tertiary);
-        }
-
-        if (showSeverityGlyph && _warningGeometry is not null)
-        {
-            badgeX -= 16f;
-            var warnColor = node.Warnings.Count > 0
-                ? (node.WorstWarning == WarningSeverity.Critical ? _palette.Danger : _palette.Caution)
-                : _palette.FindingAccent(blameSeverity!.Value);
-            ds.Transform = Matrix3x2.CreateTranslation(badgeX, 10f) * ds.Transform;
-            ds.FillGeometry(_warningGeometry, dimmed ? _palette.Fade(warnColor, 0.4) : warnColor);
-            ds.Transform = Matrix3x2.CreateTranslation(-badgeX, -10f) * ds.Transform;
-        }
+        DrawCostBar(ds, w, h - 12f, fraction, isSelected, dimmed);
 
         if (nl.HasChildren)
         {
@@ -1478,68 +1474,105 @@ public sealed partial class PlanCanvas : UserControl
         }
     }
 
+    /// <summary>The 4px cost bar: accent on a bg-3 track (sel-fg on a 25% sel-fg track when selected).</summary>
+    private void DrawCostBar(CanvasDrawingSession ds, float w, float y, double fraction, bool selected, bool dimmed)
+    {
+        var x = TextLeftPad;
+        var width = w - TextLeftPad - TextRightPad;
+        var track = selected ? _palette.WithAlpha(_palette.SelFg, 64) : _palette.Track;
+        var bar = selected ? _palette.SelFg : _palette.Selection;
+        if (dimmed)
+        {
+            track = _palette.Fade(track, 0.55);
+            bar = _palette.Fade(bar, 0.55);
+        }
+
+        ds.FillRoundedRectangle(x, y, width, 4f, 2f, 2f, track);
+        var filled = (float)Math.Max(width * 0.01, width * fraction);
+        ds.FillRoundedRectangle(x, y, filled, 4f, 2f, 2f, bar);
+    }
+
+    /// <summary>"<b>50k</b> rows · 10k× off" on the left; the metric share, bold, on the right.</summary>
     private float DrawRowsLine(
         CanvasDrawingSession ds,
         PlanNode node,
         float textLeft,
         float textWidth,
         float y,
-        Color secondary,
-        Color tertiary,
-        bool dimmed)
+        Color strong,
+        Color secondary)
     {
-        string rowsText;
-        var color = secondary;
-
+        string lead;
+        string rest;
         if (node.ActualRows is double actual)
         {
-            rowsText = $"{Format.Rows(actual)} rows · est {Format.Rows(node.EstimatedRowsTotal)}";
-            if (node.HasBadEstimate)
-            {
-                // The whole point of the tool (TDD §8): a bad estimate should be visible
-                // without clicking anything.
-                color = dimmed ? _palette.Fade(_palette.Danger, 0.45) : _palette.Danger;
-                rowsText = $"{Format.Rows(actual)} rows · {Format.Factor(node.EstimateErrorFactor!.Value)} off";
-            }
+            lead = Format.Rows(actual);
+            rest = node.HasBadEstimate
+                ? $" rows · {Format.Factor(node.EstimateErrorFactor!.Value)} off"
+                : $" rows · est {Format.Rows(node.EstimatedRowsTotal)}";
         }
         else
         {
-            rowsText = $"est {Format.Rows(node.EstimatedRowsTotal)} rows";
-            color = tertiary;
+            lead = Format.Rows(node.EstimatedRowsTotal);
+            rest = " rows estimated";
         }
 
-        ds.DrawText(rowsText, new Rect(textLeft, y, textWidth, 15), color, _metaFormat);
-        return y + 17f;
+        var share = _metricMax <= 0 ? 0 : MetricValue(node) / _metricMax;
+        var shareText = Metric == SizeMetric.Efficiency ? $"{MetricValue(node):0.#}x" : Format.Percent(share);
+
+        using (var right = new CanvasTextLayout(ds, shareText, _metaFormat, textWidth, 16))
+        {
+            right.HorizontalAlignment = CanvasHorizontalAlignment.Right;
+            right.SetFontWeight(0, shareText.Length, Microsoft.UI.Text.FontWeights.SemiBold);
+            ds.DrawTextLayout(right, textLeft, y, strong);
+            var rightWidth = (float)right.LayoutBounds.Width + 8f;
+
+            var text = lead + rest;
+            using var left = new CanvasTextLayout(ds, text, _metaFormat, Math.Max(10, textWidth - rightWidth), 16);
+            left.SetColor(0, text.Length, secondary);
+            left.SetColor(0, lead.Length, strong);
+            left.SetFontWeight(0, lead.Length, Microsoft.UI.Text.FontWeights.SemiBold);
+            ds.DrawTextLayout(left, textLeft, y, secondary);
+        }
+
+        return y + 16f;
     }
 
+    /// <summary>
+    /// The second facts line: self time and its share of the query on an actual plan, or the
+    /// metric's own reading where self time says nothing about it.
+    /// </summary>
     private void DrawCostLine(
         CanvasDrawingSession ds,
         PlanNode node,
         float textLeft,
         float textWidth,
         float y,
-        Color tertiary)
+        Color secondary)
     {
         var share = _metricMax <= 0 ? 0 : MetricValue(node) / _metricMax;
-        var text = Metric switch
+        string text;
+        if (Metric == SizeMetric.Efficiency)
         {
-            SizeMetric.ElapsedTime when node.ActualElapsedMs is double ms =>
-                $"{Format.Milliseconds(ms)} · {Format.Percent(share)}",
-            SizeMetric.ActualRows =>
-                $"{Format.Percent(share)} of widest flow",
-            SizeMetric.OperatorCost =>
-                $"op cost {Format.Cost(node.EstimatedOperatorCost)} · {Format.Percent(share)}",
-            SizeMetric.SelfTime when node.SelfTimeMs is double self =>
-                $"self {Format.Milliseconds(self)} · {Format.Percent(share)}",
-            SizeMetric.Efficiency =>
-                $"{MetricValue(node):0.#}x rows read vs. final output",
-            SizeMetric.EstimateSkew when node.EstimateErrorFactor is double f =>
-                $"{Format.Factor(f)} {((node.ActualRows ?? 0) > node.EstimatedRowsTotal ? "under" : "over")}",
-            _ =>
-                $"subtree {Format.Cost(node.EstimatedSubtreeCost)} · {Format.Percent(share)}",
-        };
+            text = $"{MetricValue(node):0.#}x rows read vs. final output";
+        }
+        else if (Metric == SizeMetric.OperatorCost)
+        {
+            text = $"op cost {Format.Cost(node.EstimatedOperatorCost)} · {Format.Percent(share)}";
+        }
+        else if (node.HasRuntimeStats
+                 && Statement?.Summary.QueryElapsedMs is double queryElapsedMs
+                 && queryElapsedMs > 0)
+        {
+            var selfShare = Math.Clamp((node.SelfTimeMs ?? 0) / queryElapsedMs, 0, 1);
+            text = $"self {Format.Milliseconds(node.SelfTimeMs ?? 0)} · {Format.Percent(selfShare)} of query";
+        }
+        else
+        {
+            text = $"subtree {Format.Cost(node.EstimatedSubtreeCost)}";
+        }
 
-        ds.DrawText(text, new Rect(textLeft, y, textWidth, 15), tertiary, _metaFormat);
+        ds.DrawText(text, new Rect(textLeft, y, textWidth, 16), secondary, _metaFormat);
     }
 
     private void DrawParallelMarker(CanvasDrawingSession ds, float x, float y, Color color)
@@ -1549,23 +1582,24 @@ public sealed partial class PlanCanvas : UserControl
         ds.DrawLine(x + 4f, y, x + 4f, y + 9f, color, hairline);
     }
 
+    /// <summary>Collapse handle: a 16px bg-3 circle with a line-ctl border ("+N" widens to a pill).</summary>
     private void DrawExpander(CanvasDrawingSession ds, NodeLayout nl, float w, float h, float hairline, bool dimmed)
     {
         var cx = w / 2f;
         var cy = h;
-        const float r = 9.5f;
 
-        var fill = dimmed ? _palette.Fade(_palette.NodeBase, 0.4) : _palette.NodeBase;
-        var stroke = dimmed ? _palette.Fade(_palette.NodeBorder, 0.4) : _palette.NodeBorder;
-        var text = dimmed ? _palette.Fade(_palette.TextSecondary, 0.4) : _palette.TextSecondary;
+        var fill = dimmed ? _palette.Fade(_palette.Track, 0.5) : _palette.Track;
+        var stroke = dimmed ? _palette.Fade(_palette.NodeBorder, 0.5) : _palette.NodeBorder;
+        var text = dimmed ? _palette.Fade(_palette.TextBody, 0.5) : _palette.TextBody;
 
-        ds.FillCircle(cx, cy, r, fill);
-        ds.DrawCircle(cx, cy, r, stroke, hairline);
+        var label = nl.IsCollapsed ? $"+{nl.HiddenDescendantCount}" : "\u2212";
+        var halfWidth = nl.IsCollapsed ? Math.Max(HandleRadius, 4f + (label.Length * 3.6f)) : HandleRadius;
 
-        var label = nl.IsCollapsed ? $"+{nl.HiddenDescendantCount}" : "–";
+        ds.FillRoundedRectangle(cx - halfWidth, cy - HandleRadius, halfWidth * 2, HandleRadius * 2, HandleRadius, HandleRadius, fill);
+        ds.DrawRoundedRectangle(cx - halfWidth, cy - HandleRadius, halfWidth * 2, HandleRadius * 2, HandleRadius, HandleRadius, stroke, hairline);
         ds.DrawText(
             label,
-            new Rect(cx - r, cy - r, r * 2, r * 2),
+            new Rect(cx - halfWidth, cy - HandleRadius - 1, halfWidth * 2, HandleRadius * 2),
             nl.IsCollapsed ? _palette.Selection : text,
             _expanderFormat);
     }
@@ -1605,8 +1639,6 @@ public sealed partial class PlanCanvas : UserControl
         e.Handled = true;
     }
 
-    private static Color DiffAddedColor => Color.FromArgb(255, 16, 124, 72);
-
     private void OnPointerExited(object sender, PointerRoutedEventArgs e) => ClearOperatorHover();
 
     private void UpdateOperatorHover(Point position)
@@ -1620,6 +1652,7 @@ public sealed partial class PlanCanvas : UserControl
 
         _operatorToolTip.IsOpen = false;
         _hoveredNode = node;
+        Redraw();
 
         if (node is null)
         {
@@ -1659,6 +1692,11 @@ public sealed partial class PlanCanvas : UserControl
 
     private void ClearOperatorHover()
     {
+        if (_hoveredNode is not null)
+        {
+            Redraw();
+        }
+
         _hoveredNode = null;
         _operatorToolTip.IsOpen = false;
         _operatorToolTip.IsEnabled = false;
@@ -1709,7 +1747,7 @@ public sealed partial class PlanCanvas : UserControl
 
             var dx = p.X - nl.CenterX;
             var dy = p.Y - nl.Bottom;
-            if ((dx * dx) + (dy * dy) <= 13 * 13)
+            if ((dx * dx) + (dy * dy) <= 12 * 12)
             {
                 ToggleCollapse(nl.Node);
                 return;
