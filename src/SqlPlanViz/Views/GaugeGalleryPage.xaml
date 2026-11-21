@@ -1,0 +1,245 @@
+<Page
+    x:Class="SqlPlanViz.Views.GaugeGalleryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource GaugeBg0Brush}"
+    FontFamily="{StaticResource GaugeSans}"
+    FontSize="13"
+    Foreground="{ThemeResource GaugeFg1Brush}">
+
+    <!--
+        Every Gauge style in one place, to judge in both themes before screens depend on them
+        (docs/gauge-design-system-plan.md Phase 2). Not linked from the app's navigation:
+        launch SqlPlanViz.exe with the gallery switch (see MainWindow).
+    -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="184" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border
+            x:Name="GalleryTitleBar"
+            Grid.ColumnSpan="2"
+            Height="32"
+            Padding="12,0"
+            Background="{ThemeResource GaugeBg2Brush}"
+            BorderBrush="{ThemeResource GaugeLineBrush}"
+            BorderThickness="0,0,0,1">
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="12.5"
+                FontWeight="SemiBold"
+                Foreground="{ThemeResource GaugeFg0Brush}"
+                Text="Gauge style gallery" />
+        </Border>
+
+        <!--  Navigation rail  -->
+        <Border
+            Grid.Row="1"
+            Padding="6,8"
+            Background="{ThemeResource GaugeBg2Brush}"
+            BorderBrush="{ThemeResource GaugeLineBrush}"
+            BorderThickness="0,0,1,0">
+            <StackPanel Spacing="2">
+                <TextBlock Style="{StaticResource GaugeNavGroupLabel}" Text="View" />
+                <RadioButton
+                    GroupName="Nav"
+                    IsChecked="True"
+                    Style="{StaticResource GaugeNavItem}">
+                    <Grid ColumnSpacing="9">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon FontFamily="Segoe Fluent Icons" FontSize="15" Glyph="&#xE9D5;" />
+                        <TextBlock Grid.Column="1" Text="Plan tree" />
+                    </Grid>
+                </RadioButton>
+                <RadioButton GroupName="Nav" Style="{StaticResource GaugeNavItem}">
+                    <Grid ColumnSpacing="9">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon FontFamily="Segoe Fluent Icons" FontSize="15" Glyph="&#xE8CB;" />
+                        <TextBlock Grid.Column="1" Text="Ranked by self time" />
+                        <TextBlock Grid.Column="2" Style="{StaticResource GaugeCount}" Text="4" />
+                    </Grid>
+                </RadioButton>
+                <RadioButton
+                    Content="Disabled item"
+                    GroupName="Nav"
+                    IsEnabled="False"
+                    Style="{StaticResource GaugeNavItem}" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" Grid.Column="1">
+            <StackPanel>
+                <Border Style="{StaticResource GaugePaneHeader}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Style="{StaticResource GaugePaneTitle}" Text="Pane header" />
+                        <TextBlock Style="{StaticResource GaugeFacts}" Text="1 failed · 1 waiting" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Padding="14" Spacing="16">
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Buttons" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Secondary" />
+                        <Button Content="Primary" Style="{StaticResource GaugePrimaryButton}" />
+                        <Button Content="Ghost" Style="{StaticResource GaugeGhostButton}" />
+                        <Button Style="{StaticResource GaugeIconButton}" ToolTipService.ToolTip="Copy">
+                            <FontIcon FontFamily="Segoe Fluent Icons" FontSize="14" Glyph="&#xE8C8;" />
+                        </Button>
+                        <ToggleButton Content="Toggle off" />
+                        <ToggleButton Content="Toggle on" IsChecked="True" />
+                        <Button Content="Disabled" IsEnabled="False" />
+                        <Button
+                            Content="Disabled primary"
+                            IsEnabled="False"
+                            Style="{StaticResource GaugePrimaryButton}" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Fields" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBox Width="160" PlaceholderText="Placeholder" />
+                        <TextBox
+                            Width="160"
+                            Style="{StaticResource GaugeMonoTextBox}"
+                            Text="sql-dev01" />
+                        <PasswordBox Width="140" Password="secret" />
+                        <ComboBox Width="150" SelectedIndex="0">
+                            <ComboBoxItem Content="Subtree cost" />
+                            <ComboBoxItem Content="Operator cost" />
+                        </ComboBox>
+                        <NumberBox Width="110" Value="884213" />
+                        <CheckBox Content="Remember" IsChecked="True" />
+                        <CheckBox Content="Trust" />
+                    </StackPanel>
+                    <AutoSuggestBox
+                        Width="240"
+                        HorizontalAlignment="Left"
+                        PlaceholderText="Search operators…" />
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Segmented" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Style="{StaticResource GaugeSegmented}">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton
+                                    Content="Tree"
+                                    GroupName="Seg1"
+                                    IsChecked="True"
+                                    Style="{StaticResource GaugeSegmentItemFirst}" />
+                                <RadioButton
+                                    Content="Flame"
+                                    GroupName="Seg1"
+                                    Style="{StaticResource GaugeSegmentItem}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource GaugeSegmented}">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton
+                                    Content="Findings 13"
+                                    GroupName="Seg2"
+                                    IsChecked="True"
+                                    Style="{StaticResource GaugeSegmentItemFirst}" />
+                                <RadioButton
+                                    Content="Operator"
+                                    GroupName="Seg2"
+                                    Style="{StaticResource GaugeSegmentItem}" />
+                                <RadioButton
+                                    Content="Indexes 2"
+                                    GroupName="Seg2"
+                                    Style="{StaticResource GaugeSegmentItem}" />
+                                <RadioButton
+                                    Content="Warnings 2"
+                                    GroupName="Seg2"
+                                    Style="{StaticResource GaugeSegmentItem}" />
+                                <RadioButton
+                                    Content="Delta"
+                                    GroupName="Seg2"
+                                    Style="{StaticResource GaugeSegmentItem}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Text" />
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <TextBlock Style="{StaticResource GaugeSevCrit}" Text="Critical" />
+                        <TextBlock Style="{StaticResource GaugeSevWarn}" Text="Warning" />
+                        <TextBlock Style="{StaticResource GaugeSevOk}" Text="Connected" />
+                        <TextBlock Style="{StaticResource GaugeSevNeutral}" Text="Neutral" />
+                        <HyperlinkButton Content="dbo.Orders" Style="{StaticResource GaugeEntityLink}" />
+                        <HyperlinkButton Content="Sort · node 0" Style="{StaticResource GaugeEntityLinkSans}" />
+                        <Border Style="{StaticResource GaugeKbd}">
+                            <TextBlock Style="{StaticResource GaugeKbdText}" Text="Ctrl K" />
+                        </Border>
+                        <TextBlock Style="{StaticResource GaugeCount}" Text="13" />
+                        <TextBlock Style="{StaticResource CodeText}" Text="SELECT o.OrderId" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Callouts" />
+                    <Border MaxWidth="520" HorizontalAlignment="Left" Style="{StaticResource GaugeCallout}">
+                        <TextBlock Style="{StaticResource GaugeCalloutText}" Text="Completed in 4.21 s. Sort spilled to tempdb and carries about 100% of measured impact." />
+                    </Border>
+                    <Border MaxWidth="520" HorizontalAlignment="Left" Style="{StaticResource GaugeCalloutCrit}">
+                        <TextBlock Style="{StaticResource GaugeCalloutText}" Text="Could not load that plan. The file is not Showplan XML; open a .sqlplan file instead." />
+                    </Border>
+
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Rows" />
+                    <Border
+                        MaxWidth="520"
+                        HorizontalAlignment="Left"
+                        BorderBrush="{ThemeResource GaugeLineBrush}"
+                        BorderThickness="1">
+                        <StackPanel>
+                            <Grid Padding="14,6" Background="{ThemeResource GaugeBg2Brush}">
+                                <TextBlock Style="{StaticResource GaugeTableHeaderText}" Text="Profile" />
+                            </Grid>
+                            <Grid Background="{ThemeResource GaugeSelBrush}" BorderBrush="{ThemeResource GaugeLineBrush}" BorderThickness="0,1,0,0">
+                                <Rectangle Width="2" HorizontalAlignment="Left" Fill="{ThemeResource GaugeSelEdgeBrush}" />
+                                <StackPanel Padding="14,6" Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Foreground="{ThemeResource GaugeSelCritBrush}" Style="{StaticResource GaugeSevNeutral}" Text="Critical" />
+                                    <TextBlock Foreground="{ThemeResource GaugeSelFgBrush}" Text="Selected record" />
+                                </StackPanel>
+                            </Grid>
+                            <Button BorderBrush="{ThemeResource GaugeLineBrush}" BorderThickness="0,1,0,0" Style="{StaticResource GaugeRowButton}">
+                                <StackPanel Padding="14,6" Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Style="{StaticResource GaugeSevWarn}" Text="Warning" />
+                                    <TextBlock Text="Hover me" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border
+            Grid.Row="2"
+            Grid.ColumnSpan="2"
+            Style="{StaticResource GaugeStatusBar}">
+            <Grid>
+                <TextBlock Style="{StaticResource GaugeStatusText}" Text="4 operators    cost 42.881" />
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="6">
+                    <TextBlock Style="{StaticResource GaugeStatusText}" Text="Theme" />
+                    <ComboBox
+                        Width="66"
+                        SelectedIndex="0"
+                        Style="{StaticResource GaugeCompactComboBox}">
+                        <ComboBoxItem Content="Dark" />
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

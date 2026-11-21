@@ -103,7 +103,7 @@ The Gauge components as reusable XAML styles, so later phases only compose them.
 - [x] Layout styles: `GaugePaneHeader` (8×14 padding, `line` bottom border, 14px 600 title, facts
       in 12.5px `fg-2`), `GaugeCallout` and `GaugeCalloutCrit`, `GaugeStatusBar` (24px, `bg-2`,
       11.5px `fg-2`), `GaugeNavItem` (30px, 0×9, `r-3`, current = `bg-4` / `fg-0` / 600).
-- [ ] Focus visuals: app-wide `FocusVisualPrimaryBrush` = accent, 2px, 2px margin. HighContrast
+- [x] Focus visuals: app-wide `FocusVisualPrimaryBrush` = accent, 2px, 2px margin. HighContrast
       theme dictionary maps selection, current nav, pressed segments and control borders to
       `SystemColorHighlight*` / `SystemColorButtonText`. Add `EditorScratchPage`-style gallery
       section (or reuse `EditorScratchPage`) showing every style, and screenshot it in both themes.

@@ -147,6 +147,9 @@ FLUENT_BRUSH_ONLY = {
     "TextControlBorderBrushPointerOver": "fg-3",
     "TextControlBorderBrushFocused": "accent",
     "TextControlSelectionHighlightColor": "sel",
+    # Focus: a 2px accent ring app-wide (FrameworkElement.FocusVisualPrimaryBrush defaults here).
+    "SystemControlFocusVisualPrimaryBrush": "accent",
+    "SystemControlFocusVisualSecondaryBrush": "bg-0",
     "ControlElevationBorderBrush": "line-2",
     "AccentControlElevationBorderBrush": "accent",
     "TextControlElevationBorderBrush": "line-ctl",
