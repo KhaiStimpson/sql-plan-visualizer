@@ -72,7 +72,7 @@ Everything later references these resources, so they land first and change nothi
 - [x] Add `Themes/GaugeTokens.cs` with the same values as `static` `Color`s per theme, for Win2D.
       Add a header comment saying it mirrors `docs/design/gauge/tokens.json`. The values must
       match the XAML exactly.
-- [ ] Override the Fluent theme resources that drive stock controls (`TextFillColor*`,
+- [x] Override the Fluent theme resources that drive stock controls (`TextFillColor*`,
       `ControlFillColor*`, `ControlStroke*`, `AccentFillColor*`, `CardBackground*`,
       `LayerFillColor*`, `SolidBackgroundFillColor*`, `SystemAccentColor*`) to Gauge roles, so
       untouched controls already read as Gauge.

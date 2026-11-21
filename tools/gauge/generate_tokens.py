@@ -195,7 +195,7 @@ for i in range(1, 10):
 assert set(HC) == set(ROLES), set(ROLES) ^ set(HC)
 
 # In high contrast, leave Fluent's own HC resources alone: only the Gauge roles are defined.
-INCLUDE_FLUENT = False
+INCLUDE_FLUENT = True
 
 
 def theme_dict(key: str, theme: str | None) -> str:
