@@ -296,14 +296,29 @@
             </Grid>
         </Border>
 
-        <!--  Content  -->
-        <Grid Grid.Row="2">
+        <!--
+            Content: view rail (184px) / centre / inspector (minmax(340px, 29%), sized in
+            OnContentSizeChanged), matching docs/design/gauge-mockup.html.
+        -->
+        <Grid
+            x:Name="ContentGrid"
+            Grid.Row="2"
+            SizeChanged="OnContentSizeChanged">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="184" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition x:Name="InspectorColumn" Width="400" />
             </Grid.ColumnDefinitions>
 
-            <Grid x:Name="LeftContent" Grid.Column="0">
+            <!--  View rail  -->
+            <Border
+                x:Name="ViewRail"
+                Grid.Column="0"
+                Background="{ThemeResource GaugeBg2Brush}"
+                BorderBrush="{ThemeResource GaugeLineBrush}"
+                BorderThickness="0,0,1,0" />
+
+            <Grid x:Name="LeftContent" Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -772,11 +787,11 @@
                 </Border>
             </Grid>
 
-            <!--  Detail pane  -->
+            <!--  Inspector  -->
             <Border
-                Grid.Column="1"
-                Width="400"
-                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                Grid.Column="2"
+                Background="{ThemeResource GaugeBg1Brush}"
+                BorderBrush="{ThemeResource GaugeLineBrush}"
                 BorderThickness="1,0,0,0"
                 Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                 <Grid>

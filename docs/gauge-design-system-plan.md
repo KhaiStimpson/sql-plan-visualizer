@@ -117,7 +117,7 @@ The structural change from the mock-up: one view mode, a left rail, session plan
       `Canvas` / `OperatorListPane` / `QueryStorePane` / `AntiPatternPane` visibility. Route
       `OnToggleOperatorList`, `OnToggleQueryStore`, `OnToggleAntiPatterns`, the "Back to tree"
       buttons, `OnJumpToRankedOperator` and `OnOpenQueryStorePlan` through it.
-- [ ] Restructure the content grid into three columns (184px rail / centre / inspector
+- [x] Restructure the content grid into three columns (184px rail / centre / inspector
       `minmax(340, 29%)`) matching the mock-up. Rail background `bg-2` with a `line` right border.
 - [ ] Add the four rail items using `GaugeNavItem` with Segoe Fluent Icons glyphs,
       `ToolTipService.ToolTip` and `AutomationProperties.Name`; current item follows `ViewMode`.

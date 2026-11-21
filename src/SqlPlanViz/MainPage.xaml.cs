@@ -1027,6 +1027,10 @@ public sealed partial class MainPage : Page
 
     #endregion
 
+    /// <summary>The inspector is minmax(340px, 29%) of the content width, as in the mock-up.</summary>
+    private void OnContentSizeChanged(object sender, SizeChangedEventArgs e) =>
+        InspectorColumn.Width = new GridLength(Math.Max(340, Math.Round(e.NewSize.Width * 0.29)));
+
     #region Drag and drop
 
     private void OnDragOver(object sender, DragEventArgs e)
