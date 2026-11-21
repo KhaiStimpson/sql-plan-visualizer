@@ -18,9 +18,11 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Padding="10,4" ColumnSpacing="8">
+        <!--  Header: disclosure toggle with the count, a note, and Reset to plan values.  -->
+        <Grid Padding="14,6" ColumnSpacing="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -29,22 +31,29 @@
 
             <ToggleButton
                 x:Name="ExpandToggle"
-                Padding="6,2"
-                Background="Transparent"
-                BorderThickness="0"
+                AutomationProperties.Name="Parameters"
                 Click="OnToggleExpanded"
-                IsChecked="True">
+                IsChecked="True"
+                Style="{StaticResource GaugeDisclosureToggle}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon
                         x:Name="ExpandGlyph"
+                        VerticalAlignment="Center"
                         FontFamily="Segoe Fluent Icons"
                         FontSize="10"
                         Glyph="&#xE70D;" />
                     <TextBlock
                         x:Name="HeaderText"
-                        FontSize="12"
+                        VerticalAlignment="Center"
+                        FontSize="12.5"
                         FontWeight="SemiBold"
+                        Foreground="{ThemeResource GaugeFg0Brush}"
                         Text="Parameters" />
+                    <TextBlock
+                        x:Name="CountText"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{ThemeResource GaugeFg2Brush}" />
                 </StackPanel>
             </ToggleButton>
 
@@ -52,40 +61,50 @@
                 x:Name="HintText"
                 Grid.Column="1"
                 VerticalAlignment="Center"
-                FontSize="11"
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                FontSize="12"
+                Foreground="{ThemeResource GaugeFg2Brush}"
                 TextTrimming="CharacterEllipsis" />
 
             <Button
                 x:Name="ResetButton"
                 Grid.Column="2"
-                Padding="8,2"
                 Click="OnResetAll"
                 Content="Reset to plan values"
-                FontSize="11" />
+                FontSize="12.5"
+                Style="{StaticResource GaugeGhostButton}" />
+        </Grid>
+
+        <Grid
+            x:Name="ColumnHeadings"
+            Grid.Row="1"
+            Padding="14,0,14,4"
+            ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="140" />
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock FontSize="12" Foreground="{ThemeResource GaugeFg2Brush}" Text="Name" />
+            <TextBlock Grid.Column="1" FontSize="12" Foreground="{ThemeResource GaugeFg2Brush}" Text="Type" />
+            <TextBlock Grid.Column="2" FontSize="12" Foreground="{ThemeResource GaugeFg2Brush}" Text="Value" />
         </Grid>
 
         <ItemsControl
             x:Name="ItemsHost"
-            Grid.Row="1"
-            Padding="10,0,10,8"
-            >
+            Grid.Row="2"
+            Margin="14,0,14,10">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel Spacing="4" />
+                    <StackPanel Spacing="6" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplateSelector>
                 <local:ParameterEditorTemplateSelector>
                     <local:ParameterEditorTemplateSelector.DefaultTemplate>
                         <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid
-                                Padding="8,6"
-                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
-                                ColumnSpacing="8"
-                                RowSpacing="4">
+                            <Grid ColumnSpacing="10" RowSpacing="4">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="140" />
                                     <ColumnDefinition Width="130" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
@@ -119,11 +138,13 @@
                                     VerticalAlignment="Center"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
+                                    Foreground="{ThemeResource GaugeCodeBrush}"
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
@@ -154,7 +175,7 @@
                                         Grid.Column="1"
                                         MinWidth="0"
                                         Content="NULL"
-                                        FontSize="11"
+                                        FontSize="12"
                                         IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
                                 </Grid>
 
@@ -164,7 +185,7 @@
                                     Grid.ColumnSpan="2"
                                     Margin="2,2,0,0"
                                     FontSize="11"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Foreground="{ThemeResource GaugeCritBrush}"
                                     Text="{x:Bind ValidationMessage, Mode=OneWay}"
                                     TextWrapping="Wrap"
                                     Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
@@ -174,13 +195,9 @@
 
                     <local:ParameterEditorTemplateSelector.NumericTemplate>
                         <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid
-                                Padding="8,6"
-                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
-                                ColumnSpacing="8"
-                                RowSpacing="4">
+                            <Grid ColumnSpacing="10" RowSpacing="4">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="140" />
                                     <ColumnDefinition Width="130" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
@@ -214,11 +231,13 @@
                                     VerticalAlignment="Center"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
+                                    Foreground="{ThemeResource GaugeCodeBrush}"
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
@@ -249,7 +268,7 @@
                                         Grid.Column="1"
                                         MinWidth="0"
                                         Content="NULL"
-                                        FontSize="11"
+                                        FontSize="12"
                                         IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
                                 </Grid>
 
@@ -259,7 +278,7 @@
                                     Grid.ColumnSpan="2"
                                     Margin="2,2,0,0"
                                     FontSize="11"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Foreground="{ThemeResource GaugeCritBrush}"
                                     Text="{x:Bind ValidationMessage, Mode=OneWay}"
                                     TextWrapping="Wrap"
                                     Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
@@ -269,13 +288,9 @@
 
                     <local:ParameterEditorTemplateSelector.BitTemplate>
                         <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid
-                                Padding="8,6"
-                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
-                                ColumnSpacing="8"
-                                RowSpacing="4">
+                            <Grid ColumnSpacing="10" RowSpacing="4">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="140" />
                                     <ColumnDefinition Width="130" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
@@ -309,11 +324,13 @@
                                     VerticalAlignment="Center"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
+                                    Foreground="{ThemeResource GaugeCodeBrush}"
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
@@ -346,7 +363,7 @@
                                         Grid.Column="1"
                                         MinWidth="0"
                                         Content="NULL"
-                                        FontSize="11"
+                                        FontSize="12"
                                         IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
                                 </Grid>
 
@@ -356,7 +373,7 @@
                                     Grid.ColumnSpan="2"
                                     Margin="2,2,0,0"
                                     FontSize="11"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Foreground="{ThemeResource GaugeCritBrush}"
                                     Text="{x:Bind ValidationMessage, Mode=OneWay}"
                                     TextWrapping="Wrap"
                                     Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
@@ -366,13 +383,9 @@
 
                     <local:ParameterEditorTemplateSelector.DateTimeTemplate>
                         <DataTemplate x:DataType="vm:ParameterBindingItem">
-                            <Grid
-                                Padding="8,6"
-                                Background="{x:Bind RowIndex, Mode=OneWay, Converter={StaticResource RowIndexToAlternateBrush}}"
-                                ColumnSpacing="8"
-                                RowSpacing="4">
+                            <Grid ColumnSpacing="10" RowSpacing="4">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="140" />
                                     <ColumnDefinition Width="130" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
@@ -406,11 +419,13 @@
                                     VerticalAlignment="Center"
                                     FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
+                                    Foreground="{ThemeResource GaugeCodeBrush}"
                                     Text="{x:Bind Name}"
                                     ToolTipService.ToolTip="{x:Bind TypeSourceHint}" />
 
                                 <AutoSuggestBox
                                     Grid.Column="1"
+                                    FontFamily="{StaticResource GaugeMono}"
                                     FontSize="12"
                                     GotFocus="OnDataTypeGotFocus"
                                     PlaceholderText="type"
@@ -449,7 +464,7 @@
                                         Grid.Column="2"
                                         MinWidth="0"
                                         Content="NULL"
-                                        FontSize="11"
+                                        FontSize="12"
                                         IsChecked="{x:Bind IsNull, Mode=TwoWay}" />
                                 </Grid>
 
@@ -459,7 +474,7 @@
                                     Grid.ColumnSpan="2"
                                     Margin="2,2,0,0"
                                     FontSize="11"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Foreground="{ThemeResource GaugeCritBrush}"
                                     Text="{x:Bind ValidationMessage, Mode=OneWay}"
                                     TextWrapping="Wrap"
                                     Visibility="{x:Bind ValidationMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
@@ -477,8 +492,8 @@
         -->
         <StackPanel
             x:Name="TableHost"
-            Grid.Row="2"
-            Padding="10,0,10,8"
+            Grid.Row="3"
+            Padding="14,0,14,10"
             Spacing="8" />
     </Grid>
 </UserControl>

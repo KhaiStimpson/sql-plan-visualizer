@@ -22,7 +22,13 @@ public sealed partial class ParameterStrip : UserControl
 {
     private SqlEditorViewModel? _viewModel;
 
-    public ParameterStrip() => InitializeComponent();
+    public ParameterStrip()
+    {
+        InitializeComponent();
+
+        // The table grid is built in code from GaugeTokens, so it is rebuilt with the theme.
+        ActualThemeChanged += (_, _) => RebuildTables();
+    }
 
     /// <summary>Raised when a row is added or removed, so the host can recompose and mark stale.</summary>
     public event EventHandler? BindingsChanged;
@@ -62,7 +68,8 @@ public sealed partial class ParameterStrip : UserControl
         var parameters = _viewModel?.Parameters;
         var count = parameters?.Count ?? 0;
 
-        HeaderText.Text = count == 0 ? "Parameters" : $"Parameters ({count})";
+        HeaderText.Text = "Parameters";
+        CountText.Text = count == 0 ? string.Empty : count.ToString(System.Globalization.CultureInfo.CurrentCulture);
 
         var invalid = parameters?.Count(p => !p.IsValid) ?? 0;
         HintText.Text = count == 0
@@ -84,6 +91,9 @@ public sealed partial class ParameterStrip : UserControl
     {
         var expanded = ExpandToggle.IsChecked == true;
         ItemsHost.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+        ColumnHeadings.Visibility = expanded && _viewModel?.Parameters.Any(p => !p.IsTableValued) == true
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         TableHost.Visibility = expanded && TableHost.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         // ChevronDown / ChevronRight in Segoe Fluent Icons.
@@ -143,11 +153,14 @@ public sealed partial class ParameterStrip : UserControl
             : Visibility.Collapsed;
     }
 
+    /// <summary>Gauge colours for the code-built table grid, in this control's theme.</summary>
+    private Themes.GaugeTokenSet Tokens => Themes.GaugeTokens.For(ActualTheme);
+
     private Border BuildTableCard(ParameterBindingItem parameter)
     {
         var panel = new StackPanel { Spacing = 6 };
 
-        var header = new Grid { ColumnSpacing = 8 };
+        var header = new Grid { ColumnSpacing = 10, Padding = new Thickness(10, 6, 10, 0) };
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -157,6 +170,7 @@ public sealed partial class ParameterStrip : UserControl
             Text = parameter.Name,
             FontFamily = Themes.GaugeFonts.Mono,
             FontSize = 12,
+            Foreground = new SolidColorBrush(Tokens.Code),
             VerticalAlignment = VerticalAlignment.Center,
         };
 
@@ -169,7 +183,7 @@ public sealed partial class ParameterStrip : UserControl
         };
         typeBox.TextChanged += (_, _) => parameter.TableTypeName = typeBox.Text;
 
-        var addRow = new Button { Content = "Add row", FontSize = 11, Padding = new Thickness(8, 2, 8, 2) };
+        var addRow = new Button { Content = "Add row", FontSize = 12.5, Style = (Style)Application.Current.Resources["GaugeGhostButton"] };
         addRow.Click += (_, _) =>
         {
             if (parameter.Columns.Count == 0)
@@ -201,23 +215,25 @@ public sealed partial class ParameterStrip : UserControl
             panel.Children.Add(new TextBlock
             {
                 Text = message,
-                FontSize = 11,
-                Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"],
+                FontSize = 12,
+                Foreground = new SolidColorBrush(Tokens.Crit),
             });
         }
 
+        // The GaugeTable treatment: a line-bordered block, no tinted card fill.
         return new Border
         {
             Child = panel,
-            Padding = new Thickness(10, 8, 10, 8),
-            CornerRadius = new CornerRadius(6),
-            Background = (Brush)Application.Current.Resources["LayerFillColorAltBrush"],
+            Padding = new Thickness(0, 0, 0, 8),
+            CornerRadius = new CornerRadius(4),
+            BorderThickness = new Thickness(1),
+            BorderBrush = new SolidColorBrush(Tokens.Line),
         };
     }
 
     private Grid BuildGrid(ParameterBindingItem parameter)
     {
-        var grid = new Grid { ColumnSpacing = 6, RowSpacing = 4 };
+        var grid = new Grid { ColumnSpacing = 6, RowSpacing = 4, Padding = new Thickness(10, 0, 10, 0) };
 
         foreach (var _ in parameter.Columns)
         {
@@ -231,9 +247,10 @@ public sealed partial class ParameterStrip : UserControl
         {
             var heading = new TextBlock
             {
-                Text = $"{parameter.Columns[c].Name}  ·  {parameter.Columns[c].DataType}",
-                FontSize = 11,
-                Opacity = 0.7,
+                Text = $"{parameter.Columns[c].Name} · {parameter.Columns[c].DataType}",
+                FontSize = 12,
+                FontWeight = Microsoft.UI.Text.FontWeights.Medium,
+                Foreground = new SolidColorBrush(Tokens.Fg2),
                 TextTrimming = TextTrimming.CharacterEllipsis,
             };
             Grid.SetColumn(heading, c);
@@ -295,7 +312,12 @@ public sealed partial class ParameterStrip : UserControl
                 grid.Children.Add(cellPanel);
             }
 
-            var remove = new Button { Content = "✕", FontSize = 11, Padding = new Thickness(6, 2, 6, 2) };
+            var remove = new Button
+            {
+                Content = new FontIcon { Glyph = "\uE711", FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 11 },
+                Style = (Style)Application.Current.Resources["GaugeIconButton"],
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(remove, "Remove row");
             var captured = row;
             remove.Click += (_, _) =>
             {

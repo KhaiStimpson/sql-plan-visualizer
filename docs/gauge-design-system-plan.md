@@ -193,7 +193,7 @@ The bottom pane, matching the mock-up's baseline bar, SQL header, code and param
 - [x] SQL header as a `GaugePaneHeader`: "SQL", facts (likely clause + entity link to the operator
       + Ln/Col), ghost Format, Copy icon, secondary "Run for actual…", Cancel (when busy), and
       **Re-plan** as the workbench's single `GaugePrimaryButton` with a `Ctrl ↵` kbd.
-- [ ] `ParameterStrip`: header row (chevron toggle, "Parameters" + count, note, ghost "Reset to
+- [x] `ParameterStrip`: header row (chevron toggle, "Parameters" + count, note, ghost "Reset to
       plan values"), a Name / Type / Value / NULL grid with `fg-2` headers, mono `code` names,
       Gauge fields, right-aligned numeric values, and a TVP grid in the `GaugeTable` treatment.
       Drop the alternating tint. Run and screenshot.
