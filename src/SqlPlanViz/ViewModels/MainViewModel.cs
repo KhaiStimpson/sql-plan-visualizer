@@ -57,6 +57,10 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _rankOperatorsByDivergence;
 
+    /// <summary>The centre pane's view; set only through MainPage.SetViewMode.</summary>
+    [ObservableProperty]
+    private ViewMode _viewMode = ViewMode.Tree;
+
     [ObservableProperty]
     private string? _busyMessage;
 

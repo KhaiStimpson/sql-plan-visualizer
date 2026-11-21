@@ -112,7 +112,7 @@ The Gauge components as reusable XAML styles, so later phases only compose them.
 
 The structural change from the mock-up: one view mode, a left rail, session plans in the rail.
 
-- [ ] Add a `ViewMode` enum (`Tree`, `Ranked`, `History`, `Library`) and an `[ObservableProperty]`
+- [x] Add a `ViewMode` enum (`Tree`, `Ranked`, `History`, `Library`) and an `[ObservableProperty]`
       on `MainViewModel`. Add `SetViewMode` in `MainPage.xaml.cs` as the single setter of
       `Canvas` / `OperatorListPane` / `QueryStorePane` / `AntiPatternPane` visibility. Route
       `OnToggleOperatorList`, `OnToggleQueryStore`, `OnToggleAntiPatterns`, the "Back to tree"

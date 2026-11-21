@@ -790,26 +790,49 @@ public sealed partial class MainPage : Page
 
     private void OnSearchRequested(object? sender, EventArgs e) => SearchBox.Focus(FocusState.Keyboard);
 
-    private void OnToggleOperatorList(object sender, RoutedEventArgs e)
+    /// <summary>Whether the Tree view shows the flame view instead of the plan canvas.</summary>
+    private bool _flameMode;
+
+    /// <summary>
+    /// The single setter of which centre view is visible: the canvas (or flame view), the
+    /// ranked operator list, Query Store history or the anti-pattern library. Every rail item,
+    /// toggle and "jump to" path comes through here so the views can never disagree.
+    /// </summary>
+    private void SetViewMode(ViewMode mode)
     {
-        var show = OperatorListPane.Visibility != Visibility.Visible;
-        OperatorListPane.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+        ViewModel.ViewMode = mode;
+
+        var tree = mode == ViewMode.Tree;
+        Canvas.Visibility = tree && !_flameMode ? Visibility.Visible : Visibility.Collapsed;
+        Flame.Visibility = tree && _flameMode ? Visibility.Visible : Visibility.Collapsed;
+        OperatorListPane.Visibility = mode == ViewMode.Ranked ? Visibility.Visible : Visibility.Collapsed;
+        QueryStorePane.Visibility = mode == ViewMode.History ? Visibility.Visible : Visibility.Collapsed;
+        AntiPatternPane.Visibility = mode == ViewMode.Library ? Visibility.Visible : Visibility.Collapsed;
+
+        if (mode == ViewMode.History)
+        {
+            _ = ViewModel.LoadQueryStoreAsync();
+        }
     }
 
-    private void OnToggleFlameView(object sender, RoutedEventArgs e)
+    private void SetFlameMode(bool flame)
     {
-        var show = Flame.Visibility != Visibility.Visible;
-        Flame.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+        _flameMode = flame;
+        SetViewMode(ViewMode.Tree);
     }
+
+    private void OnToggleOperatorList(object sender, RoutedEventArgs e) =>
+        SetViewMode(ViewModel.ViewMode == ViewMode.Ranked ? ViewMode.Tree : ViewMode.Ranked);
+
+    private void OnToggleFlameView(object sender, RoutedEventArgs e) => SetFlameMode(!_flameMode);
+
+    private void OnBackToTree(object sender, RoutedEventArgs e) => SetViewMode(ViewMode.Tree);
 
     private void OnJumpToRankedOperator(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: PlanNode node })
         {
-            OperatorListPane.Visibility = Visibility.Collapsed;
-            Canvas.Visibility = Visibility.Visible;
+            SetViewMode(ViewMode.Tree);
             ViewModel.SelectedNode = node;
             Canvas.BringIntoView(node);
         }
@@ -827,33 +850,20 @@ public sealed partial class MainPage : Page
 
     private async void OnRerunAndCompare(object sender, RoutedEventArgs e) => await ViewModel.RerunAndCompareAsync();
 
-    private async void OnToggleQueryStore(object sender, RoutedEventArgs e)
-    {
-        var show = QueryStorePane.Visibility != Visibility.Visible;
-        QueryStorePane.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
-        if (show)
-        {
-            await ViewModel.LoadQueryStoreAsync();
-        }
-    }
+    private void OnToggleQueryStore(object sender, RoutedEventArgs e) =>
+        SetViewMode(ViewModel.ViewMode == ViewMode.History ? ViewMode.Tree : ViewMode.History);
 
     private void OnOpenQueryStorePlan(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: QueryStorePlanEntry entry })
         {
-            QueryStorePane.Visibility = Visibility.Collapsed;
-            Canvas.Visibility = Visibility.Visible;
+            SetViewMode(ViewMode.Tree);
             ViewModel.OpenQueryStorePlan(entry);
         }
     }
 
-    private void OnToggleAntiPatterns(object sender, RoutedEventArgs e)
-    {
-        var show = AntiPatternPane.Visibility != Visibility.Visible;
-        AntiPatternPane.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        Canvas.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
-    }
+    private void OnToggleAntiPatterns(object sender, RoutedEventArgs e) =>
+        SetViewMode(ViewModel.ViewMode == ViewMode.Library ? ViewMode.Tree : ViewMode.Library);
 
     private async void OnSaveRegressionBaseline(object sender, RoutedEventArgs e) =>
         await ShowBaselineResultAsync("Regression baseline", ViewModel.SaveRegressionBaseline());

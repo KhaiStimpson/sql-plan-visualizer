@@ -360,7 +360,7 @@
                                     Content="Sort by divergence"
                                     IsChecked="{x:Bind ViewModel.RankOperatorsByDivergence, Mode=TwoWay}"
                                     ToolTipService.ToolTip="Sort by |estimated cost share − actual time share| instead of self time" />
-                                <Button Click="OnToggleOperatorList" Content="Back to tree" />
+                                <Button Click="OnBackToTree" Content="Back to tree" />
                             </StackPanel>
                         </Grid>
                         <ListView
@@ -434,7 +434,7 @@
                         </Grid.RowDefinitions>
                         <Grid>
                             <TextBlock FontSize="16" FontWeight="SemiBold" Text="Query Store plan history" />
-                            <Button HorizontalAlignment="Right" Click="OnToggleQueryStore" Content="Back to tree" />
+                            <Button HorizontalAlignment="Right" Click="OnBackToTree" Content="Back to tree" />
                         </Grid>
                         <Grid Grid.Row="1">
                             <ProgressRing IsActive="{x:Bind ViewModel.IsLoadingQueryStore, Mode=OneWay}" />
@@ -485,7 +485,7 @@
                         </Grid.RowDefinitions>
                         <Grid>
                             <TextBlock FontSize="16" FontWeight="SemiBold" Text="Plan anti-pattern library" />
-                            <Button HorizontalAlignment="Right" Click="OnToggleAntiPatterns" Content="Back to tree" />
+                            <Button HorizontalAlignment="Right" Click="OnBackToTree" Content="Back to tree" />
                         </Grid>
                         <ScrollViewer Grid.Row="1">
                             <ItemsControl ItemsSource="{x:Bind AntiPatterns}">
