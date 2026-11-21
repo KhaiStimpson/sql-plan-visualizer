@@ -1886,24 +1886,54 @@
             </Border>
         </Grid>
 
-        <!--  Status bar  -->
-        <Border
-            Grid.Row="3"
-            Padding="14,6"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0"
-            Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-            <Grid>
+        <!--
+            Status bar (24px, bg-2, 11.5px fg-2): counts on the left; the canvas hint and the
+            theme control on the right.
+        -->
+        <Border Grid.Row="3" Style="{StaticResource GaugeStatusBar}">
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ItemsControl
+                    VerticalAlignment="Center"
+                    IsTabStop="False"
+                    ItemsSource="{x:Bind ViewModel.StatusItems, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="16" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <TextBlock Style="{StaticResource GaugeStatusText}" Text="{x:Bind}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
                 <TextBlock
-                    FontSize="12"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="{x:Bind ViewModel.StatementSummary, Mode=OneWay}"
+                    Grid.Column="1"
+                    Style="{StaticResource GaugeStatusText}"
+                    Text="Scroll to zoom · drag to pan · double-click an operator to collapse it"
                     TextTrimming="CharacterEllipsis" />
-                <TextBlock
-                    HorizontalAlignment="Right"
-                    FontSize="12"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Text="Scroll to zoom · drag to pan · double-click an operator to collapse it" />
+                <StackPanel
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="6">
+                    <TextBlock Style="{StaticResource GaugeStatusText}" Text="Theme" />
+                    <ComboBox
+                        x:Name="ThemePicker"
+                        MinWidth="66"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="Theme"
+                        SelectionChanged="OnThemeChanged"
+                        Style="{StaticResource GaugeCompactComboBox}">
+                        <ComboBoxItem Content="System" />
+                        <ComboBoxItem Content="Light" />
+                        <ComboBoxItem Content="Dark" />
+                    </ComboBox>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

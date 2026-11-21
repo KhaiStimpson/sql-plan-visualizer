@@ -9,6 +9,7 @@ using SqlPlanViz.Editing;
 using SqlPlanViz.Editing.Completion;
 using SqlPlanViz.Model;
 using SqlPlanViz.Sql;
+using SqlPlanViz.Themes;
 using SqlPlanViz.ViewModels;
 using SqlPlanViz.Views;
 using System.Collections.ObjectModel;
@@ -34,6 +35,7 @@ public sealed partial class MainPage : Page
         Canvas.SearchRequested += OnSearchRequested;
         SetUpEditor();
         SetViewMode(ViewMode.Tree);
+        ThemePicker.SelectedIndex = (int)ThemeService.Preference;
         UpdateMetricAvailability();
 
         // Start on the canvas rather than letting the first title-bar control take focus.
@@ -1064,6 +1066,14 @@ public sealed partial class MainPage : Page
     private void OnSaveAnnotation(object sender, RoutedEventArgs e) => ViewModel.SaveSelectedAnnotation();
 
     #endregion
+
+    private void OnThemeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ThemePicker is { SelectedIndex: >= 0 } picker)
+        {
+            ThemeService.SetPreference((ThemePreference)picker.SelectedIndex);
+        }
+    }
 
     /// <summary>Opens the command palette; wired up in Phase 9 of the Gauge plan.</summary>
     private void OnOpenPalette(object sender, RoutedEventArgs e)

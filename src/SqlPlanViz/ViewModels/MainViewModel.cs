@@ -247,13 +247,16 @@ public sealed partial class MainViewModel : ObservableObject
     public string Narrative => PlanNarrative.Generate(SelectedStatement, ExplanationVerbosity);
 
     /// <summary>Status-bar summary for the current statement.</summary>
-    public string StatementSummary
+    public string StatementSummary => string.Join("  ·  ", StatusItems);
+
+    /// <summary>The status bar's left-hand facts, each its own item (16px apart, no separators).</summary>
+    public IReadOnlyList<string> StatusItems
     {
         get
         {
             if (SelectedStatement is not { } s)
             {
-                return string.Empty;
+                return ["No plan loaded"];
             }
 
             var parts = new List<string>
@@ -278,7 +281,7 @@ public sealed partial class MainViewModel : ObservableObject
             }
 
             parts.Add(s.HasRuntimeStats ? "actual plan" : "estimated plan");
-            return string.Join("  ·  ", parts);
+            return parts;
         }
     }
 
@@ -762,6 +765,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(StatementSummary));
+        OnPropertyChanged(nameof(StatusItems));
         OnPropertyChanged(nameof(StatementTitle));
         OnPropertyChanged(nameof(StatementFacts));
         OnPropertyChanged(nameof(PlanKindLabel));

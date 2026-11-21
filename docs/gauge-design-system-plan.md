@@ -145,7 +145,7 @@ The chrome around the canvas, matching `gauge-mockup-main-*.png`.
       facts, then a Weigh-by `ComboBox` replacing the metric `SelectorBar` (same 7 metrics, same
       `OnMetricChanged` effect), Blame toggle, Detail cycle button, and a Tree/Flame
       `GaugeSegmented` that replaces `FlameViewButton`.
-- [ ] Replace the footer with `GaugeStatusBar`: operator count, cost, elapsed, CPU and plan kind
+- [x] Replace the footer with `GaugeStatusBar`: operator count, cost, elapsed, CPU and plan kind
       on the left, the canvas hint and a Theme `ComboBox` (System/Light/Dark → `ThemeService`)
       on the right.
 - [ ] Restyle the canvas focus breadcrumb, busy overlay and InfoBars to Gauge roles. Run and
