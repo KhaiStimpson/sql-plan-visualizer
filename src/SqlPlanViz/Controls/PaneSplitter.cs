@@ -26,7 +26,7 @@ public sealed partial class PaneSplitter : Control
 
     public PaneSplitter()
     {
-        Height = 6;
+        Height = 9;
         HorizontalAlignment = HorizontalAlignment.Stretch;
         IsTabStop = true;
         UseSystemFocusVisuals = true;

@@ -518,7 +518,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition x:Name="EditorPaneRow" Height="240" />
+                    <RowDefinition x:Name="EditorPaneRow" Height="286" />
                 </Grid.RowDefinitions>
                 <!--
                     Centre pane header: which statement, then the canvas controls - Weigh by
@@ -961,9 +961,7 @@
                 <Border
                     x:Name="EditorPane"
                     Grid.Row="3"
-                    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
-                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-                    BorderThickness="0,1,0,0"
+                    Background="{ThemeResource GaugeBg1Brush}"
                     Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -980,56 +978,51 @@
                         -->
                         <Border
                             x:Name="CostBar"
-                            Padding="12,7"
-                            Background="{ThemeResource LayerFillColorAltBrush}">
+                            Padding="14,5"
+                            Background="{ThemeResource GaugeBg2Brush}"
+                            BorderBrush="{ThemeResource GaugeLineBrush}"
+                            BorderThickness="0,0,0,1">
                             <Grid ColumnSpacing="10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <FontIcon
-                                    x:Name="CostBarGlyph"
+                                <!--  Verdict: a word first (Better / Worse), coloured ok / crit, then the numbers in fg-0.  -->
+                                <TextBlock
+                                    x:Name="CostBarHeadline"
                                     VerticalAlignment="Center"
-                                    FontFamily="Segoe Fluent Icons"
-                                    FontSize="15"
-                                    Glyph="&#xE9CE;" />
-                                <StackPanel Grid.Column="1" Spacing="1">
-                                    <TextBlock
-                                        x:Name="CostBarHeadline"
-                                        FontSize="12.5"
-                                        FontWeight="SemiBold"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        x:Name="CostBarDetail"
-                                        FontSize="11"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
+                                    FontSize="12.5"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource GaugeFg0Brush}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    x:Name="CostBarDetail"
+                                    Grid.Column="1"
+                                    Style="{StaticResource GaugeFacts}" />
                                 <StackPanel
                                     Grid.Column="2"
                                     Orientation="Horizontal"
-                                    Spacing="4">
+                                    Spacing="8">
                                     <Button
                                         x:Name="PinBaselineButton"
-                                        Padding="8,2"
                                         Click="OnPinBaseline"
                                         Content="Pin current as baseline"
-                                        FontSize="11"
+                                        FontSize="12.5"
+                                        Style="{StaticResource GaugeGhostButton}"
                                         ToolTipService.ToolTip="Re-anchor the comparison to the plan on screen, once an improvement is banked" />
                                     <Button
                                         x:Name="RefreshCatalogButton"
-                                        Padding="8,2"
                                         Click="OnRefreshCatalog"
                                         Content="Refresh schema"
-                                        FontSize="11"
+                                        FontSize="12.5"
+                                        Style="{StaticResource GaugeGhostButton}"
                                         ToolTipService.ToolTip="Re-read tables, columns and indexes from the connected database" />
                                     <ToggleButton
                                         x:Name="AnnotationsToggle"
-                                        Padding="8,2"
                                         Click="OnToggleInlineAnnotations"
                                         Content="Annotations"
-                                        FontSize="11"
+                                        FontSize="12.5"
                                         IsChecked="True"
                                         ToolTipService.ToolTip="Show end-of-line delta annotations in the editor" />
                                 </StackPanel>

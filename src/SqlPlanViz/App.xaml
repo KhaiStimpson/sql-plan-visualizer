@@ -78,18 +78,21 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="controls:PaneSplitter">
-                            <Grid Background="{TemplateBinding Background}">
+                            <Grid
+                                Background="{ThemeResource GaugeBg2Brush}"
+                                BorderBrush="{ThemeResource GaugeLineBrush}"
+                                BorderThickness="0,1,0,1">
                                 <VisualStateManager.VisualStateGroups>
                                     <VisualStateGroup x:Name="CommonStates">
                                         <VisualState x:Name="Normal" />
                                         <VisualState x:Name="PointerOver">
                                             <VisualState.Setters>
-                                                <Setter Target="Grip.Fill" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                                <Setter Target="Grip.Fill" Value="{ThemeResource GaugeAccentBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                         <VisualState x:Name="Pressed">
                                             <VisualState.Setters>
-                                                <Setter Target="Grip.Fill" Value="{ThemeResource AccentFillColorTertiaryBrush}" />
+                                                <Setter Target="Grip.Fill" Value="{ThemeResource GaugeAccentBrush}" />
                                             </VisualState.Setters>
                                         </VisualState>
                                     </VisualStateGroup>
@@ -97,11 +100,11 @@
 
                                 <Rectangle
                                     x:Name="Grip"
-                                    Width="40"
+                                    Width="36"
                                     Height="3"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Fill="{ThemeResource ControlStrokeColorDefaultBrush}"
+                                    Fill="{ThemeResource GaugeLineCtlBrush}"
                                     RadiusX="1.5"
                                     RadiusY="1.5" />
                             </Grid>

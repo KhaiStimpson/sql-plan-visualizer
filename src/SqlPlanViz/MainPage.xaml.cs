@@ -260,27 +260,33 @@ public sealed partial class MainPage : Page
         var session = ViewModel.TuningSession;
         session.IsStale = ViewModel.Editor.IsStale;
 
-        CostBarHeadline.Text = session.Headline;
-        CostBarDetail.Text = session.Detail;
-        PinBaselineButton.IsEnabled = session.Current is not null;
-
-        // The glyph carries the direction independently of colour, so the bar still reads
-        // for anyone who cannot separate the red from the green.
-        var (glyph, brushKey) = session.IsStale
-            ? ("\uE7BA", "SystemFillColorCautionBrush")
+        // The verdict is a word (Better / Worse) first, so it reads without the colour; the
+        // colour (ok / crit) only reinforces it. Everything after the word stays fg-0.
+        var parts = session.Headline.Split("  ·  ", 2);
+        CostBarHeadline.Inlines.Clear();
+        var verdict = new Microsoft.UI.Xaml.Documents.Run { Text = parts[0] };
+        var verdictBrush = session.IsStale
+            ? null
             : session.Direction switch
             {
-                TuningDirection.Improved => ("\uE74B", "SystemFillColorSuccessBrush"),
-                TuningDirection.Regressed => ("\uE74A", "SystemFillColorCriticalBrush"),
-                _ => ("\uE9CE", "SystemFillColorNeutralBrush"),
+                TuningDirection.Improved when session.HasComparison => "GaugeOkBrush",
+                TuningDirection.Regressed when session.HasComparison => "GaugeCritBrush",
+                _ => null,
             };
-
-        CostBarGlyph.Glyph = glyph;
-
-        if (Application.Current.Resources.TryGetValue(brushKey, out var brush))
+        if (verdictBrush is not null && ThemeBrush(verdictBrush) is { } themed)
         {
-            CostBarGlyph.Foreground = (Brush)brush;
+            verdict.Foreground = themed;
         }
+
+        CostBarHeadline.Inlines.Add(verdict);
+        if (parts.Length > 1)
+        {
+            CostBarHeadline.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = " · " + parts[1].Replace("  ·  ", " · ") });
+        }
+
+        CostBarDetail.Text = session.Detail;
+        ToolTipService.SetToolTip(CostBarDetail, string.IsNullOrEmpty(session.Detail) ? null : session.Detail);
+        PinBaselineButton.IsEnabled = session.Current is not null;
 
         // Gutter marks and annotations are inference and go silent when the text has moved on
         // — a mark pointing at a line that has since been edited is worse than no mark.
@@ -1078,6 +1084,19 @@ public sealed partial class MainPage : Page
         {
             ThemeService.SetPreference((ThemePreference)picker.SelectedIndex);
         }
+    }
+
+    /// <summary>A Gauge brush resolved against this page's current theme (code-built UI).</summary>
+    private Brush? ThemeBrush(string key)
+    {
+        var tokens = GaugeTokens.For(ActualTheme);
+        return key switch
+        {
+            "GaugeOkBrush" => new SolidColorBrush(tokens.Ok),
+            "GaugeCritBrush" => new SolidColorBrush(tokens.Crit),
+            "GaugeWarnBrush" => new SolidColorBrush(tokens.Warn),
+            _ => null,
+        };
     }
 
     /// <summary>Opens the command palette; wired up in Phase 9 of the Gauge plan.</summary>

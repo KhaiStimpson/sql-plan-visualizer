@@ -187,7 +187,7 @@ The bottom pane, matching the mock-up's baseline bar, SQL header, code and param
       match outlined in `line-ctl`, caret `fg-0`, selection `sel`, find matches `warn-dim` with
       the current match in `accent-dim`. Restyle the find/replace overlay and `CompletionPopup`
       as Gauge menus (`bg-2`, `line-2`, active row = selected-record treatment).
-- [ ] Splitter grip in `line-ctl` on a `bg-2` 7px band (accent on hover). Cost bar as a `bg-2`
+- [x] Splitter grip in `line-ctl` on a `bg-2` 7px band (accent on hover). Cost bar as a `bg-2`
       pane header: verdict text 600 (`ok` "Better" / `crit` "Worse" / neutral), facts in `fg-2`,
       ghost Pin current as baseline / Refresh schema and the Annotations toggle.
 - [ ] SQL header as a `GaugePaneHeader`: "SQL", facts (likely clause + entity link to the operator
