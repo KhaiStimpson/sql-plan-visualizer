@@ -226,7 +226,7 @@ because every task shares the inspector's header and list templates.
 
 Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
 
-- [ ] Empty state: 18px "No plan loaded" heading, body copy, **Open a .sqlplan file** primary,
+- [x] Empty state: 18px "No plan loaded" heading, body copy, **Open a .sqlplan file** primary,
       Paste XML / Capture from server secondary, then "Or connect to a saved profile" as a
       `GaugeTable` (Profile entity link / mono server · database / authentication). The inspector
       shows its empty sentence. The editor pane is hidden.

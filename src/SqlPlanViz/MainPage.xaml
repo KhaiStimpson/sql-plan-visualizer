@@ -824,59 +824,111 @@
                     </Grid>
                 </Border>
 
-                <!--  Empty state  -->
+                <!--
+                    Empty state: an 18px heading, the ways in (Open is the view's one primary),
+                    then saved profiles as a table whose names connect.
+                -->
                 <StackPanel
-                    Grid.Row="1"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    MaxWidth="460"
-                    Spacing="14"
+                    Grid.Row="0"
+                    Grid.RowSpan="4"
+                    Width="560"
+                    Margin="76,46,40,40"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
                     Visibility="{x:Bind ViewModel.HasNoPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <FontIcon
-                        FontFamily="Segoe Fluent Icons"
-                        FontSize="42"
-                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                        Glyph="&#xE9D9;" />
                     <TextBlock
-                        HorizontalAlignment="Center"
-                        FontSize="19"
+                        Margin="0,0,0,6"
+                        FontSize="18"
                         FontWeight="SemiBold"
+                        Foreground="{ThemeResource GaugeFg0Brush}"
                         Text="No plan loaded" />
                     <TextBlock
-                        HorizontalAlignment="Center"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        TextAlignment="Center"
-                        TextWrapping="Wrap"
-                        Text="Drop a .sqlplan file here, open one, paste Showplan XML, or capture a plan straight from a live SQL Server connection." />
-                    <StackPanel
-                        HorizontalAlignment="Center"
-                        Orientation="Horizontal"
-                        Spacing="8">
-                        <Button Click="OnOpenFile" Style="{ThemeResource AccentButtonStyle}" Content="Open a .sqlplan file" />
+                        Margin="0,0,0,16"
+                        Foreground="{ThemeResource GaugeFg1Brush}"
+                        LineHeight="19"
+                        TextWrapping="Wrap">
+                        <Run Text="Drop a " /><Run FontFamily="{StaticResource GaugeMono}" FontSize="12" Text=".sqlplan" /><Run Text=" file here, open one, paste Showplan XML, or capture a plan straight from a live SQL Server connection." />
+                    </TextBlock>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            Click="OnOpenFile"
+                            Content="Open a .sqlplan file"
+                            Style="{StaticResource GaugePrimaryButton}" />
                         <Button Click="OnPasteXml" Content="Paste XML" />
                         <Button Click="OnCapture" Content="Capture from server" />
                     </StackPanel>
-                    <StackPanel
-                        x:Name="ProfilesPanel"
-                        HorizontalAlignment="Center"
-                        Spacing="8"
-                        Visibility="Collapsed">
+
+                    <StackPanel x:Name="ProfilesPanel" Visibility="Collapsed">
                         <TextBlock
-                            HorizontalAlignment="Center"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Margin="0,28,0,8"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource GaugeFg0Brush}"
                             Text="Or connect to a saved profile" />
-                        <ItemsControl ItemsSource="{x:Bind ConnectionProfiles, Mode=OneWay}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="8" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Click="OnConnectProfile" Content="{Binding Name}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <Border BorderBrush="{ThemeResource GaugeLineBrush}" BorderThickness="1">
+                            <StackPanel>
+                                <Grid
+                                    Padding="14,6"
+                                    Background="{ThemeResource GaugeBg2Brush}"
+                                    ColumnSpacing="14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="114" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource GaugeTableHeaderText}" Text="Profile" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Style="{StaticResource GaugeTableHeaderText}"
+                                        Text="Server · database" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Style="{StaticResource GaugeTableHeaderText}"
+                                        Text="Authentication" />
+                                </Grid>
+                                <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ConnectionProfiles, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="capture:ConnectionProfile">
+                                            <Button
+                                                AutomationProperties.Name="{x:Bind Name}"
+                                                Click="OnConnectProfile"
+                                                IsTabStop="False"
+                                                Style="{StaticResource GaugeRowButton}">
+                                                <Grid
+                                                    Padding="14,6"
+                                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                    BorderThickness="0,1,0,0"
+                                                    ColumnSpacing="14">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="114" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <HyperlinkButton
+                                                        Click="OnConnectProfile"
+                                                        Content="{x:Bind Name}"
+                                                        Style="{StaticResource GaugeEntityLinkSans}"
+                                                        ToolTipService.ToolTip="Connect with this profile" />
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        FontFamily="{StaticResource GaugeMono}"
+                                                        FontSize="12"
+                                                        Foreground="{ThemeResource GaugeFg0Brush}"
+                                                        Text="{x:Bind local:MainPage.ProfileTarget(Server, Database)}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock
+                                                        Grid.Column="2"
+                                                        VerticalAlignment="Center"
+                                                        Foreground="{ThemeResource GaugeFg1Brush}"
+                                                        Text="{x:Bind local:MainPage.ProfileAuth(Auth, PasswordIsVaulted, IsRawConnectionString)}"
+                                                        TextAlignment="Right" />
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </StackPanel>
 
@@ -1156,8 +1208,7 @@
                 Grid.Column="2"
                 Background="{ThemeResource GaugeBg1Brush}"
                 BorderBrush="{ThemeResource GaugeLineBrush}"
-                BorderThickness="1,0,0,0"
-                Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                BorderThickness="1,0,0,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -1193,7 +1244,8 @@
                             <StackPanel
                                 Grid.Column="2"
                                 Orientation="Horizontal"
-                                Spacing="8">
+                                Spacing="8"
+                                Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                 <Border AutomationProperties.Name="Explanations" Style="{StaticResource GaugeSegmented}">
                                     <StackPanel Orientation="Horizontal">
                                         <RadioButton
@@ -1235,7 +1287,8 @@
                         Grid.Row="1"
                         Margin="14,10,14,0"
                         Padding="16,10"
-                        Style="{StaticResource GaugeCallout}">
+                        Style="{StaticResource GaugeCallout}"
+                        Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                         <RichTextBlock
                             x:Name="NarrativeText"
                             FontSize="12.5"
@@ -1250,7 +1303,8 @@
                         Grid.Row="2"
                         Padding="14,10,14,8"
                         BorderBrush="{ThemeResource GaugeLineBrush}"
-                        BorderThickness="0,0,0,1">
+                        BorderThickness="0,0,0,1"
+                        Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                         <Border
                             x:Name="PaneSelector"
                             AutomationProperties.Name="Inspector view"
@@ -1296,6 +1350,15 @@
                         </Border>
                     </Border>
 
+                    <TextBlock
+                        Grid.Row="3"
+                        Margin="14,12,14,0"
+                        Foreground="{ThemeResource GaugeFg2Brush}"
+                        LineHeight="19"
+                        Text="Open or capture a plan to see ranked findings, operator details, index suggestions and warnings here."
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.HasNoPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
                     <!--
                         Findings as dense rows: severity word, title, impact; the description;
                         then the operator as an entity link, confidence and triage. The selected
@@ -1304,7 +1367,8 @@
                     <ScrollViewer
                         x:Name="FindingsPane"
                         Grid.Row="3"
-                        Padding="0">
+                        Padding="0"
+                        Visibility="{x:Bind ViewModel.HasPlan, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                         <StackPanel>
                             <TextBlock
                                 Margin="14,16,14,0"

@@ -399,6 +399,21 @@ public sealed partial class MainPage : Page
 
     public IReadOnlyList<AntiPatternInfo> AntiPatterns => AntiPatternLibrary.All;
 
+    /// <summary>x:Bind helper for the profiles table: "server · database".</summary>
+    public static string ProfileTarget(string server, string database) =>
+        string.IsNullOrWhiteSpace(database) ? server : $"{server} · {database}";
+
+    /// <summary>x:Bind helper for the profiles table's authentication column.</summary>
+    public static string ProfileAuth(AuthMode auth, bool passwordIsVaulted, bool isRawConnectionString) =>
+        isRawConnectionString
+            ? "Connection string"
+            : auth switch
+            {
+                AuthMode.EntraMfa => "Microsoft Entra MFA",
+                AuthMode.SqlLogin => passwordIsVaulted ? "SQL Server · saved password" : "SQL Server",
+                _ => "Windows",
+            };
+
     /// <summary>The element the host window hands to SetTitleBar for the custom caption.</summary>
     public UIElement TitleBar => AppTitleBar;
 
