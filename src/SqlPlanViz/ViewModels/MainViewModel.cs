@@ -242,6 +242,23 @@ public sealed partial class MainViewModel : ObservableObject
 
     public int FindingCount => Findings.Count;
 
+    /// <summary>The finding drawn as the selected record and expanded inline in the inspector.</summary>
+    [ObservableProperty]
+    private FindingItem? _selectedFinding;
+
+    partial void OnSelectedFindingChanged(FindingItem? oldValue, FindingItem? newValue)
+    {
+        if (oldValue is not null)
+        {
+            oldValue.IsSelected = false;
+        }
+
+        if (newValue is not null)
+        {
+            newValue.IsSelected = true;
+        }
+    }
+
     /// <summary>The Diagnosis header's facts, as severity words: "5 critical · 8 warnings".</summary>
     public string CriticalCountText => Findings.Count(f => f.Severity == FindingSeverity.Critical) is var n and > 0
         ? $"{n} critical"
@@ -775,6 +792,14 @@ public sealed partial class MainViewModel : ObservableObject
             Metric = SizeMetric.SubtreeCost;
         }
 
+        // Start with a relevant record selected (Gauge DESIGN.md): the top finding, and on
+        // the canvas the operator it implicates.
+        SelectedFinding = Findings.FirstOrDefault();
+        if (SelectedFinding?.PrimaryNode is { } topNode)
+        {
+            SelectedNode = topNode;
+        }
+
         OnPropertyChanged(nameof(StatementSummary));
         OnPropertyChanged(nameof(StatusItems));
         OnPropertyChanged(nameof(StatementTitle));
@@ -975,6 +1000,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnExplanationVerbosityChanged(ExplanationVerbosity value)
     {
+        var selectedKey = SelectedFinding?.PersistenceKey;
         Findings.Clear();
         if (SelectedStatement is { } statement)
         {
@@ -983,6 +1009,9 @@ public sealed partial class MainViewModel : ObservableObject
                 Findings.Add(CreateFindingItem(finding, statement, value));
             }
         }
+
+        // The same finding stays selected across a change of explanation depth.
+        SelectedFinding = Findings.FirstOrDefault(f => f.PersistenceKey == selectedKey) ?? Findings.FirstOrDefault();
 
         OnPropertyChanged(nameof(Narrative));
         OnPropertyChanged(nameof(FindingCount));

@@ -207,12 +207,12 @@ because every task shares the inspector's header and list templates.
       `GaugeSegmented` (replaces `VerbosityButton`), copy-as-Markdown icon button.
 - [x] Narrative as a `GaugeCallout` with entity links for operator names, bold metrics and a bold
       "Next step:" lead.
-- [ ] Replace the inspector `SelectorBar` with a `GaugeSegmented` (Findings N / Operator /
+- [x] Replace the inspector `SelectorBar` with a `GaugeSegmented` (Findings N / Operator /
       Indexes N / Warnings N / Delta) driving the same panes.
-- [ ] Findings as dense rows: severity word, title 600, impact right-aligned tabular, description,
+- [x] Findings as dense rows: severity word, title 600, impact right-aligned tabular, description,
       entity link to the node, confidence, triage state word on the right. Selected row uses the
       `sel` treatment with `sel-crit` / `sel-warn`. Remove the card and the Expander.
-- [ ] Selected finding expands inline on `bg-0`: "Why it matters", "Fixes, most effective first",
+- [x] Selected finding expands inline on `bg-0`: "Why it matters", "Fixes, most effective first",
       the approximate what-if box (`line-2` border), Show in plan / Open in library, the triage
       `GaugeSegmented` (Tried / No help / Fixed / Reset), and the "saved beside" note.
 - [ ] Operator pane: `GaugePaneHeader` per section with key-value grids (labels `fg-2`, values

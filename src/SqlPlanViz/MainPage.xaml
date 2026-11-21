@@ -11,6 +11,8 @@
     xmlns:model="using:SqlPlanViz.Model"
     xmlns:vm="using:SqlPlanViz.ViewModels"
     xmlns:views="using:SqlPlanViz.Views"
+    xmlns:themes="using:SqlPlanViz.Themes"
+    xmlns:local="using:SqlPlanViz"
     Background="{ThemeResource GaugeBg0Brush}"
     FontFamily="{StaticResource GaugeSans}"
     FontSize="13"
@@ -1243,155 +1245,298 @@
                             TextWrapping="Wrap" />
                     </Border>
 
-                    <SelectorBar
-                        x:Name="PaneSelector"
+                    <!--  Inspector view: a segmented control over the same five panes.  -->
+                    <Border
                         Grid.Row="2"
-                        Margin="10,10,10,4"
-                        SelectionChanged="OnPaneChanged">
-                        <SelectorBarItem x:Name="FindingsTab" IsSelected="True" Text="Findings" />
-                        <SelectorBarItem Text="Operator" />
-                        <SelectorBarItem x:Name="IndexesTab" Text="Indexes" />
-                        <SelectorBarItem x:Name="WarningsTab" Text="Warnings" />
-                        <SelectorBarItem x:Name="DeltaTab" Text="Delta" />
-                    </SelectorBar>
+                        Padding="14,10,14,8"
+                        BorderBrush="{ThemeResource GaugeLineBrush}"
+                        BorderThickness="0,0,0,1">
+                        <Border
+                            x:Name="PaneSelector"
+                            AutomationProperties.Name="Inspector view"
+                            Style="{StaticResource GaugeSegmented}">
+                            <StackPanel Orientation="Horizontal">
+                            <RadioButton
+                                x:Name="FindingsTab"
+                                Checked="OnInspectorTabChecked"
+                                Content="Findings"
+                                GroupName="InspectorTab"
+                                IsChecked="True"
+                                Style="{StaticResource GaugeSegmentItemFirst}"
+                                Tag="0" />
+                            <RadioButton
+                                x:Name="OperatorTab"
+                                Checked="OnInspectorTabChecked"
+                                Content="Operator"
+                                GroupName="InspectorTab"
+                                Style="{StaticResource GaugeSegmentItem}"
+                                Tag="1" />
+                            <RadioButton
+                                x:Name="IndexesTab"
+                                Checked="OnInspectorTabChecked"
+                                Content="Indexes"
+                                GroupName="InspectorTab"
+                                Style="{StaticResource GaugeSegmentItem}"
+                                Tag="2" />
+                            <RadioButton
+                                x:Name="WarningsTab"
+                                Checked="OnInspectorTabChecked"
+                                Content="Warnings"
+                                GroupName="InspectorTab"
+                                Style="{StaticResource GaugeSegmentItem}"
+                                Tag="3" />
+                            <RadioButton
+                                x:Name="DeltaTab"
+                                Checked="OnInspectorTabChecked"
+                                Content="Delta"
+                                GroupName="InspectorTab"
+                                Style="{StaticResource GaugeSegmentItem}"
+                                Tag="4" />
+                            </StackPanel>
+                        </Border>
+                    </Border>
 
-                    <!--  Ranked diagnostic findings  -->
+                    <!--
+                        Findings as dense rows: severity word, title, impact; the description;
+                        then the operator as an entity link, confidence and triage. The selected
+                        finding is drawn as a selected record and expands inline on bg-0.
+                    -->
                     <ScrollViewer
                         x:Name="FindingsPane"
                         Grid.Row="3"
-                        Padding="12,8,12,16">
-                        <StackPanel Spacing="8">
+                        Padding="0">
+                        <StackPanel>
                             <TextBlock
-                                Margin="4,24,4,0"
-                                HorizontalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                TextAlignment="Center"
+                                Margin="14,16,14,0"
+                                Foreground="{ThemeResource GaugeFg2Brush}"
                                 TextWrapping="Wrap"
                                 Text="No diagnostic findings for the available plan data."
                                 Visibility="{x:Bind ViewModel.HasFindings, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
 
-                            <ItemsControl ItemsSource="{x:Bind ViewModel.Findings, Mode=OneWay}">
+                            <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.Findings, Mode=OneWay}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:FindingItem">
-                                        <Border Margin="0,0,0,10" Style="{StaticResource CardBorder}">
-                                            <StackPanel Spacing="8">
-                                                <Button
-                                                    Padding="0"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Stretch"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Click="OnJumpToFinding"
-                                                    Tag="{x:Bind PrimaryNode}">
-                                                    <Grid ColumnSpacing="9">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <Border
-                                                            Width="30"
-                                                            Height="30"
-                                                            VerticalAlignment="Top"
-                                                            Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
-                                                            CornerRadius="15">
-                                                            <FontIcon
-                                                                FontFamily="Segoe Fluent Icons"
-                                                                FontSize="13"
-                                                                Foreground="White"
-                                                                Glyph="{x:Bind SeverityGlyph}" />
-                                                        </Border>
-                                                        <StackPanel Grid.Column="1" Spacing="3">
+                                        <StackPanel>
+                                            <Button
+                                                AutomationProperties.Name="{x:Bind Title}"
+                                                BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                Click="OnSelectFinding"
+                                                IsTabStop="False"
+                                                Style="{StaticResource GaugeRowButton}"
+                                                Tag="{x:Bind}">
+                                                <Grid Background="{x:Bind themes:GaugeBrushes.RowFill(IsSelected), Mode=OneWay}" BorderBrush="{ThemeResource GaugeLineBrush}" BorderThickness="0,0,0,1">
+                                                    <Rectangle
+                                                        Width="2"
+                                                        HorizontalAlignment="Left"
+                                                        Fill="{x:Bind themes:GaugeBrushes.RowEdge(IsSelected), Mode=OneWay}" />
+                                                    <StackPanel Padding="14,8,14,9" Spacing="2">
+                                                        <Grid ColumnSpacing="10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
                                                             <TextBlock
                                                                 FontSize="13"
                                                                 FontWeight="SemiBold"
-                                                                Text="{x:Bind Title}"
+                                                                Foreground="{x:Bind themes:GaugeBrushes.Severity(Severity, IsSelected), Mode=OneWay}"
+                                                                Text="{x:Bind SeverityWord}" />
+                                                            <TextBlock
+                                                                Grid.Column="1"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{x:Bind themes:GaugeBrushes.RowText(IsSelected), Mode=OneWay}"
+                                                                Text="{x:Bind Name}"
+                                                                TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock
+                                                                Grid.Column="2"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{x:Bind themes:GaugeBrushes.RowText(IsSelected), Mode=OneWay}"
+                                                                Text="{x:Bind ImpactShort}" />
+                                                        </Grid>
+                                                        <TextBlock
+                                                            Foreground="{x:Bind themes:GaugeBrushes.RowBody(IsSelected), Mode=OneWay}"
+                                                            Text="{x:Bind Description}"
+                                                            TextWrapping="Wrap" />
+                                                        <Grid ColumnSpacing="10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <HyperlinkButton
+                                                                AutomationProperties.Name="{x:Bind NodeEntity}"
+                                                                BorderBrush="{x:Bind themes:GaugeBrushes.RowUnderline(IsSelected), Mode=OneWay}"
+                                                                Click="OnFindingEntity"
+                                                                Content="{x:Bind NodeEntity}"
+                                                                FontSize="12.5"
+                                                                Foreground="{x:Bind themes:GaugeBrushes.RowText(IsSelected), Mode=OneWay}"
+                                                                Style="{StaticResource GaugeEntityLinkSans}"
+                                                                Tag="{x:Bind}"
+                                                                ToolTipService.ToolTip="Select this finding and show its operator in the plan" />
+                                                            <TextBlock
+                                                                Grid.Column="1"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="12"
+                                                                Foreground="{x:Bind themes:GaugeBrushes.RowMeta(IsSelected), Mode=OneWay}"
+                                                                Text="{x:Bind ConfidenceLower}" />
+                                                            <TextBlock
+                                                                Grid.Column="2"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="12"
+                                                                Foreground="{x:Bind themes:GaugeBrushes.RowMeta(IsSelected), Mode=OneWay}"
+                                                                Text="{x:Bind TriageWord, Mode=OneWay}" />
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Button>
+
+                                            <!--  The selected finding, expanded: why, fixes, what-if, actions, triage.  -->
+                                            <Border
+                                                Padding="14,10,14,14"
+                                                Background="{ThemeResource GaugeBg0Brush}"
+                                                BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                BorderThickness="0,0,0,1"
+                                                Visibility="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Style="{StaticResource SectionHeader}" Text="Why it matters" />
+                                                    <TextBlock
+                                                        Foreground="{ThemeResource GaugeFg1Brush}"
+                                                        IsTextSelectionEnabled="True"
+                                                        Text="{x:Bind Why}"
+                                                        TextWrapping="Wrap" />
+
+                                                    <TextBlock
+                                                        Margin="0,8,0,4"
+                                                        Style="{StaticResource SectionHeader}"
+                                                        Text="Fixes, most effective first"
+                                                        Visibility="{x:Bind HasFixes, Converter={StaticResource BoolToVisibility}}" />
+                                                    <ItemsControl IsTabStop="False" ItemsSource="{x:Bind Fixes}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:FindingFixItem">
+                                                                <Grid Margin="0,0,0,6" ColumnSpacing="6">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="18" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Foreground="{ThemeResource GaugeFg1Brush}" Text="{x:Bind Number}" />
+                                                                    <StackPanel Grid.Column="1" Spacing="4">
+                                                                        <TextBlock
+                                                                            Foreground="{ThemeResource GaugeFg1Brush}"
+                                                                            IsTextSelectionEnabled="True"
+                                                                            Text="{x:Bind Summary}"
+                                                                            TextWrapping="Wrap" />
+                                                                        <Border
+                                                                            Padding="8,6"
+                                                                            Background="{ThemeResource GaugeBg1Brush}"
+                                                                            BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="{StaticResource GaugeR3}"
+                                                                            Visibility="{x:Bind HasSnippet, Converter={StaticResource BoolToVisibility}}">
+                                                                            <TextBlock Style="{StaticResource CodeText}" Text="{x:Bind Snippet}" />
+                                                                        </Border>
+                                                                        <TextBlock
+                                                                            FontSize="12"
+                                                                            Foreground="{ThemeResource GaugeFg2Brush}"
+                                                                            Text="{x:Bind Caveat}"
+                                                                            TextWrapping="Wrap"
+                                                                            Visibility="{x:Bind HasCaveat, Converter={StaticResource BoolToVisibility}}" />
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+
+                                                    <Border
+                                                        Margin="0,4,0,4"
+                                                        Padding="10,8"
+                                                        BorderBrush="{ThemeResource GaugeLine2Brush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="{StaticResource GaugeR3}"
+                                                        Visibility="{x:Bind HasWhatIf, Converter={StaticResource BoolToVisibility}}">
+                                                        <StackPanel Spacing="2">
+                                                            <TextBlock
+                                                                FontSize="11.5"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{ThemeResource GaugeFg2Brush}"
+                                                                Text="Approximate what-if" />
+                                                            <TextBlock
+                                                                Foreground="{ThemeResource GaugeFg0Brush}"
+                                                                Text="{x:Bind WhatIf.Summary}"
                                                                 TextWrapping="Wrap" />
                                                             <TextBlock
-                                                                FontSize="11"
-                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                Text="{x:Bind Location}" />
-                                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                                <TextBlock
-                                                                    FontSize="11"
-                                                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                                    Text="{x:Bind ImpactText}" />
-                                                                <TextBlock
-                                                                    FontSize="11"
-                                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                                    Text="{x:Bind ConfidenceText}" />
-                                                            </StackPanel>
+                                                                FontSize="11.5"
+                                                                Foreground="{ThemeResource GaugeFg2Brush}"
+                                                                Text="Directional estimate only; re-run the query to measure the real result."
+                                                                TextWrapping="Wrap" />
                                                         </StackPanel>
-                                                    </Grid>
-                                                </Button>
+                                                    </Border>
 
-                                                <Expander HorizontalAlignment="Stretch" Header="Why and fixes">
-                                                    <StackPanel Padding="0,8,0,0" Spacing="10">
-                                                        <TextBlock
-                                                            FontSize="12"
-                                                            IsTextSelectionEnabled="True"
-                                                            Text="{x:Bind Why}"
-                                                            TextWrapping="Wrap" />
-
+                                                    <Grid Margin="0,6,0,0" ColumnSpacing="8" RowSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+                                                        <Button
+                                                            Click="OnFindingShowInPlan"
+                                                            Content="Show in plan"
+                                                            Tag="{x:Bind}" />
+                                                        <Button
+                                                            Grid.Column="1"
+                                                            Click="OnFindingOpenLibrary"
+                                                            Content="Open in library"
+                                                            Style="{StaticResource GaugeGhostButton}"
+                                                            Tag="{x:Bind}" />
                                                         <Border
-                                                            Padding="10,8"
-                                                            Background="{ThemeResource AccentFillColorSecondaryBrush}"
-                                                            CornerRadius="6"
-                                                            Visibility="{x:Bind HasWhatIf, Converter={StaticResource BoolToVisibility}}">
-                                                            <StackPanel Spacing="3">
-                                                                <TextBlock FontSize="11" FontWeight="SemiBold" Text="APPROXIMATE WHAT-IF" />
-                                                                <TextBlock FontSize="12" Text="{x:Bind WhatIf.Summary}" TextWrapping="Wrap" />
-                                                                <TextBlock FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="Directional estimate only; re-run the query to measure the real result." TextWrapping="Wrap" />
+                                                            Grid.Row="1"
+                                                            Grid.ColumnSpan="3"
+                                                            HorizontalAlignment="Right"
+                                                            AutomationProperties.Name="Triage"
+                                                            IsHitTestVisible="{x:Bind CanPersist}"
+                                                            Opacity="{x:Bind local:MainPage.EnabledOpacity(CanPersist)}"
+                                                            Style="{StaticResource GaugeSegmented}">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <RadioButton
+                                                                    Click="OnTriageTried"
+                                                                    Content="Tried"
+                                                                    GroupName="{x:Bind PersistenceKey}"
+                                                                    IsChecked="{x:Bind IsTried, Mode=OneWay}"
+                                                                    Style="{StaticResource GaugeSegmentItemFirst}"
+                                                                    Tag="{x:Bind}" />
+                                                                <RadioButton
+                                                                    Click="OnTriageDidNotHelp"
+                                                                    Content="No help"
+                                                                    GroupName="{x:Bind PersistenceKey}"
+                                                                    IsChecked="{x:Bind IsDidNotHelp, Mode=OneWay}"
+                                                                    Style="{StaticResource GaugeSegmentItem}"
+                                                                    Tag="{x:Bind}" />
+                                                                <RadioButton
+                                                                    Click="OnTriageFixed"
+                                                                    Content="Fixed"
+                                                                    GroupName="{x:Bind PersistenceKey}"
+                                                                    IsChecked="{x:Bind IsFixed, Mode=OneWay}"
+                                                                    Style="{StaticResource GaugeSegmentItem}"
+                                                                    Tag="{x:Bind}" />
+                                                                <Button
+                                                                    Click="OnTriageReset"
+                                                                    Content="Reset"
+                                                                    Style="{StaticResource GaugeSegmentButton}"
+                                                                    Tag="{x:Bind}" />
                                                             </StackPanel>
                                                         </Border>
-
-                                                        <StackPanel Spacing="5">
-                                                            <TextBlock FontSize="11" FontWeight="SemiBold" Text="{x:Bind TriageText, Mode=OneWay}" />
-                                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                <Button Click="OnTriageTried" Content="Tried" IsEnabled="{x:Bind CanPersist}" Tag="{x:Bind}" />
-                                                                <Button Click="OnTriageDidNotHelp" Content="No help" IsEnabled="{x:Bind CanPersist}" Tag="{x:Bind}" />
-                                                                <Button Click="OnTriageFixed" Content="Fixed" IsEnabled="{x:Bind CanPersist}" Tag="{x:Bind}" />
-                                                                <Button Click="OnTriageReset" Content="Reset" IsEnabled="{x:Bind CanPersist}" Tag="{x:Bind}" />
-                                                            </StackPanel>
-                                                            <TextBlock FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="Triage is saved beside file-backed plans." />
-                                                        </StackPanel>
-
-                                                        <ItemsControl ItemsSource="{x:Bind Fixes}">
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate x:DataType="vm:FindingFixItem">
-                                                                    <Border
-                                                                        Margin="0,0,0,8"
-                                                                        Padding="10,8"
-                                                                        Background="{ThemeResource LayerFillColorAltBrush}"
-                                                                        CornerRadius="6">
-                                                                        <StackPanel Spacing="5">
-                                                                            <TextBlock
-                                                                                FontSize="11"
-                                                                                FontWeight="SemiBold"
-                                                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                                                Text="{x:Bind Kind}" />
-                                                                            <TextBlock
-                                                                                FontSize="12"
-                                                                                Text="{x:Bind Summary}"
-                                                                                TextWrapping="Wrap" />
-                                                                            <TextBlock
-                                                                                Style="{StaticResource CodeText}"
-                                                                                Text="{x:Bind Snippet}"
-                                                                                Visibility="{x:Bind HasSnippet, Converter={StaticResource BoolToVisibility}}" />
-                                                                            <TextBlock
-                                                                                FontSize="11"
-                                                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                                                Text="{x:Bind Caveat}"
-                                                                                TextWrapping="Wrap"
-                                                                                Visibility="{x:Bind HasCaveat, Converter={StaticResource BoolToVisibility}}" />
-                                                                        </StackPanel>
-                                                                    </Border>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
-                                                    </StackPanel>
-                                                </Expander>
-                                            </StackPanel>
-                                        </Border>
+                                                    </Grid>
+                                                    <TextBlock
+                                                        Margin="0,6,0,0"
+                                                        FontSize="11.5"
+                                                        Foreground="{ThemeResource GaugeFg2Brush}"
+                                                        Text="Triage is saved beside file-backed plans." />
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

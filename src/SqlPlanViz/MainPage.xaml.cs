@@ -39,8 +39,16 @@ public sealed partial class MainPage : Page
         ThemePicker.SelectedIndex = (int)ThemeService.Preference;
         UpdateMetricAvailability();
 
-        // Code-built text (the narrative) takes literal Gauge colours, so it follows the theme.
-        ActualThemeChanged += (_, _) => RenderNarrative();
+        // Code-built text (the narrative) and data-bound row brushes take literal Gauge
+        // colours, so they are re-evaluated when the theme changes.
+        ActualThemeChanged += (_, _) =>
+        {
+            RenderNarrative();
+            foreach (var finding in ViewModel.Findings)
+            {
+                finding.RefreshTheme();
+            }
+        };
 
         // Start on the canvas rather than letting the first title-bar control take focus.
         Loaded += (_, _) => Canvas.Focus(FocusState.Pointer);
@@ -433,7 +441,7 @@ public sealed partial class MainPage : Page
             UpdateTuningSurfaces();
             if (ViewModel.CurrentDiff is not null)
             {
-                PaneSelector.SelectedItem = DeltaTab;
+                DeltaTab.IsChecked = true;
             }
         }
 
@@ -568,16 +576,16 @@ public sealed partial class MainPage : Page
     /// <summary>Counts in the tab labels, so a spill three levels deep isn't invisible (§8).</summary>
     private void UpdateTabLabels()
     {
-        FindingsTab.Text = ViewModel.FindingCount > 0
-            ? $"Findings ({ViewModel.FindingCount})"
+        FindingsTab.Content = ViewModel.FindingCount > 0
+            ? $"Findings {ViewModel.FindingCount}"
             : "Findings";
 
-        IndexesTab.Text = ViewModel.MissingIndexCount > 0
-            ? $"Indexes ({ViewModel.MissingIndexCount})"
+        IndexesTab.Content = ViewModel.MissingIndexCount > 0
+            ? $"Indexes {ViewModel.MissingIndexCount}"
             : "Indexes";
 
-        WarningsTab.Text = ViewModel.WarningCount > 0
-            ? $"Warnings ({ViewModel.WarningCount})"
+        WarningsTab.Content = ViewModel.WarningCount > 0
+            ? $"Warnings {ViewModel.WarningCount}"
             : "Warnings";
     }
 
@@ -1006,11 +1014,40 @@ public sealed partial class MainPage : Page
 
     private void SetTriage(object sender, FixTriageState state)
     {
-        if (sender is Button { Tag: FindingItem item })
+        if (sender is FrameworkElement { Tag: FindingItem item })
         {
             ViewModel.SetFindingTriage(item, state);
         }
     }
+
+    /// <summary>x:Bind helper: Gauge's disabled treatment (45% opacity) for a non-control group.</summary>
+    public static double EnabledOpacity(bool enabled) => enabled ? 1 : 0.45;
+
+    /// <summary>Selecting a finding row selects its operator too, but focus stays in the list.</summary>
+    private void OnSelectFinding(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: FindingItem item })
+        {
+            ViewModel.SelectedFinding = item;
+            if (item.PrimaryNode is { } node)
+            {
+                ViewModel.SelectedNode = node;
+                Canvas.BringIntoView(node);
+            }
+        }
+    }
+
+    private void OnFindingEntity(object sender, RoutedEventArgs e) => OnSelectFinding(sender, e);
+
+    private void OnFindingShowInPlan(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: FindingItem { PrimaryNode: { } node } })
+        {
+            ShowNodeInPlan(node);
+        }
+    }
+
+    private void OnFindingOpenLibrary(object sender, RoutedEventArgs e) => SetViewMode(ViewMode.Library);
 
     private void OnVerbosityChecked(object sender, RoutedEventArgs e)
     {
@@ -1059,9 +1096,15 @@ public sealed partial class MainPage : Page
 
     #region Detail pane
 
-    private void OnPaneChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    private void OnInspectorTabChecked(object sender, RoutedEventArgs e)
     {
-        var index = sender.Items.IndexOf(sender.SelectedItem);
+        // IsChecked="True" in XAML raises Checked while the page is still being built.
+        if (sender is not RadioButton { Tag: string tag } || FindingsPane is null || DeltaPane is null)
+        {
+            return;
+        }
+
+        var index = int.Parse(tag, System.Globalization.CultureInfo.InvariantCulture);
         FindingsPane.Visibility = index == 0 ? Visibility.Visible : Visibility.Collapsed;
         OperatorPane.Visibility = index == 1 ? Visibility.Visible : Visibility.Collapsed;
         IndexesPane.Visibility = index == 2 ? Visibility.Visible : Visibility.Collapsed;
