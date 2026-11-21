@@ -215,7 +215,7 @@ because every task shares the inspector's header and list templates.
 - [x] Selected finding expands inline on `bg-0`: "Why it matters", "Fixes, most effective first",
       the approximate what-if box (`line-2` border), Show in plan / Open in library, the triage
       `GaugeSegmented` (Tried / No help / Fixed / Reset), and the "saved beside" note.
-- [ ] Operator pane: `GaugePaneHeader` per section with key-value grids (labels `fg-2`, values
+- [x] Operator pane: `GaugePaneHeader` per section with key-value grids (labels `fg-2`, values
       `fg-0` right-aligned tabular), estimated vs actual rows, the CPU/IO bar in accent, mono
       predicates, Annotation and Live object context as plain collapsible sections.
 - [ ] Indexes, Warnings and Delta panes: `GaugeTable` rows with severity words, mono DDL in a

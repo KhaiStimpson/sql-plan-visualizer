@@ -424,6 +424,19 @@ public sealed partial class MainPage : Page
             UpdateMetricAvailability();
             UpdateTabLabels();
             UpdateSqlMapping();
+
+            // The canvas clears its selection when the statement changes, so the top finding's
+            // operator is selected after it has taken the new statement.
+            if (e.PropertyName is nameof(MainViewModel.SelectedStatement))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (ViewModel.SelectedNode is null && ViewModel.SelectedFinding?.PrimaryNode is { } node)
+                    {
+                        ViewModel.SelectedNode = node;
+                    }
+                });
+            }
         }
 
         if (e.PropertyName is nameof(MainViewModel.Narrative))
@@ -1166,6 +1179,22 @@ public sealed partial class MainPage : Page
     }
 
     private void OnSaveAnnotation(object sender, RoutedEventArgs e) => ViewModel.SaveSelectedAnnotation();
+
+    /// <summary>Expands or collapses a plain section in the Operator pane; the chevron follows.</summary>
+    private void OnToggleOperatorSection(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Microsoft.UI.Xaml.Controls.Primitives.ToggleButton { Tag: string bodyName } toggle || FindName(bodyName) is not UIElement body)
+        {
+            return;
+        }
+
+        var expanded = toggle.IsChecked == true;
+        body.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+        if (toggle.Content is StackPanel { Children: [FontIcon chevron, ..] })
+        {
+            chevron.Glyph = expanded ? "\uE70D" : "\uE76C";
+        }
+    }
 
     #endregion
 

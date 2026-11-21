@@ -1054,6 +1054,16 @@
         </Setter>
     </Style>
 
+    <!--  A 4px accent meter on a bg-3 track (CPU / I/O split, estimated vs actual rows).  -->
+    <Style x:Key="GaugeBar" TargetType="ProgressBar">
+        <Setter Property="Foreground" Value="{ThemeResource GaugeAccentBrush}" />
+        <Setter Property="Background" Value="{ThemeResource GaugeBg3Brush}" />
+        <Setter Property="MinHeight" Value="4" />
+        <Setter Property="Height" Value="4" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="IsTabStop" Value="False" />
+    </Style>
+
     <!--  Stock keys point at Gauge so code and stock templates that name them follow along.  -->
     <Style
         x:Key="AccentButtonStyle"

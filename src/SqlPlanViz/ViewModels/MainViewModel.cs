@@ -792,13 +792,9 @@ public sealed partial class MainViewModel : ObservableObject
             Metric = SizeMetric.SubtreeCost;
         }
 
-        // Start with a relevant record selected (Gauge DESIGN.md): the top finding, and on
-        // the canvas the operator it implicates.
+        // Start with a relevant record selected (Gauge DESIGN.md): the top finding. The page
+        // selects its operator once the canvas has taken the new statement.
         SelectedFinding = Findings.FirstOrDefault();
-        if (SelectedFinding?.PrimaryNode is { } topNode)
-        {
-            SelectedNode = topNode;
-        }
 
         OnPropertyChanged(nameof(StatementSummary));
         OnPropertyChanged(nameof(StatusItems));

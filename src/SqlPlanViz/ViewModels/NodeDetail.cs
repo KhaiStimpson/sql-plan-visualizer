@@ -178,6 +178,14 @@ public sealed class WarningItem
 
     public WarningSeverity Severity => Warning.Severity;
 
+    /// <summary>The severity as a word, never colour alone.</summary>
+    public string SeverityWord => Warning.Severity switch
+    {
+        WarningSeverity.Critical => "Critical",
+        WarningSeverity.Warning => "Warning",
+        _ => "Info",
+    };
+
     public string SeverityGlyph => Warning.Severity switch
     {
         WarningSeverity.Critical => "", // ErrorBadge

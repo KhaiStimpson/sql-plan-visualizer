@@ -74,6 +74,14 @@ public static class GaugeBrushes
         });
     }
 
+    /// <summary>A Showplan warning's severity word: crit / warn / fg-2.</summary>
+    public static Brush Warning(Model.WarningSeverity severity) => Brush(severity switch
+    {
+        Model.WarningSeverity.Critical => Tokens.Crit,
+        Model.WarningSeverity.Warning => Tokens.Warn,
+        _ => Tokens.Fg2,
+    });
+
     private static Brush Text(bool selected, Color normal) => !selected
         ? Brush(normal)
         : HighContrast ? System("SystemColorHighlightTextColor", Tokens.SelFg) : Brush(Tokens.SelFg);

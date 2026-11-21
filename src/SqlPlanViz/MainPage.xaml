@@ -1543,380 +1543,486 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!--  Operator detail  -->
+                    <!--
+                        Operator: a header, then each section under its own pane header with a
+                        key-value grid (labels fg-2, values fg-0 right-aligned), mono predicates,
+                        and the annotation and live object context as plain collapsible sections.
+                    -->
                     <ScrollViewer
                         x:Name="OperatorPane"
                         Grid.Row="3"
-                        Padding="12,8,12,16"
                         Visibility="Collapsed">
-                        <StackPanel Spacing="10">
+                        <StackPanel>
                             <TextBlock
-                                Margin="4,24,4,0"
-                                HorizontalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                TextAlignment="Center"
+                                Margin="14,16,14,0"
+                                Foreground="{ThemeResource GaugeFg2Brush}"
                                 TextWrapping="Wrap"
                                 Text="Select an operator in the plan to see its rows, cost and predicates."
                                 Visibility="{x:Bind ViewModel.HasNoSelection, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
 
-                            <StackPanel
-                                Spacing="10"
-                                Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-
-                                <!--  Header  -->
-                                <StackPanel Spacing="2">
+                            <StackPanel Visibility="{x:Bind ViewModel.HasSelection, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel Padding="14,10,14,10" Spacing="2">
                                     <TextBlock
-                                        FontSize="19"
-                                        FontWeight="SemiBold"
+                                        FontSize="15"
+                                        Style="{StaticResource GaugePaneTitle}"
                                         Text="{x:Bind ViewModel.SelectedDetail.Title, Mode=OneWay}"
                                         TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource GaugeFacts}" Text="{x:Bind ViewModel.SelectedDetail.Subtitle, Mode=OneWay}" />
                                     <TextBlock
-                                        FontSize="12"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{x:Bind ViewModel.SelectedDetail.Subtitle, Mode=OneWay}" />
-                                    <TextBlock
-                                        Margin="0,4,0,0"
+                                        Margin="0,2,0,0"
                                         FontFamily="{StaticResource GaugeMono}"
                                         FontSize="12"
-                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                        Foreground="{ThemeResource GaugeCodeBrush}"
                                         IsTextSelectionEnabled="True"
                                         Text="{x:Bind ViewModel.SelectedDetail.ObjectName, Mode=OneWay}"
                                         TextWrapping="Wrap"
                                         Visibility="{x:Bind ViewModel.SelectedDetail.HasObject, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
                                 </StackPanel>
 
-                                <Expander Header="Annotation">
-                                    <StackPanel Padding="0,8,0,0" Spacing="7">
-                                        <TextBox
-                                            AcceptsReturn="True"
-                                            MinHeight="72"
-                                            PlaceholderText="Add a note about this operator…"
-                                            Text="{x:Bind ViewModel.SelectedAnnotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            TextWrapping="Wrap" />
-                                        <Grid>
-                                            <TextBlock
-                                                Margin="0,0,90,0"
-                                                VerticalAlignment="Center"
-                                                FontSize="11"
-                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                Text="{x:Bind ViewModel.AnnotationHint, Mode=OneWay}"
-                                                TextWrapping="Wrap" />
-                                            <Button
-                                                HorizontalAlignment="Right"
-                                                Click="OnSaveAnnotation"
-                                                Content="Save note"
-                                                IsEnabled="{x:Bind ViewModel.CanAnnotate, Mode=OneWay}" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Expander>
-
-                                <Expander Header="Live object context">
-                                    <StackPanel Padding="0,8,0,0" Spacing="8">
-                                        <ProgressRing
-                                            HorizontalAlignment="Left"
-                                            IsActive="{x:Bind ViewModel.IsLoadingObjectContext, Mode=OneWay}"
-                                            Visibility="{x:Bind ViewModel.IsLoadingObjectContext, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-                                        <TextBlock
-                                            FontSize="12"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="{x:Bind ViewModel.ObjectContextMessage, Mode=OneWay}"
-                                            TextWrapping="Wrap"
-                                            Visibility="{x:Bind ViewModel.HasNoObjectContext, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-                                        <StackPanel
-                                            Spacing="8"
-                                            Visibility="{x:Bind ViewModel.HasObjectContext, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedObjectContext.DisplayName, Mode=OneWay}" />
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedObjectContext.RowCountText, Mode=OneWay}" />
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedObjectContext.SizeText, Mode=OneWay}" />
-                                            <TextBlock Style="{StaticResource SectionHeader}" Text="INDEXES" />
-                                            <ItemsControl ItemsSource="{x:Bind ViewModel.SelectedObjectContext.Indexes, Mode=OneWay}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate x:DataType="capture:DatabaseIndexInfo">
-                                                        <StackPanel Margin="0,0,0,6">
-                                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
-                                                            <TextBlock FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind Kind}" />
-                                                            <TextBlock FontSize="11" Text="{x:Bind ColumnSummary}" TextWrapping="Wrap" />
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <TextBlock Style="{StaticResource SectionHeader}" Text="STATISTICS" />
-                                            <ItemsControl ItemsSource="{x:Bind ViewModel.SelectedObjectContext.Statistics, Mode=OneWay}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate x:DataType="capture:DatabaseStatisticInfo">
-                                                        <StackPanel Margin="0,0,0,6">
-                                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
-                                                            <TextBlock FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind Detail}" TextWrapping="Wrap" />
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Expander>
-
-                                <!--  Rows: estimated vs actual  -->
-                                <Border Style="{StaticResource CardBorder}">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Style="{StaticResource SectionHeader}" Text="ROWS" />
-
-                                        <TextBlock
-                                            FontSize="12"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="{x:Bind ViewModel.SelectedDetail.EstimateVerdict, Mode=OneWay}"
-                                            TextWrapping="Wrap" />
-
-                                        <Grid ColumnSpacing="10" RowSpacing="4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="62" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock
-                                                Grid.Row="0"
-                                                Grid.Column="0"
-                                                Style="{StaticResource FieldLabel}"
-                                                Text="Estimated" />
-                                            <ProgressBar
-                                                Grid.Row="0"
-                                                Grid.Column="1"
-                                                VerticalAlignment="Center"
-                                                Maximum="100"
-                                                Value="{x:Bind ViewModel.SelectedDetail.EstimatedBar, Mode=OneWay}" />
-                                            <TextBlock
-                                                Grid.Row="0"
-                                                Grid.Column="2"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.EstimatedRowsText, Mode=OneWay}" />
-
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Grid.Column="0"
-                                                Style="{StaticResource FieldLabel}"
-                                                Text="Actual" />
-                                            <ProgressBar
-                                                Grid.Row="1"
-                                                Grid.Column="1"
-                                                VerticalAlignment="Center"
-                                                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
-                                                Maximum="100"
-                                                Value="{x:Bind ViewModel.SelectedDetail.ActualBar, Mode=OneWay}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Grid.Column="2"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.ActualRowsText, Mode=OneWay}" />
-                                        </Grid>
-
-                                        <TextBlock
-                                            FontSize="11"
-                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                            Text="{x:Bind ViewModel.SelectedDetail.EstimatePerExecutionNote, Mode=OneWay}"
-                                            TextWrapping="Wrap"
-                                            Visibility="{x:Bind ViewModel.SelectedDetail.HasEstimatePerExecutionNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-                                    </StackPanel>
-                                </Border>
-
-                                <!--  Cost  -->
-                                <Border Style="{StaticResource CardBorder}">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Style="{StaticResource SectionHeader}" Text="COST" />
-                                        <Grid ColumnSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Subtree" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.SubtreeCostText, Mode=OneWay}" />
-                                        </Grid>
-                                        <Grid ColumnSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="This operator" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.OperatorCostText, Mode=OneWay}" />
-                                        </Grid>
-                                        <Grid ColumnSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Share of statement" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.CostShareText, Mode=OneWay}" />
-                                        </Grid>
-
-                                        <TextBlock
-                                            Margin="0,6,0,0"
-                                            FontSize="11"
-                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                            Text="CPU vs I/O" />
-                                        <Grid ColumnSpacing="6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="28" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="CPU" />
-                                            <ProgressBar
-                                                Grid.Column="1"
-                                                VerticalAlignment="Center"
-                                                Maximum="100"
-                                                Value="{x:Bind ViewModel.SelectedDetail.CpuBar, Mode=OneWay}" />
-                                            <TextBlock
-                                                Grid.Column="2"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.CpuCostText, Mode=OneWay}" />
-                                        </Grid>
-                                        <Grid ColumnSpacing="6">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="28" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="I/O" />
-                                            <ProgressBar
-                                                Grid.Column="1"
-                                                VerticalAlignment="Center"
-                                                Maximum="100"
-                                                Value="{x:Bind ViewModel.SelectedDetail.IoBar, Mode=OneWay}" />
-                                            <TextBlock
-                                                Grid.Column="2"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.IoCostText, Mode=OneWay}" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-
-                                <!--  Timing  -->
                                 <Border
-                                    Style="{StaticResource CardBorder}"
-                                    Visibility="{x:Bind ViewModel.SelectedDetail.HasTiming, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Style="{StaticResource SectionHeader}" Text="TIMING" />
-                                        <Grid ColumnSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Elapsed (slowest thread)" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.ElapsedText, Mode=OneWay}" />
-                                        </Grid>
-                                        <Grid ColumnSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="CPU (all threads)" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.ActualCpuText, Mode=OneWay}" />
-                                        </Grid>
-                                        <Grid ColumnSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Style="{StaticResource FieldLabel}" Text="Executions" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                Style="{StaticResource FieldValue}"
-                                                Text="{x:Bind ViewModel.SelectedDetail.ExecutionsText, Mode=OneWay}" />
-                                        </Grid>
-                                    </StackPanel>
+                                    Padding="14,7"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,1">
+                                    <TextBlock
+                                        FontSize="13"
+                                        Style="{StaticResource GaugePaneTitle}"
+                                        Text="Rows" />
                                 </Border>
-
-                                <!--  Predicates  -->
-                                <Border
-                                    Style="{StaticResource CardBorder}"
-                                    Visibility="{x:Bind ViewModel.SelectedDetail.HasSeekPredicate, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Style="{StaticResource SectionHeader}" Text="SEEK PREDICATE" />
-                                        <TextBlock Style="{StaticResource CodeText}" Text="{x:Bind ViewModel.SelectedDetail.SeekPredicate, Mode=OneWay}" />
-                                    </StackPanel>
-                                </Border>
+                                <StackPanel Padding="14,8,14,12" Spacing="6">
+                                    <TextBlock
+                                        Foreground="{ThemeResource GaugeFg1Brush}"
+                                        Text="{x:Bind ViewModel.SelectedDetail.EstimateVerdict, Mode=OneWay}"
+                                        TextWrapping="Wrap" />
+                                    <Grid ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="62" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Estimated" />
+                                        <ProgressBar
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Maximum="100"
+                                            Style="{StaticResource GaugeBar}"
+                                            Value="{x:Bind ViewModel.SelectedDetail.EstimatedBar, Mode=OneWay}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.EstimatedRowsText, Mode=OneWay}" />
+                                    </Grid>
+                                    <Grid ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="62" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Actual" />
+                                        <ProgressBar
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Maximum="100"
+                                            Style="{StaticResource GaugeBar}"
+                                            Value="{x:Bind ViewModel.SelectedDetail.ActualBar, Mode=OneWay}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.ActualRowsText, Mode=OneWay}" />
+                                    </Grid>
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{ThemeResource GaugeFg2Brush}"
+                                        Text="{x:Bind ViewModel.SelectedDetail.EstimatePerExecutionNote, Mode=OneWay}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{x:Bind ViewModel.SelectedDetail.HasEstimatePerExecutionNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
 
                                 <Border
-                                    Style="{StaticResource CardBorder}"
-                                    Visibility="{x:Bind ViewModel.SelectedDetail.HasPredicate, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Style="{StaticResource SectionHeader}" Text="PREDICATE" />
-                                        <TextBlock Style="{StaticResource CodeText}" Text="{x:Bind ViewModel.SelectedDetail.Predicate, Mode=OneWay}" />
-                                    </StackPanel>
+                                    Padding="14,7"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,1">
+                                    <TextBlock
+                                        FontSize="13"
+                                        Style="{StaticResource GaugePaneTitle}"
+                                        Text="Cost" />
                                 </Border>
+                                <StackPanel Padding="14,8,14,12" Spacing="6">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Subtree" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.SubtreeCostText, Mode=OneWay}" />
+                                    </Grid>
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="This operator" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.OperatorCostText, Mode=OneWay}" />
+                                    </Grid>
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Share of statement" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.CostShareText, Mode=OneWay}" />
+                                    </Grid>
+                                    <TextBlock
+                                        Margin="0,4,0,0"
+                                        Style="{StaticResource SectionHeader}"
+                                        Text="CPU vs I/O" />
+                                    <Grid ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="36" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="CPU" />
+                                        <ProgressBar
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Maximum="100"
+                                            Style="{StaticResource GaugeBar}"
+                                            Value="{x:Bind ViewModel.SelectedDetail.CpuBar, Mode=OneWay}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.CpuCostText, Mode=OneWay}" />
+                                    </Grid>
+                                    <Grid ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="36" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="I/O" />
+                                        <ProgressBar
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Maximum="100"
+                                            Style="{StaticResource GaugeBar}"
+                                            Value="{x:Bind ViewModel.SelectedDetail.IoBar, Mode=OneWay}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.IoCostText, Mode=OneWay}" />
+                                    </Grid>
+                                </StackPanel>
 
-                                <!--  Warnings on this operator  -->
-                                <ItemsControl
-                                    ItemsSource="{x:Bind ViewModel.SelectedDetail.Warnings, Mode=OneWay}"
-                                    Visibility="{x:Bind ViewModel.SelectedDetail.HasWarnings, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:WarningItem">
-                                            <Border
-                                                Margin="0,0,0,8"
-                                                Style="{StaticResource CardBorder}">
-                                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                                    <FontIcon
-                                                        VerticalAlignment="Top"
-                                                        FontFamily="Segoe Fluent Icons"
-                                                        FontSize="15"
-                                                        Foreground="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
-                                                        Glyph="{x:Bind SeverityGlyph}" />
-                                                    <StackPanel Spacing="2">
+                                <StackPanel Visibility="{x:Bind ViewModel.SelectedDetail.HasTiming, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <Border
+                                    Padding="14,7"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,1">
+                                    <TextBlock
+                                        FontSize="13"
+                                        Style="{StaticResource GaugePaneTitle}"
+                                        Text="Timing" />
+                                </Border>
+                                    <StackPanel Padding="14,8,14,12" Spacing="6">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Elapsed (slowest thread)" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.ElapsedText, Mode=OneWay}" />
+                                    </Grid>
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="CPU (all threads)" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.ActualCpuText, Mode=OneWay}" />
+                                    </Grid>
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Style="{StaticResource FieldLabel}" Text="Executions" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Style="{StaticResource FieldValue}"
+                                            Text="{x:Bind ViewModel.SelectedDetail.ExecutionsText, Mode=OneWay}" />
+                                    </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Visibility="{x:Bind ViewModel.SelectedDetail.HasSeekPredicate, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <Border
+                                    Padding="14,7"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,1">
+                                    <TextBlock
+                                        FontSize="13"
+                                        Style="{StaticResource GaugePaneTitle}"
+                                        Text="Seek predicate" />
+                                </Border>
+                                    <TextBlock
+                                        Margin="14,8,14,12"
+                                        Style="{StaticResource CodeText}"
+                                        Text="{x:Bind ViewModel.SelectedDetail.SeekPredicate, Mode=OneWay}" />
+                                </StackPanel>
+
+                                <StackPanel Visibility="{x:Bind ViewModel.SelectedDetail.HasPredicate, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <Border
+                                    Padding="14,7"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,1">
+                                    <TextBlock
+                                        FontSize="13"
+                                        Style="{StaticResource GaugePaneTitle}"
+                                        Text="Predicate" />
+                                </Border>
+                                    <TextBlock
+                                        Margin="14,8,14,12"
+                                        Style="{StaticResource CodeText}"
+                                        Text="{x:Bind ViewModel.SelectedDetail.Predicate, Mode=OneWay}" />
+                                </StackPanel>
+
+                                <StackPanel Visibility="{x:Bind ViewModel.SelectedDetail.HasWarnings, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <Border
+                                    Padding="14,7"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,1">
+                                    <TextBlock
+                                        FontSize="13"
+                                        Style="{StaticResource GaugePaneTitle}"
+                                        Text="Warnings on this operator" />
+                                </Border>
+                                    <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.SelectedDetail.Warnings, Mode=OneWay}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:WarningItem">
+                                                <StackPanel
+                                                    Padding="14,7"
+                                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                    BorderThickness="0,0,0,1"
+                                                    Spacing="2">
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
                                                         <TextBlock
                                                             FontSize="13"
                                                             FontWeight="SemiBold"
+                                                            Foreground="{x:Bind themes:GaugeBrushes.Warning(Severity)}"
+                                                            Text="{x:Bind SeverityWord}" />
+                                                        <TextBlock
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{ThemeResource GaugeFg0Brush}"
                                                             Text="{x:Bind Title}"
                                                             TextWrapping="Wrap" />
-                                                        <TextBlock
-                                                            FontSize="12"
-                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                            Text="{x:Bind Detail}"
-                                                            TextWrapping="Wrap"
-                                                            Visibility="{x:Bind HasDetail, Converter={StaticResource BoolToVisibility}}" />
                                                     </StackPanel>
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="{ThemeResource GaugeFg2Brush}"
+                                                        Text="{x:Bind Detail}"
+                                                        TextWrapping="Wrap"
+                                                        Visibility="{x:Bind HasDetail, Converter={StaticResource BoolToVisibility}}" />
                                                 </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-
-                                <!--  Output list  -->
-                                <Expander
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Stretch"
-                                    Header="{x:Bind ViewModel.SelectedDetail.OutputListHeader, Mode=OneWay}"
-                                    Visibility="{x:Bind ViewModel.SelectedDetail.HasOutputList, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                    <ItemsControl ItemsSource="{x:Bind ViewModel.SelectedDetail.OutputList, Mode=OneWay}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="x:String">
-                                                <TextBlock
-                                                    FontFamily="{StaticResource GaugeMono}"
-                                                    FontSize="12"
-                                                    IsTextSelectionEnabled="True"
-                                                    Text="{x:Bind}"
-                                                    TextWrapping="Wrap" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                </Expander>
+                                </StackPanel>
+
+                                <StackPanel Visibility="{x:Bind ViewModel.SelectedDetail.HasOutputList, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                <!--  OutputList: a plain collapsible section.  -->
+                                <Border
+                                    Padding="14,6"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,0">
+                                    <ToggleButton
+                                        x:Name="OutputListToggle"
+                                        AutomationProperties.Name="OutputList"
+                                        Click="OnToggleOperatorSection"
+                                        Style="{StaticResource GaugeDisclosureToggle}"
+                                        Tag="OutputListBody">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon
+                                                VerticalAlignment="Center"
+                                                FontFamily="Segoe Fluent Icons"
+                                                FontSize="10"
+                                                Glyph="&#xE76C;" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                Text="{x:Bind ViewModel.SelectedDetail.OutputListHeader, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </ToggleButton>
+                                </Border>
+                                <StackPanel
+                                    x:Name="OutputListBody"
+                                    Padding="14,0,14,10"
+                                    Spacing="8"
+                                    Visibility="Collapsed">
+                                    <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.SelectedDetail.OutputList, Mode=OneWay}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <TextBlock Style="{StaticResource CodeText}" Text="{x:Bind}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                                </StackPanel>
+                                <!--  Annotation: a plain collapsible section.  -->
+                                <Border
+                                    Padding="14,6"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,0">
+                                    <ToggleButton
+                                        x:Name="AnnotationToggle"
+                                        AutomationProperties.Name="Annotation"
+                                        Click="OnToggleOperatorSection"
+                                        Style="{StaticResource GaugeDisclosureToggle}"
+                                        Tag="AnnotationBody">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon
+                                                VerticalAlignment="Center"
+                                                FontFamily="Segoe Fluent Icons"
+                                                FontSize="10"
+                                                Glyph="&#xE76C;" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                Text="Annotation" />
+                                        </StackPanel>
+                                    </ToggleButton>
+                                </Border>
+                                <StackPanel
+                                    x:Name="AnnotationBody"
+                                    Padding="14,0,14,10"
+                                    Spacing="8"
+                                    Visibility="Collapsed">
+                                    <TextBox
+                                        MinHeight="64"
+                                        AcceptsReturn="True"
+                                        AutomationProperties.Name="Annotation"
+                                        PlaceholderText="Add a note about this operator…"
+                                        Text="{x:Bind ViewModel.SelectedAnnotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        TextWrapping="Wrap" />
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="11.5"
+                                            Foreground="{ThemeResource GaugeFg2Brush}"
+                                            Text="{x:Bind ViewModel.AnnotationHint, Mode=OneWay}"
+                                            TextWrapping="Wrap" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Click="OnSaveAnnotation"
+                                            Content="Save note"
+                                            IsEnabled="{x:Bind ViewModel.CanAnnotate, Mode=OneWay}" />
+                                    </Grid>
+                                </StackPanel>
+                                <!--  Live object context: a plain collapsible section.  -->
+                                <Border
+                                    Padding="14,6"
+                                    BorderBrush="{ThemeResource GaugeLineBrush}"
+                                    BorderThickness="0,1,0,0">
+                                    <ToggleButton
+                                        x:Name="LiveContextToggle"
+                                        AutomationProperties.Name="Live object context"
+                                        Click="OnToggleOperatorSection"
+                                        Style="{StaticResource GaugeDisclosureToggle}"
+                                        Tag="LiveContextBody">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon
+                                                VerticalAlignment="Center"
+                                                FontFamily="Segoe Fluent Icons"
+                                                FontSize="10"
+                                                Glyph="&#xE76C;" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                Text="Live object context" />
+                                        </StackPanel>
+                                    </ToggleButton>
+                                </Border>
+                                <StackPanel
+                                    x:Name="LiveContextBody"
+                                    Padding="14,0,14,10"
+                                    Spacing="8"
+                                    Visibility="Collapsed">
+                                    <ProgressRing
+                                        Width="16"
+                                        Height="16"
+                                        HorizontalAlignment="Left"
+                                        Foreground="{ThemeResource GaugeAccentBrush}"
+                                        IsActive="{x:Bind ViewModel.IsLoadingObjectContext, Mode=OneWay}"
+                                        Visibility="{x:Bind ViewModel.IsLoadingObjectContext, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                    <TextBlock
+                                        Foreground="{ThemeResource GaugeFg2Brush}"
+                                        Text="{x:Bind ViewModel.ObjectContextMessage, Mode=OneWay}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{x:Bind ViewModel.HasNoObjectContext, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                    <StackPanel
+                                        Spacing="6"
+                                        Visibility="{x:Bind ViewModel.HasObjectContext, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock
+                                            FontFamily="{StaticResource GaugeMono}"
+                                            FontSize="12"
+                                            Foreground="{ThemeResource GaugeFg0Brush}"
+                                            Text="{x:Bind ViewModel.SelectedObjectContext.DisplayName, Mode=OneWay}" />
+                                        <TextBlock Foreground="{ThemeResource GaugeFg1Brush}" Text="{x:Bind ViewModel.SelectedObjectContext.RowCountText, Mode=OneWay}" />
+                                        <TextBlock Foreground="{ThemeResource GaugeFg1Brush}" Text="{x:Bind ViewModel.SelectedObjectContext.SizeText, Mode=OneWay}" />
+                                        <TextBlock Margin="0,4,0,0" Style="{StaticResource SectionHeader}" Text="Indexes" />
+                                        <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.SelectedObjectContext.Indexes, Mode=OneWay}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="capture:DatabaseIndexInfo">
+                                                    <StackPanel Margin="0,0,0,6">
+                                                        <TextBlock
+                                                            FontFamily="{StaticResource GaugeMono}"
+                                                            FontSize="12"
+                                                            Foreground="{ThemeResource GaugeFg0Brush}"
+                                                            Text="{x:Bind Name}" />
+                                                        <TextBlock FontSize="12" Foreground="{ThemeResource GaugeFg2Brush}" Text="{x:Bind Kind}" />
+                                                        <TextBlock FontSize="12" Foreground="{ThemeResource GaugeFg1Brush}" Text="{x:Bind ColumnSummary}" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Margin="0,4,0,0" Style="{StaticResource SectionHeader}" Text="Statistics" />
+                                        <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.SelectedObjectContext.Statistics, Mode=OneWay}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="capture:DatabaseStatisticInfo">
+                                                    <StackPanel Margin="0,0,0,6">
+                                                        <TextBlock
+                                                            FontFamily="{StaticResource GaugeMono}"
+                                                            FontSize="12"
+                                                            Foreground="{ThemeResource GaugeFg0Brush}"
+                                                            Text="{x:Bind Name}" />
+                                                        <TextBlock FontSize="12" Foreground="{ThemeResource GaugeFg2Brush}" Text="{x:Bind Detail}" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </StackPanel>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
