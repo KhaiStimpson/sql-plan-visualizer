@@ -110,7 +110,7 @@
         <TextBox
             x:Name="ConnectionStringBox"
             AcceptsReturn="True"
-            FontFamily="Cascadia Mono, Consolas"
+            FontFamily="{StaticResource GaugeMono}"
             FontSize="12"
             Header="Connection string"
             Height="120"
@@ -121,7 +121,7 @@
         <TextBox
             x:Name="QueryBox"
             AcceptsReturn="True"
-            FontFamily="Cascadia Mono, Consolas"
+            FontFamily="{StaticResource GaugeMono}"
             FontSize="12"
             Header="Query"
             Height="180"

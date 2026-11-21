@@ -172,7 +172,7 @@ public sealed class CompletionPopup
         var glyph = new TextBlock
         {
             Text = item.KindGlyph,
-            FontFamily = new FontFamily("Cascadia Mono, Consolas"),
+            FontFamily = Themes.GaugeFonts.Mono,
             FontSize = 11,
             Opacity = 0.75,
             VerticalAlignment = VerticalAlignment.Center,
@@ -181,7 +181,7 @@ public sealed class CompletionPopup
         var label = new TextBlock
         {
             Text = item.Label,
-            FontFamily = new FontFamily("Cascadia Mono, Consolas"),
+            FontFamily = Themes.GaugeFonts.Mono,
             FontSize = 12.5,
             VerticalAlignment = VerticalAlignment.Center,
         };

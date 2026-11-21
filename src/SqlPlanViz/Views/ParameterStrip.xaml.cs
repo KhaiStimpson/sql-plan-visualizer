@@ -155,7 +155,7 @@ public sealed partial class ParameterStrip : UserControl
         var name = new TextBlock
         {
             Text = parameter.Name,
-            FontFamily = new FontFamily("Cascadia Mono, Consolas"),
+            FontFamily = Themes.GaugeFonts.Mono,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Center,
         };
@@ -251,7 +251,7 @@ public sealed partial class ParameterStrip : UserControl
                 var box = new TextBox
                 {
                     Text = cell.Value,
-                    FontFamily = new FontFamily("Cascadia Mono, Consolas"),
+                    FontFamily = Themes.GaugeFonts.Mono,
                     FontSize = 12,
                     IsSpellCheckEnabled = false,
                     PlaceholderText = cell.IsNull ? "NULL" : string.Empty,

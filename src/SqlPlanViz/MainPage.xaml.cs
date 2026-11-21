@@ -584,7 +584,7 @@ public sealed partial class MainPage : Page
             TextWrapping = TextWrapping.NoWrap,
             Height = 380,
             Width = 720,
-            FontFamily = new FontFamily("Cascadia Mono, Consolas"),
+            FontFamily = Themes.GaugeFonts.Mono,
             FontSize = 12,
             PlaceholderText = "Paste Showplan XML here…",
         };

@@ -62,7 +62,7 @@
                         <DataTemplate>
                             <TextBlock
                                 Margin="0,1"
-                                FontFamily="Cascadia Mono, Consolas"
+                                FontFamily="{StaticResource GaugeMono}"
                                 FontSize="12"
                                 Text="{Binding}"
                                 TextWrapping="Wrap" />

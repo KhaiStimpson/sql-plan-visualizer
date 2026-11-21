@@ -12,6 +12,9 @@
     xmlns:vm="using:SqlPlanViz.ViewModels"
     xmlns:views="using:SqlPlanViz.Views"
     Background="{ThemeResource GaugeBg0Brush}"
+    FontFamily="{StaticResource GaugeSans}"
+    FontSize="13"
+    Foreground="{ThemeResource GaugeFg1Brush}"
     mc:Ignorable="d">
 
     <Grid AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop">
@@ -492,7 +495,7 @@
                                             <StackPanel Padding="0,8,0,4" Spacing="6">
                                                 <TextBlock FontWeight="SemiBold" Text="{x:Bind Summary}" TextWrapping="Wrap" />
                                                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind Explanation}" TextWrapping="Wrap" />
-                                                <TextBlock FontFamily="Cascadia Mono, Consolas" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="{x:Bind RuleId}" />
+                                                <TextBlock FontFamily="{StaticResource GaugeMono}" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="{x:Bind RuleId}" />
                                             </StackPanel>
                                         </Expander>
                                     </DataTemplate>
@@ -1000,7 +1003,7 @@
                                         Text="{x:Bind ViewModel.SelectedDetail.Subtitle, Mode=OneWay}" />
                                     <TextBlock
                                         Margin="0,4,0,0"
-                                        FontFamily="Cascadia Mono, Consolas"
+                                        FontFamily="{StaticResource GaugeMono}"
                                         FontSize="12"
                                         Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                         IsTextSelectionEnabled="True"
@@ -1332,7 +1335,7 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="x:String">
                                                 <TextBlock
-                                                    FontFamily="Cascadia Mono, Consolas"
+                                                    FontFamily="{StaticResource GaugeMono}"
                                                     FontSize="12"
                                                     IsTextSelectionEnabled="True"
                                                     Text="{x:Bind}"

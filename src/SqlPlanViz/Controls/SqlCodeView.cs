@@ -31,7 +31,7 @@ public sealed class SqlCodeView : UserControl
     private readonly StackPanel _lines;
     private readonly List<CodeLine> _rows = [];
     private readonly List<CodeLine> _highlighted = [];
-    private readonly FontFamily _mono = new("Cascadia Mono, Consolas");
+    private readonly FontFamily _mono = Themes.GaugeFonts.Mono;
     private readonly SolidColorBrush _transparent = new(Colors.Transparent);
     private readonly Dictionary<SqlTokenKind, SolidColorBrush> _brushes = [];
 

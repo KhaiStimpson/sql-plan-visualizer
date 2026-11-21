@@ -79,7 +79,7 @@ Everything later references these resources, so they land first and change nothi
 - [x] Add `ThemeService` (System/Light/Dark in `ApplicationData.Current.LocalSettings`) and apply
       it before `MainWindow` activates. Remove Mica, set the root background to `bg-0`, and colour
       the title bar and caption buttons per PLATFORMS.md, updating on theme change.
-- [ ] Set the app font to Gauge sans at 13px and mono at 12px. Update `SectionHeader`,
+- [x] Set the app font to Gauge sans at 13px and mono at 12px. Update `SectionHeader`,
       `FieldLabel`, `FieldValue`, `CodeText` and `CardBorder` in `App.xaml` to Gauge roles and the
       3–4px radii. Run the app and screenshot both themes.
 

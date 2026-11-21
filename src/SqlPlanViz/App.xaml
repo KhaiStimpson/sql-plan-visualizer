@@ -24,37 +24,44 @@
             <local:StringToBoolConverter x:Key="StringToBool" />
             <local:RowIndexToAlternateBrushConverter x:Key="RowIndexToAlternateBrush" />
 
-            <!-- Card surface used by the detail panel sections. -->
+            <!--  Gauge type: 13px sans for controls, 12px mono for code (DESIGN.md).  -->
+            <FontFamily x:Key="ContentControlThemeFontFamily">Segoe UI Variable Text, Segoe UI Variable, Segoe UI</FontFamily>
+            <x:Double x:Key="ControlContentThemeFontSize">13</x:Double>
+            <x:Double x:Key="ContentControlFontSize">13</x:Double>
+
+            <!--  A quiet bordered surface; Gauge prefers a pane header + rows over cards.  -->
             <Style x:Key="CardBorder" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="Background" Value="{ThemeResource GaugeBg1Brush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource GaugeLineBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="CornerRadius" Value="8" />
-                <Setter Property="Padding" Value="14,12" />
+                <Setter Property="CornerRadius" Value="{StaticResource GaugeR3}" />
+                <Setter Property="Padding" Value="12,10" />
             </Style>
 
+            <!--  Group label inside a pane (the mock-up's "Why it matters" heading).  -->
             <Style x:Key="SectionHeader" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="12" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-                <Setter Property="CharacterSpacing" Value="60" />
-                <Setter Property="Margin" Value="0,0,0,8" />
+                <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+                <Setter Property="Margin" Value="0,0,0,4" />
             </Style>
 
             <Style x:Key="FieldLabel" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="12" />
-                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Setter Property="FontSize" Value="12.5" />
+                <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
             </Style>
 
             <Style x:Key="FieldValue" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="13" />
-                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{ThemeResource GaugeFg0Brush}" />
                 <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="TextAlignment" Value="Right" />
             </Style>
 
             <Style x:Key="CodeText" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Courier New" />
+                <Setter Property="FontFamily" Value="{StaticResource GaugeMono}" />
                 <Setter Property="FontSize" Value="12" />
+                <Setter Property="Foreground" Value="{ThemeResource GaugeFg1Brush}" />
                 <Setter Property="TextWrapping" Value="Wrap" />
                 <Setter Property="IsTextSelectionEnabled" Value="True" />
             </Style>
