@@ -665,6 +665,230 @@
         <Setter Property="FontSize" Value="13" />
     </Style>
 
+    <!-- ===================================================================================
+         Layout: pane header, callout, status bar, navigation rail.
+         ================================================================================= -->
+
+    <!--  Pane header: 8x14 padding, line bottom border. Title + facts left, actions right.  -->
+    <Style x:Key="GaugePaneHeader" TargetType="Border">
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeLineBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="MinHeight" Value="42" />
+    </Style>
+    <Style x:Key="GaugePaneTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+    <Style x:Key="GaugeFacts" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+    <!--  A label beside a control in a header or toolbar ("Weigh by", "Theme").  -->
+    <Style x:Key="GaugeInlineLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!--  Callout: 12x16 padding, bg-2, line-2 border. Crit variant for a blocking problem.  -->
+    <Style x:Key="GaugeCallout" TargetType="Border">
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="Background" Value="{ThemeResource GaugeBg2Brush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeLine2Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource GaugeR2}" />
+    </Style>
+    <Style
+        x:Key="GaugeCalloutCrit"
+        BasedOn="{StaticResource GaugeCallout}"
+        TargetType="Border">
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeCritBrush}" />
+    </Style>
+    <Style x:Key="GaugeCalloutText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg1Brush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="LineHeight" Value="18" />
+    </Style>
+
+    <!--  Status bar: 24px min, bg-2, line top border, 11.5px fg-2, 16px gaps.  -->
+    <Style x:Key="GaugeStatusBar" TargetType="Border">
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="Padding" Value="12,1" />
+        <Setter Property="Background" Value="{ThemeResource GaugeBg2Brush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource GaugeLineBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+    <Style x:Key="GaugeStatusText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+
+    <!--  Rail group label ("View", "Session plans"): 11.5px fg-2 600.  -->
+    <Style x:Key="GaugeNavGroupLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+        <Setter Property="Margin" Value="9,10,9,4" />
+    </Style>
+
+    <!--
+        Navigation item: 30px, 0x9 padding, r-3, fg-2. Hover bg-3 / fg-0; current
+        (IsChecked) bg-4 / fg-0 / 600. A RadioButton so exactly one view is current.
+    -->
+    <Style x:Key="GaugeNavItem" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="9,0" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="CornerRadius" Value="{StaticResource GaugeR3}" />
+        <Setter Property="FontFamily" Value="{StaticResource GaugeSans}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="-2" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
+        <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GaugeAccentBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid
+                        x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Hover.Opacity" Value="1" />
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Hover.Opacity" Value="1" />
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.45" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="CheckStates">
+                                <VisualState x:Name="Checked">
+                                    <VisualState.Setters>
+                                        <Setter Target="On.Opacity" Value="1" />
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource GaugeFg0Brush}" />
+                                        <Setter Target="ContentPresenter.FontWeight" Value="SemiBold" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Unchecked" />
+                                <VisualState x:Name="Indeterminate" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Border
+                            x:Name="Hover"
+                            Background="{ThemeResource GaugeBg3Brush}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Opacity="0" />
+                        <Border
+                            x:Name="On"
+                            Background="{ThemeResource GaugeBg4Brush}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Opacity="0" />
+                        <ContentPresenter
+                            x:Name="ContentPresenter"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            AutomationProperties.AccessibilityView="Raw"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        A selectable list row (data table, findings, session plans): transparent, hover bg-2.
+        Selection is drawn by the row's own content (sel fill + 2px sel-edge) because it
+        follows data, not pointer state.
+    -->
+    <Style x:Key="GaugeRowButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg1Brush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="0" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
+        <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GaugeAccentBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid x:Name="Root" Background="{TemplateBinding Background}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource GaugeBg2Brush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource GaugeBg3Brush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter
+                            x:Name="ContentPresenter"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            AutomationProperties.AccessibilityView="Raw"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  Data table header cell text: 12px fg-2, weight 500, on a bg-2 header row.  -->
+    <Style x:Key="GaugeTableHeaderText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
     <!--  Stock keys point at Gauge so code and stock templates that name them follow along.  -->
     <Style
         x:Key="AccentButtonStyle"

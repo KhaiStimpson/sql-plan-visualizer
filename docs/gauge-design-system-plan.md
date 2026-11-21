@@ -100,7 +100,7 @@ The Gauge components as reusable XAML styles, so later phases only compose them.
 - [x] Text styles: `GaugeSevCrit` / `GaugeSevWarn` / `GaugeSevOk` / `GaugeSevNeutral` (12.5px 600),
       `GaugeEntityLink` (`HyperlinkButton` style, underlined, `fg-3` underline, accent on hover;
       mono and sans variants), `GaugeKbd`, `GaugeCount`.
-- [ ] Layout styles: `GaugePaneHeader` (8×14 padding, `line` bottom border, 14px 600 title, facts
+- [x] Layout styles: `GaugePaneHeader` (8×14 padding, `line` bottom border, 14px 600 title, facts
       in 12.5px `fg-2`), `GaugeCallout` and `GaugeCalloutCrit`, `GaugeStatusBar` (24px, `bg-2`,
       11.5px `fg-2`), `GaugeNavItem` (30px, 0×9, `r-3`, current = `bg-4` / `fg-0` / 600).
 - [ ] Focus visuals: app-wide `FocusVisualPrimaryBrush` = accent, 2px, 2px margin. HighContrast
