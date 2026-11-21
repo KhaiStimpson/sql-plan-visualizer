@@ -1,6 +1,6 @@
 # Gauge design system — plan
 
-Status: not started · Branch: `claude/gauge-design-system` · Written: 2026-11-21
+Status: in progress · Branch: `claude/gauge-design-system` · Written: 2026-11-21
 
 ## Goal
 
@@ -62,7 +62,7 @@ difference.
 
 Everything later references these resources, so they land first and change nothing structural.
 
-- [ ] Branch `claude/gauge-design-system` off `main`. Commit the mock-up (`docs/design/gauge-mockup*`)
+- [x] Branch `claude/gauge-design-system` off `main`. Commit the mock-up (`docs/design/gauge-mockup*`)
       and vendor the Gauge kit (`tokens.json`, `DESIGN.md`, `COMPONENTS.md`, `PLATFORMS.md`,
       `reference.html`, `theme.css`, `components.css` from
       https://github.com/KhaiStimpson/gauge-design-kit) into `docs/design/gauge/`.

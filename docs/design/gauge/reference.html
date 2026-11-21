@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gauge · Job inspector</title>
+<script>
+  // Apply a saved theme before first paint so the page never flashes the wrong palette.
+  try {
+    const saved = localStorage.getItem('gauge.theme');
+    if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+  } catch {}
+</script>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="components.css">
+<style>
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { display: grid; grid-template-rows: auto 1fr auto; }
+h1, h2 { margin: 0; color: var(--gauge-fg-0); font-weight: 600; }
+.top { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: var(--gauge-bg-2); border-bottom: 1px solid var(--gauge-line); }
+.top strong { color: var(--gauge-fg-0); }
+.top span { color: var(--gauge-fg-2); font-size: 12px; }
+.top .g-btn { margin-left: auto; }
+.layout { display: grid; grid-template-columns: 172px minmax(0, 1fr) minmax(260px, 32%); min-height: 0; }
+main { min-width: 0; overflow: auto; }
+.insp { padding: 0 0 16px; overflow: auto; background: var(--gauge-bg-1); border-left: 1px solid var(--gauge-line); }
+.insp dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; padding: 12px 14px; }
+.insp dt { color: var(--gauge-fg-2); }
+.insp dd { margin: 0; overflow-wrap: anywhere; }
+.insp .row { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px; }
+.insp .g-callout { margin: 12px 14px 0; }
+.menu-host { position: relative; }
+.menu-host .g-menu { position: absolute; top: calc(100% + 4px); right: 0; z-index: 20; }
+.g-statusbar label { display: inline-flex; align-items: center; gap: 6px; }
+.g-statusbar .g-field { min-height: 20px; padding: 0 4px; font-size: 11.5px; }
+.g-statusbar .end { margin-left: auto; }
+@media (max-width: 720px) {
+  html, body { height: auto; }
+  body { min-height: 100vh; }
+  .layout { display: block; }
+  .g-nav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--gauge-line); }
+  .insp { border-left: 0; border-top: 1px solid var(--gauge-line); }
+  .g-table th, .g-table td { padding: 6px 8px; }
+  .top .hint { display: none; }
+}
+</style>
+</head>
+<body class="g-root">
+<header class="top"><strong>Gauge</strong><span>Job inspector</span>
+  <button class="g-btn g-btn--ghost" id="open-palette" aria-haspopup="dialog" aria-keyshortcuts="Control+K">Find a command <span class="g-kbd hint">Ctrl K</span></button>
+</header>
+<div class="layout">
+<nav class="g-nav" aria-label="Sections">
+  <a href="#jobs" aria-current="page">Jobs <span class="g-count">4</span></a>
+  <a href="#workers">Workers <span class="g-count">2</span></a>
+  <a href="#alerts">Alerts <span class="g-count g-count--crit">1</span></a>
+  <hr>
+  <a href="#settings">Settings</a>
+</nav>
+<main>
+  <div class="g-pane-h">
+    <h1 style="font-size:14px">Jobs</h1><span class="g-facts" id="facts"></span>
+    <div class="g-actions">
+      <div class="g-seg" role="group" aria-label="Filter">
+        <button type="button" aria-pressed="true" data-filter="all">All</button><button type="button" aria-pressed="false" data-filter="attention">Needs attention</button>
+      </div>
+      <label>Order <select class="g-field" id="order"><option>Newest first</option><option>Oldest first</option></select></label>
+    </div>
+  </div>
+  <table class="g-table" aria-label="Jobs"><thead><tr><th scope="col">Job</th><th scope="col">State</th><th scope="col" class="g-num">Attempts</th></tr></thead><tbody></tbody></table>
+</main>
+<aside class="insp" aria-labelledby="details">
+  <div class="g-pane-h"><h2 id="details">Job details</h2>
+    <div class="g-actions menu-host">
+      <button class="g-btn g-btn--ghost" id="more" aria-haspopup="menu" aria-expanded="false" aria-controls="more-menu">More</button>
+      <div class="g-menu" id="more-menu" role="menu" aria-labelledby="more" hidden>
+        <button role="menuitem" tabindex="-1" data-action="copy">Copy job ID <span class="g-note">Ctrl C</span></button>
+        <button role="menuitem" tabindex="-1" data-action="pin">Pin to status bar</button>
+        <hr>
+        <button role="menuitem" tabindex="-1" data-action="cancel">Cancel job</button>
+      </div>
+    </div>
+  </div>
+  <dl><dt>Job</dt><dd id="name" class="g-mono"></dd><dt>State</dt><dd id="state"></dd><dt>Attempts</dt><dd id="attempts"></dd><dt>Last event</dt><dd id="event"></dd></dl>
+  <div class="row"><button class="g-btn g-btn--primary" id="retry">Retry job</button><button class="g-btn" id="logs">Open logs</button></div>
+  <div class="g-callout" id="note" role="status"></div>
+</aside>
+</div>
+<footer class="g-statusbar"><span id="count"></span><span id="pinned"></span>
+  <label class="end">Theme <select class="g-field" id="theme"><option value="">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+</footer>
+
+<div class="g-scrim" id="scrim" hidden></div>
+<div class="g-palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <input id="palette-input" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list" placeholder="Type a command or job" autocomplete="off">
+  <ul id="palette-list" role="listbox" aria-label="Commands"></ul>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const jobs = [
+  { id: 'job-104', state: 'Running', attempts: 1, event: 'Reading the input files.' },
+  { id: 'job-103', state: 'Waiting', attempts: 2, event: 'Waiting for an available worker.' },
+  { id: 'job-102', state: 'Failed', attempts: 3, event: 'The output directory is unavailable.' },
+  { id: 'job-101', state: 'Complete', attempts: 1, event: 'Wrote the result to storage.' }
+];
+const sevClass = { Waiting: 'g-sev--warn', Failed: 'g-sev--crit', Complete: 'g-sev--ok' };
+const tbody = $('tbody');
+let selected = jobs[1];
+let filter = 'all';
+
+function say(text) { $('#note').textContent = text; }
+
+function selectJob(job) {
+  selected = job;
+  for (const button of tbody.querySelectorAll('.g-entity')) {
+    const active = button.textContent === job.id;
+    if (active) button.setAttribute('aria-current', 'true'); else button.removeAttribute('aria-current');
+    button.closest('tr').classList.toggle('is-selected', active);
+  }
+  $('#name').textContent = job.id;
+  $('#state').replaceChildren(sev(job.state));
+  $('#attempts').textContent = job.attempts;
+  $('#event').textContent = job.event;
+  $('#retry').disabled = job.state !== 'Failed';
+  say(job.state === 'Failed' ? 'Retry is available because this job failed.' : 'Retry becomes available if this job fails.');
+}
+function sev(state) {
+  const span = document.createElement('span');
+  span.className = 'g-sev ' + (sevClass[state] || '');
+  span.textContent = state;
+  return span;
+}
+function visibleJobs() {
+  const list = jobs.filter(job => filter === 'all' || ['Waiting', 'Failed'].includes(job.state));
+  return $('#order').selectedIndex === 1 ? list.reverse() : list;
+}
+function render() {
+  const visible = visibleJobs();
+  tbody.replaceChildren();
+  for (const job of visible) {
+    const row = tbody.insertRow();
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'g-entity';
+    button.textContent = job.id;
+    button.onclick = () => selectJob(job);
+    row.insertCell().append(button);
+    row.insertCell().append(sev(job.state));
+    const n = row.insertCell();
+    n.className = 'g-num';
+    n.textContent = job.attempts;
+  }
+  selectJob(visible.includes(selected) ? selected : visible[0]);
+  $('#count').textContent = visible.length + ' jobs';
+  $('#facts').textContent = jobs.filter(j => j.state === 'Failed').length + ' failed · ' + jobs.filter(j => j.state === 'Waiting').length + ' waiting';
+}
+function setFilter(value) {
+  filter = value;
+  for (const b of document.querySelectorAll('[data-filter]')) b.setAttribute('aria-pressed', String(b.dataset.filter === value));
+  render();
+}
+for (const b of document.querySelectorAll('[data-filter]')) b.onclick = () => setFilter(b.dataset.filter);
+$('#order').onchange = render;
+$('#retry').onclick = () => say('Retry queued for ' + selected.id + '.');
+$('#logs').onclick = () => say('Logs would open for ' + selected.id + '.');
+for (const a of document.querySelectorAll('.g-nav a')) a.onclick = e => {
+  e.preventDefault();
+  for (const other of document.querySelectorAll('.g-nav a')) other.removeAttribute('aria-current');
+  a.setAttribute('aria-current', 'page');
+};
+
+// Theme: explicit choice is stored; System removes the attribute and follows the OS.
+function setTheme(value) {
+  if (value) document.documentElement.dataset.theme = value; else delete document.documentElement.dataset.theme;
+  try { value ? localStorage.setItem('gauge.theme', value) : localStorage.removeItem('gauge.theme'); } catch {}
+  $('#theme').value = value;
+}
+$('#theme').value = document.documentElement.dataset.theme || '';
+$('#theme').onchange = e => setTheme(e.target.value);
+
+// Menu button: Enter, Space or Down opens on the first item; Up opens on the last.
+const more = $('#more'), menu = $('#more-menu');
+const items = () => [...menu.querySelectorAll('[role=menuitem]')];
+function openMenu(index) {
+  menu.hidden = false;
+  more.setAttribute('aria-expanded', 'true');
+  const list = items();
+  list.at(index).focus();
+}
+function closeMenu(refocus) {
+  if (menu.hidden) return;
+  menu.hidden = true;
+  more.setAttribute('aria-expanded', 'false');
+  if (refocus) more.focus();
+}
+more.onclick = () => (menu.hidden ? openMenu(0) : closeMenu(true));
+more.onkeydown = e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); openMenu(0); }
+  if (e.key === 'ArrowUp') { e.preventDefault(); openMenu(-1); }
+};
+menu.onkeydown = e => {
+  const list = items(), i = list.indexOf(document.activeElement);
+  const move = { ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: list.length - 1 }[e.key];
+  if (move !== undefined) { e.preventDefault(); list[(move + list.length) % list.length].focus(); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeMenu(true); }
+  else if (e.key === 'Tab') closeMenu(false);
+};
+menu.onclick = e => {
+  const item = e.target.closest('[role=menuitem]');
+  if (!item) return;
+  const action = item.dataset.action;
+  if (action === 'copy') say('Copied ' + selected.id + '.');
+  if (action === 'pin') $('#pinned').textContent = 'Pinned: ' + selected.id;
+  if (action === 'cancel') say('Cancel requested for ' + selected.id + '.');
+  closeMenu(true);
+};
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.menu-host')) closeMenu(false); });
+
+// Command palette: focus stays in the input; arrows move the active option.
+const palette = $('#palette'), input = $('#palette-input'), list = $('#palette-list');
+let opener = null, active = 0, results = [];
+const commands = () => [
+  ...jobs.map(job => ({ group: 'Jobs', label: 'Go to ' + job.id, note: job.state, run: () => { setFilter('all'); selectJob(job); } })),
+  { group: 'View', label: 'Show jobs that need attention', run: () => setFilter('attention') },
+  { group: 'View', label: 'Show all jobs', run: () => setFilter('all') },
+  ...['light', 'dark', ''].map(v => ({ group: 'Theme', label: 'Use ' + (v || 'system') + ' theme', run: () => setTheme(v) }))
+];
+function drawPalette() {
+  const q = input.value.trim().toLowerCase();
+  results = commands().filter(c => c.label.toLowerCase().includes(q));
+  active = Math.min(active, Math.max(results.length - 1, 0));
+  list.replaceChildren();
+  let group = '';
+  results.forEach((c, i) => {
+    if (c.group !== group) {
+      group = c.group;
+      const g = document.createElement('li');
+      g.className = 'g-group';
+      g.setAttribute('role', 'presentation');
+      g.textContent = group;
+      list.append(g);
+    }
+    const li = document.createElement('li');
+    li.id = 'cmd-' + i;
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-selected', String(i === active));
+    li.innerHTML = '<span></span><span class="g-note"></span>';
+    li.children[0].textContent = c.label;
+    li.children[1].textContent = c.note || '';
+    li.onpointerdown = e => { e.preventDefault(); run(i); };
+    list.append(li);
+  });
+  if (results.length) {
+    input.setAttribute('aria-activedescendant', 'cmd-' + active);
+    $('#cmd-' + active).scrollIntoView({ block: 'nearest' });
+  } else input.removeAttribute('aria-activedescendant');
+}
+function openPalette() {
+  opener = document.activeElement;
+  palette.hidden = $('#scrim').hidden = false;
+  input.value = '';
+  active = 0;
+  drawPalette();
+  input.focus();
+}
+function closePalette(command) {
+  palette.hidden = $('#scrim').hidden = true;
+  if (command) command.run();
+  // A command can re-render the opener away; fall back to the selected record.
+  const target = opener && opener.isConnected ? opener : tbody.querySelector('[aria-current=true]');
+  if (target) target.focus();
+}
+function run(i) {
+  closePalette(results[i]);
+}
+input.oninput = () => { active = 0; drawPalette(); };
+input.onkeydown = e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (results.length) active = (active + (e.key === 'ArrowDown' ? 1 : -1) + results.length) % results.length;
+    drawPalette();
+  } else if (e.key === 'Enter') { e.preventDefault(); run(active); }
+  else if (e.key === 'Escape') { e.preventDefault(); closePalette(); }
+  else if (e.key === 'Tab') e.preventDefault();
+};
+$('#scrim').onclick = () => closePalette();
+$('#open-palette').onclick = openPalette;
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palette.hidden ? openPalette() : closePalette(); }
+});
+
+render();
+</script>
+</body>
+</html>
