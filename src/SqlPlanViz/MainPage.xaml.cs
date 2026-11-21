@@ -715,6 +715,22 @@ public sealed partial class MainPage : Page
         dialog.CloseButtonText = "Cancel";
         dialog.DefaultButton = ContentDialogButton.Primary;
 
+        // Test connection sits in the footer, left of Cancel; the dialog stays open for it.
+        dialog.SecondaryButtonText = "Test connection";
+        dialog.SecondaryButtonClick += async (_, args) =>
+        {
+            args.Cancel = true;
+            var deferral = args.GetDeferral();
+            try
+            {
+                await view.TestConnectionAsync();
+            }
+            finally
+            {
+                deferral.Complete();
+            }
+        };
+
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
             return;
@@ -752,6 +768,22 @@ public sealed partial class MainPage : Page
         dialog.PrimaryButtonText = "Capture";
         dialog.CloseButtonText = "Cancel";
         dialog.DefaultButton = ContentDialogButton.Primary;
+
+        // Test connection sits in the footer, left of Cancel; the dialog stays open for it.
+        dialog.SecondaryButtonText = "Test connection";
+        dialog.SecondaryButtonClick += async (_, args) =>
+        {
+            args.Cancel = true;
+            var deferral = args.GetDeferral();
+            try
+            {
+                await view.TestConnectionAsync();
+            }
+            finally
+            {
+                deferral.Complete();
+            }
+        };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {

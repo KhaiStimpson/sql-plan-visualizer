@@ -259,6 +259,8 @@
             <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#FF0A4A78" />
             <SolidColorBrush x:Key="SystemControlFocusVisualPrimaryBrush" Color="#FF7CC0FF" />
             <SolidColorBrush x:Key="SystemControlFocusVisualSecondaryBrush" Color="#FF1E1E1E" />
+            <SolidColorBrush x:Key="AutoSuggestBoxSuggestionsListBackground" Color="#FF252525" />
+            <SolidColorBrush x:Key="AutoSuggestBoxSuggestionsListBorderBrush" Color="#FF555555" />
             <SolidColorBrush x:Key="ControlElevationBorderBrush" Color="#FF555555" />
             <SolidColorBrush x:Key="AccentControlElevationBorderBrush" Color="#FF7CC0FF" />
             <SolidColorBrush x:Key="TextControlElevationBorderBrush" Color="#FF767676" />
@@ -563,6 +565,8 @@
             <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#FFD6E6F8" />
             <SolidColorBrush x:Key="SystemControlFocusVisualPrimaryBrush" Color="#FF0A64C8" />
             <SolidColorBrush x:Key="SystemControlFocusVisualSecondaryBrush" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="AutoSuggestBoxSuggestionsListBackground" Color="#FFFAFAFA" />
+            <SolidColorBrush x:Key="AutoSuggestBoxSuggestionsListBorderBrush" Color="#FFC6C6C6" />
             <SolidColorBrush x:Key="ControlElevationBorderBrush" Color="#FFC6C6C6" />
             <SolidColorBrush x:Key="AccentControlElevationBorderBrush" Color="#FF0A64C8" />
             <SolidColorBrush x:Key="TextControlElevationBorderBrush" Color="#FF858585" />

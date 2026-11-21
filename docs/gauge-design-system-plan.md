@@ -233,7 +233,7 @@ Matches `gauge-mockup-empty-*`, `-connect-*` and `-run-*`.
 - [x] A global `ContentDialog` style: `bg-2`, `line-2` border, 6px radius, shadow, `scrim`
       overlay, header with a 15px title and a `fg-2` subtitle, footer on `bg-1` with a `line` top
       border. Primary uses `GaugePrimaryButton`.
-- [ ] `ConnectView`: profile row (ComboBox + ghost Rename/Delete), Connection input and
+- [x] `ConnectView`: profile row (ComboBox + ghost Rename/Delete), Connection input and
       Authentication as `GaugeSegmented`, two-column Server/Database and Login/Password, the
       recent-server suggestion list as a Gauge menu, a checkbox row with ghost "Forget saved
       password", the InfoBar as a `GaugeCallout`, Save as profile, and a footer with

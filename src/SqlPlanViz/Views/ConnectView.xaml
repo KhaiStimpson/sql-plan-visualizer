@@ -7,35 +7,72 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Width="620" Spacing="12">
+    <UserControl.Resources>
+        <!--  A field label above its control: 12px fg-2.  -->
+        <Style x:Key="ConnectLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{ThemeResource GaugeFg2Brush}" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+    </UserControl.Resources>
 
-        <ComboBox
-            x:Name="ProfileBox"
-            HorizontalAlignment="Stretch"
-            Header="Load a saved profile"
-            PlaceholderText="(none)"
-            SelectionChanged="OnProfileSelected" />
+    <!--
+        The connect / capture dialog body (docs/design/gauge-mockup.html#connect). Test
+        connection and its result live in the dialog's footer (MainPage supplies the button;
+        the result is TestResult, at the end of this body).
+    -->
+    <StackPanel Width="524" Spacing="12">
 
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button
-                x:Name="RenameProfileButton"
-                Click="OnRenameProfile"
-                Content="Rename"
-                ToolTipService.ToolTip="Rename the selected profile to the text in the profile-name box." />
-            <Button
-                x:Name="DeleteProfileButton"
-                Click="OnDeleteProfile"
-                Content="Delete" />
+        <StackPanel>
+            <TextBlock Style="{StaticResource ConnectLabel}" Text="Load a saved profile" />
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox
+                    x:Name="ProfileBox"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Load a saved profile"
+                    PlaceholderText="(none)"
+                    SelectionChanged="OnProfileSelected" />
+                <Button
+                    x:Name="RenameProfileButton"
+                    Grid.Column="1"
+                    Click="OnRenameProfile"
+                    Content="Rename"
+                    Style="{StaticResource GaugeGhostButton}"
+                    ToolTipService.ToolTip="Rename the selected profile to the text in the profile-name box." />
+                <Button
+                    x:Name="DeleteProfileButton"
+                    Grid.Column="2"
+                    Click="OnDeleteProfile"
+                    Content="Delete"
+                    Style="{StaticResource GaugeGhostButton}" />
+            </Grid>
         </StackPanel>
 
-        <ComboBox
-            x:Name="EntryModeBox"
-            HorizontalAlignment="Stretch"
-            Header="Connection input"
-            SelectionChanged="OnEntryModeChanged">
-            <ComboBoxItem Content="Enter details" />
-            <ComboBoxItem Content="Paste connection string" />
-        </ComboBox>
+        <StackPanel>
+            <TextBlock Style="{StaticResource ConnectLabel}" Text="Connection input" />
+            <Border AutomationProperties.Name="Connection input" Style="{StaticResource GaugeSegmented}">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton
+                        x:Name="DetailsModeRadio"
+                        Checked="OnEntryModeChanged"
+                        Content="Enter details"
+                        GroupName="EntryMode"
+                        IsChecked="True"
+                        Style="{StaticResource GaugeSegmentItemFirst}" />
+                    <RadioButton
+                        x:Name="RawModeRadio"
+                        Checked="OnEntryModeChanged"
+                        Content="Paste connection string"
+                        GroupName="EntryMode"
+                        Style="{StaticResource GaugeSegmentItem}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
 
         <StackPanel x:Name="DetailsPanel" Spacing="12">
 
@@ -44,128 +81,202 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <AutoSuggestBox
-                    x:Name="ServerBox"
-                    Header="Server"
-                    PlaceholderText="localhost\SQLEXPRESS"
-                    SuggestionChosen="OnServerSuggestionChosen"
-                    TextChanged="OnServerTextChanged" />
-                <AutoSuggestBox
-                    x:Name="DatabaseBox"
-                    Grid.Column="1"
-                    Header="Database"
-                    PlaceholderText="(default)"
-                    TextChanged="OnDatabaseTextChanged" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ConnectLabel}" Text="Server" />
+                    <AutoSuggestBox
+                        x:Name="ServerBox"
+                        AutomationProperties.Name="Server"
+                        FontFamily="{StaticResource GaugeMono}"
+                        PlaceholderText="localhost\SQLEXPRESS"
+                        SuggestionChosen="OnServerSuggestionChosen"
+                        TextChanged="OnServerTextChanged">
+                        <AutoSuggestBox.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock
+                                    FontFamily="{StaticResource GaugeMono}"
+                                    FontSize="12"
+                                    Text="{x:Bind}" />
+                            </DataTemplate>
+                        </AutoSuggestBox.ItemTemplate>
+                    </AutoSuggestBox>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Style="{StaticResource ConnectLabel}" Text="Database" />
+                    <AutoSuggestBox
+                        x:Name="DatabaseBox"
+                        AutomationProperties.Name="Database"
+                        FontFamily="{StaticResource GaugeMono}"
+                        PlaceholderText="(default)"
+                        TextChanged="OnDatabaseTextChanged" />
+                </StackPanel>
             </Grid>
 
-            <ComboBox
-                x:Name="AuthBox"
-                HorizontalAlignment="Stretch"
-                Header="Authentication"
-                SelectionChanged="OnAuthChanged">
-                <ComboBoxItem Content="Windows Authentication" />
-                <ComboBoxItem Content="SQL Server Authentication" />
-                <ComboBoxItem Content="Microsoft Entra MFA" />
-            </ComboBox>
+            <StackPanel>
+                <TextBlock Style="{StaticResource ConnectLabel}" Text="Authentication" />
+                <Border AutomationProperties.Name="Authentication" Style="{StaticResource GaugeSegmented}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton
+                            x:Name="WindowsAuthRadio"
+                            Checked="OnAuthChanged"
+                            Content="Windows"
+                            GroupName="AuthMode"
+                            IsChecked="True"
+                            Style="{StaticResource GaugeSegmentItemFirst}" />
+                        <RadioButton
+                            x:Name="SqlAuthRadio"
+                            Checked="OnAuthChanged"
+                            Content="SQL Server"
+                            GroupName="AuthMode"
+                            Style="{StaticResource GaugeSegmentItem}" />
+                        <RadioButton
+                            x:Name="EntraAuthRadio"
+                            Checked="OnAuthChanged"
+                            Content="Microsoft Entra MFA"
+                            GroupName="AuthMode"
+                            Style="{StaticResource GaugeSegmentItem}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
 
-            <StackPanel
+            <Grid
                 x:Name="SqlAuthPanel"
-                Spacing="8"
+                ColumnSpacing="12"
                 Visibility="Collapsed">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="UserBox" Header="Login" TextChanged="OnUserTextChanged" />
-                    <PasswordBox
-                        x:Name="PasswordBox"
-                        Grid.Column="1"
-                        Header="Password" />
-                </Grid>
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ConnectLabel}" Text="Login" />
+                    <TextBox
+                        x:Name="UserBox"
+                        AutomationProperties.Name="Login"
+                        Style="{StaticResource GaugeMonoTextBox}"
+                        TextChanged="OnUserTextChanged" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Style="{StaticResource ConnectLabel}" Text="Password" />
+                    <PasswordBox x:Name="PasswordBox" AutomationProperties.Name="Password" />
+                </StackPanel>
+            </Grid>
+
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Spacing="18">
                     <CheckBox
                         x:Name="RememberPasswordBox"
                         Content="Remember password"
-                        ToolTipService.ToolTip="Stores the password for this server and login in Windows Credential Manager. Opt-in and revocable." />
-                    <Button
-                        x:Name="ForgetPasswordButton"
-                        Content="Forget saved password"
-                        Click="OnForgetPassword"
-                        IsEnabled="False" />
+                        ToolTipService.ToolTip="Stores the password for this server and login in Windows Credential Manager. Opt-in and revocable."
+                        Visibility="{x:Bind SqlAuthPanel.Visibility, Mode=OneWay}" />
+                    <CheckBox
+                        x:Name="EncryptBox"
+                        Content="Encrypt connection"
+                        IsChecked="True" />
+                    <CheckBox
+                        x:Name="TrustCertBox"
+                        Content="Trust server certificate"
+                        IsChecked="True"
+                        ToolTipService.ToolTip="Needed for a dev instance using a self-signed certificate." />
                 </StackPanel>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal" Spacing="16">
-                <CheckBox x:Name="EncryptBox" Content="Encrypt connection" IsChecked="True" />
-                <CheckBox
-                    x:Name="TrustCertBox"
-                    Content="Trust server certificate"
-                    IsChecked="True"
-                    ToolTipService.ToolTip="Needed for a dev instance using a self-signed certificate." />
-            </StackPanel>
+                <Button
+                    x:Name="ForgetPasswordButton"
+                    Grid.Row="1"
+                    HorizontalAlignment="Right"
+                    Click="OnForgetPassword"
+                    Content="Forget saved password"
+                    IsEnabled="False"
+                    Style="{StaticResource GaugeGhostButton}"
+                    Visibility="{x:Bind SqlAuthPanel.Visibility, Mode=OneWay}" />
+            </Grid>
 
         </StackPanel>
 
-        <TextBox
-            x:Name="ConnectionStringBox"
-            AcceptsReturn="True"
-            FontFamily="{StaticResource GaugeMono}"
-            FontSize="12"
-            Header="Connection string"
-            Height="120"
-            PlaceholderText="Server=tcp:host,1433;Database=mydb;Authentication=Active Directory Interactive;Encrypt=True;"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
+        <StackPanel x:Name="ConnectionStringPanel" Visibility="Collapsed">
+            <TextBlock Style="{StaticResource ConnectLabel}" Text="Connection string" />
+            <TextBox
+                x:Name="ConnectionStringBox"
+                Height="96"
+                AcceptsReturn="True"
+                AutomationProperties.Name="Connection string"
+                PlaceholderText="Server=tcp:host,1433;Database=mydb;Authentication=Active Directory Interactive;Encrypt=True;"
+                Style="{StaticResource GaugeMonoTextBox}"
+                TextWrapping="Wrap" />
+        </StackPanel>
 
-        <TextBox
-            x:Name="QueryBox"
-            AcceptsReturn="True"
-            FontFamily="{StaticResource GaugeMono}"
-            FontSize="12"
-            Header="Query"
-            Height="180"
-            PlaceholderText="SELECT * FROM dbo.Orders WHERE CustomerId = 42;"
-            TextWrapping="NoWrap" />
-
-        <RadioButtons x:Name="ModeButtons" SelectedIndex="0">
-            <x:String>Actual plan — runs the query (SET STATISTICS XML ON)</x:String>
-            <x:String>Estimated plan only — compiles without running it (SET SHOWPLAN_XML ON)</x:String>
-        </RadioButtons>
-
-        <StackPanel Orientation="Horizontal" Spacing="12">
-            <Button x:Name="TestButton" Click="OnTestConnection" Content="Test connection" />
-            <TextBlock
-                x:Name="TestResult"
-                VerticalAlignment="Center"
-                FontSize="12"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                TextTrimming="CharacterEllipsis"
+        <StackPanel x:Name="QueryPanel">
+            <TextBlock Style="{StaticResource ConnectLabel}" Text="Query" />
+            <TextBox
+                x:Name="QueryBox"
+                Height="140"
+                AcceptsReturn="True"
+                AutomationProperties.Name="Query"
+                PlaceholderText="SELECT * FROM dbo.Orders WHERE CustomerId = 42;"
+                Style="{StaticResource GaugeMonoTextBox}"
                 TextWrapping="NoWrap" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-            <TextBox
-                x:Name="ProfileNameBox"
-                PlaceholderText="Profile name"
-                Width="220" />
-            <Button
-                x:Name="SaveProfileButton"
-                Click="OnSaveProfile"
-                Content="Save as profile" />
+        <StackPanel x:Name="ModePanel">
+            <TextBlock Style="{StaticResource ConnectLabel}" Text="Plan" />
+            <Border AutomationProperties.Name="Plan to capture" Style="{StaticResource GaugeSegmented}">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton
+                        x:Name="ActualModeRadio"
+                        Content="Actual (runs the query)"
+                        GroupName="CaptureMode"
+                        IsChecked="True"
+                        Style="{StaticResource GaugeSegmentItemFirst}"
+                        ToolTipService.ToolTip="SET STATISTICS XML ON: runs the query and returns measured row counts and timings" />
+                    <RadioButton
+                        x:Name="EstimatedModeRadio"
+                        Content="Estimated only"
+                        GroupName="CaptureMode"
+                        Style="{StaticResource GaugeSegmentItem}"
+                        ToolTipService.ToolTip="SET SHOWPLAN_XML ON: compiles without running the query" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <Border Padding="16,10" Style="{StaticResource GaugeCallout}">
+            <TextBlock
+                FontSize="12"
+                Style="{StaticResource GaugeCalloutText}"
+                Text="Recent servers and logins are remembered on this PC. A SQL password is never written to disk; it is kept in Windows Credential Manager only when you tick Remember password, and Microsoft Entra sign-in tokens stay in memory until the app closes." />
+        </Border>
+
+        <StackPanel>
+            <TextBlock Style="{StaticResource ConnectLabel}" Text="Save as profile" />
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="ProfileNameBox"
+                    AutomationProperties.Name="Profile name"
+                    PlaceholderText="Profile name" />
+                <Button
+                    x:Name="SaveProfileButton"
+                    Grid.Column="1"
+                    Click="OnSaveProfile"
+                    Content="Save as profile" />
+            </Grid>
             <TextBlock
                 x:Name="ProfileResult"
-                VerticalAlignment="Center"
+                Margin="0,4,0,0"
                 FontSize="12"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                TextTrimming="CharacterEllipsis"
-                TextWrapping="NoWrap" />
+                Foreground="{ThemeResource GaugeFg2Brush}"
+                TextWrapping="Wrap" />
         </StackPanel>
 
-        <InfoBar
-            IsClosable="False"
-            IsOpen="True"
-            Message="Recent servers and logins are remembered on this PC, a SQL password is never written to disk and is kept only in Windows Credential Manager when you tick &quot;Remember password&quot;, and Microsoft Entra sign-in tokens stay cached in memory until the app closes."
-            Severity="Informational" />
+        <!--  The Test connection result: Connected in 0.4 s (ok) or the error (crit), as words.  -->
+        <TextBlock
+            x:Name="TestResult"
+            FontSize="12.5"
+            FontWeight="SemiBold"
+            TextWrapping="Wrap"
+            Visibility="Collapsed" />
     </StackPanel>
 </UserControl>

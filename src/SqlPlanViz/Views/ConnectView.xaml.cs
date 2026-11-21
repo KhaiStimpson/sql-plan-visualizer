@@ -29,9 +29,9 @@ public sealed partial class ConnectView : UserControl
         UserBox.Text = settings.UserId;
         EncryptBox.IsChecked = settings.Encrypt;
         TrustCertBox.IsChecked = settings.TrustServerCertificate;
-        AuthBox.SelectedIndex = AuthToIndex(settings.Auth);
+        AuthIndex = AuthToIndex(settings.Auth);
         ConnectionStringBox.Text = settings.RawConnectionString;
-        EntryModeBox.SelectedIndex = settings.UseConnectionString ? 1 : 0;
+        EntryModeIndex = settings.UseConnectionString ? 1 : 0;
         ApplyEntryMode();
         TryPrefillPassword(settings.Server, settings.UserId);
         RefreshProfiles();
@@ -89,8 +89,8 @@ public sealed partial class ConnectView : UserControl
         {
             _connectOnly = value;
             var visibility = value ? Visibility.Collapsed : Visibility.Visible;
-            QueryBox.Visibility = visibility;
-            ModeButtons.Visibility = visibility;
+            QueryPanel.Visibility = visibility;
+            ModePanel.Visibility = visibility;
         }
     }
 
@@ -99,9 +99,32 @@ public sealed partial class ConnectView : UserControl
     public string Query => QueryBox.Text;
 
     public CaptureMode Mode =>
-        ModeButtons.SelectedIndex == 1 ? CaptureMode.EstimatedOnly : CaptureMode.Actual;
+        EstimatedModeRadio.IsChecked == true ? CaptureMode.EstimatedOnly : CaptureMode.Actual;
 
-    private void OnEntryModeChanged(object sender, SelectionChangedEventArgs e) => ApplyEntryMode();
+    /// <summary>0 = enter details, 1 = paste a connection string (the segmented control).</summary>
+    private int EntryModeIndex
+    {
+        get => RawModeRadio?.IsChecked == true ? 1 : 0;
+        set
+        {
+            DetailsModeRadio.IsChecked = value == 0;
+            RawModeRadio.IsChecked = value == 1;
+        }
+    }
+
+    /// <summary>0 = Windows, 1 = SQL Server, 2 = Microsoft Entra MFA (the segmented control).</summary>
+    private int AuthIndex
+    {
+        get => SqlAuthRadio?.IsChecked == true ? 1 : EntraAuthRadio?.IsChecked == true ? 2 : 0;
+        set
+        {
+            WindowsAuthRadio.IsChecked = value == 0;
+            SqlAuthRadio.IsChecked = value == 1;
+            EntraAuthRadio.IsChecked = value == 2;
+        }
+    }
+
+    private void OnEntryModeChanged(object sender, RoutedEventArgs e) => ApplyEntryMode();
 
     // --- Recent-connection suggestions -------------------------------------------------
 
@@ -139,7 +162,7 @@ public sealed partial class ConnectView : UserControl
 
         DatabaseBox.Text = match.Database;
         UserBox.Text = match.UserId;
-        AuthBox.SelectedIndex = AuthToIndex(match.Auth);
+        AuthIndex = AuthToIndex(match.Auth);
         TryPrefillPassword(match.Server, match.UserId);
     }
 
@@ -169,27 +192,27 @@ public sealed partial class ConnectView : UserControl
 
     private void ApplyEntryMode()
     {
-        if (DetailsPanel is null || ConnectionStringBox is null)
+        if (DetailsPanel is null || ConnectionStringPanel is null)
         {
             return;
         }
 
-        var useRaw = EntryModeBox.SelectedIndex == 1;
+        var useRaw = EntryModeIndex == 1;
         DetailsPanel.Visibility = useRaw ? Visibility.Collapsed : Visibility.Visible;
-        ConnectionStringBox.Visibility = useRaw ? Visibility.Visible : Visibility.Collapsed;
+        ConnectionStringPanel.Visibility = useRaw ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void OnAuthChanged(object sender, SelectionChangedEventArgs e)
+    private void OnAuthChanged(object sender, RoutedEventArgs e)
     {
         if (SqlAuthPanel is null)
         {
             return;
         }
 
-        SqlAuthPanel.Visibility = AuthBox.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+        SqlAuthPanel.Visibility = AuthIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // AuthBox item order: 0 = Windows, 1 = SQL Server, 2 = Microsoft Entra MFA.
+    // Authentication order: 0 = Windows, 1 = SQL Server, 2 = Microsoft Entra MFA.
     private static int AuthToIndex(AuthMode auth) => auth switch
     {
         AuthMode.SqlLogin => 1,
@@ -207,7 +230,7 @@ public sealed partial class ConnectView : UserControl
     /// <summary>Pushes the form back into the shared settings object.</summary>
     public void Commit()
     {
-        if (EntryModeBox.SelectedIndex == 1)
+        if (EntryModeIndex == 1)
         {
             // Connection-string mode is authoritative: record only the pasted string and
             // leave the form fields cleared so nothing stale feeds the connection.
@@ -221,7 +244,7 @@ public sealed partial class ConnectView : UserControl
 
         _settings.Server = ServerBox.Text.Trim();
         _settings.Database = DatabaseBox.Text.Trim();
-        _settings.Auth = IndexToAuth(AuthBox.SelectedIndex);
+        _settings.Auth = IndexToAuth(AuthIndex);
         _settings.UserId = UserBox.Text.Trim();
         _settings.Password = PasswordBox.Password;
         _settings.Encrypt = EncryptBox.IsChecked == true;
@@ -313,19 +336,19 @@ public sealed partial class ConnectView : UserControl
 
         if (profile.IsRawConnectionString)
         {
-            EntryModeBox.SelectedIndex = 1;
+            EntryModeIndex = 1;
             ConnectionStringBox.Text = profile.RawConnectionString;
             ApplyEntryMode();
             return;
         }
 
-        EntryModeBox.SelectedIndex = 0;
+        EntryModeIndex = 0;
         ServerBox.Text = profile.Server;
         DatabaseBox.Text = profile.Database;
         UserBox.Text = profile.UserId;
         EncryptBox.IsChecked = profile.Encrypt;
         TrustCertBox.IsChecked = profile.TrustServerCertificate;
-        AuthBox.SelectedIndex = AuthToIndex(profile.Auth);
+        AuthIndex = AuthToIndex(profile.Auth);
         ApplyEntryMode();
 
         if (profile.PasswordIsVaulted)
@@ -349,23 +372,30 @@ public sealed partial class ConnectView : UserControl
         _settings.UseConnectionString,
         _settings.RawConnectionString);
 
-    private async void OnTestConnection(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Tests the form's connection; the dialog's footer button calls this. The result is a
+    /// word first ("Connected in 0.4 s" in ok, or the error in crit), never colour alone.
+    /// </summary>
+    public async Task TestConnectionAsync()
     {
         Commit();
-        TestButton.IsEnabled = false;
+        var tokens = Themes.GaugeTokens.For(ActualTheme);
+        TestResult.Visibility = Visibility.Visible;
+        TestResult.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(tokens.Fg2);
         TestResult.Text = "Connecting…";
 
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            TestResult.Text = await _capture.TestConnectionAsync(_settings);
+            var banner = await _capture.TestConnectionAsync(_settings);
+            TestResult.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(tokens.Ok);
+            TestResult.Text = $"Connected in {stopwatch.Elapsed.TotalSeconds:0.0} s";
+            ToolTipService.SetToolTip(TestResult, banner);
         }
         catch (PlanCaptureException ex)
         {
-            TestResult.Text = ex.Message;
-        }
-        finally
-        {
-            TestButton.IsEnabled = true;
+            TestResult.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(tokens.Crit);
+            TestResult.Text = $"Could not connect: {ex.Message}";
         }
     }
 }

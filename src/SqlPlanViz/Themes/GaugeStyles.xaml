@@ -424,11 +424,135 @@
         TargetType="CheckBox">
         <Setter Property="MinHeight" Value="20" />
         <Setter Property="MinWidth" Value="0" />
-        <Setter Property="Padding" Value="6,0,0,0" />
+        <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="12.5" />
         <Setter Property="Foreground" Value="{ThemeResource GaugeFg1Brush}" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GaugeAccentBrush}" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="-3" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
+        <!--  A 14px box. The Fluent box size is a StaticResource inside its template, so it is redrawn here.  -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid
+                        x:Name="Root"
+                        Background="Transparent"
+                        ColumnSpacing="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CombinedStates">
+                                <VisualState x:Name="UncheckedNormal" />
+                                <VisualState x:Name="UncheckedPointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Box.BorderBrush" Value="{ThemeResource GaugeFg2Brush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="UncheckedPressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Box.Background" Value="{ThemeResource GaugeBg3Brush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="UncheckedDisabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.45" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedNormal">
+                                    <VisualState.Setters>
+                                        <Setter Target="Box.Background" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Box.BorderBrush" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Glyph.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedPointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Box.Background" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Box.BorderBrush" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Glyph.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedPressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Box.Background" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Box.BorderBrush" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Glyph.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedDisabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.45" />
+                                        <Setter Target="Box.Background" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Box.BorderBrush" Value="{ThemeResource GaugeAccentBrush}" />
+                                        <Setter Target="Glyph.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="IndeterminateNormal">
+                                    <VisualState.Setters>
+                                        <Setter Target="Dash.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="IndeterminatePointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Dash.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="IndeterminatePressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Dash.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="IndeterminateDisabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.45" />
+                                        <Setter Target="Dash.Opacity" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Border
+                            x:Name="Box"
+                            Width="14"
+                            Height="14"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource GaugeBg0Brush}"
+                            BorderBrush="{ThemeResource GaugeLineCtlBrush}"
+                            BorderThickness="1"
+                            CornerRadius="3">
+                            <Grid>
+                                <FontIcon
+                                    x:Name="Glyph"
+                                    FontFamily="Segoe Fluent Icons"
+                                    FontSize="10"
+                                    Foreground="{ThemeResource GaugeAccentInkBrush}"
+                                    Glyph="&#xE73E;"
+                                    Opacity="0" />
+                                <Rectangle
+                                    x:Name="Dash"
+                                    Width="7"
+                                    Height="2"
+                                    Fill="{ThemeResource GaugeFg1Brush}"
+                                    Opacity="0" />
+                            </Grid>
+                        </Border>
+                        <ContentPresenter
+                            x:Name="ContentPresenter"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            AutomationProperties.AccessibilityView="Raw"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}"
+                            TextWrapping="Wrap" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     <Style BasedOn="{StaticResource GaugeCheckBox}" TargetType="CheckBox" />
 

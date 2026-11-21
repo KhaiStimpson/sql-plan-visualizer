@@ -150,6 +150,8 @@ FLUENT_BRUSH_ONLY = {
     # Focus: a 2px accent ring app-wide (FrameworkElement.FocusVisualPrimaryBrush defaults here).
     "SystemControlFocusVisualPrimaryBrush": "accent",
     "SystemControlFocusVisualSecondaryBrush": "bg-0",
+    "AutoSuggestBoxSuggestionsListBackground": "bg-1",
+    "AutoSuggestBoxSuggestionsListBorderBrush": "line-2",
     "ControlElevationBorderBrush": "line-2",
     "AccentControlElevationBorderBrush": "accent",
     "TextControlElevationBorderBrush": "line-ctl",
