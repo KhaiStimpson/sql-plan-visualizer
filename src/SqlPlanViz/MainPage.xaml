@@ -316,7 +316,119 @@
                 Grid.Column="0"
                 Background="{ThemeResource GaugeBg2Brush}"
                 BorderBrush="{ThemeResource GaugeLineBrush}"
-                BorderThickness="0,0,1,0" />
+                BorderThickness="0,0,1,0">
+                <StackPanel Padding="6,8" Spacing="2">
+                    <TextBlock Style="{StaticResource GaugeNavGroupLabel}" Text="View" />
+                    <RadioButton
+                        x:Name="RailTree"
+                        AutomationProperties.Name="Plan tree"
+                        Checked="OnRailItemChecked"
+                        GroupName="ViewRail"
+                        Style="{StaticResource GaugeNavItem}"
+                        Tag="Tree"
+                        ToolTipService.ToolTip="The plan as a tree of operators (or a flame view)">
+                        <Grid ColumnSpacing="9">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="15"
+                                Glyph="&#xF003;" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Text="Plan tree"
+                                TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                    </RadioButton>
+                    <RadioButton
+                        x:Name="RailRanked"
+                        AutomationProperties.Name="Ranked by self time"
+                        Checked="OnRailItemChecked"
+                        GroupName="ViewRail"
+                        Style="{StaticResource GaugeNavItem}"
+                        Tag="Ranked"
+                        ToolTipService.ToolTip="Every operator, most expensive first">
+                        <Grid ColumnSpacing="9">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="15"
+                                Glyph="&#xEA37;" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Text="Ranked by self time"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                Grid.Column="2"
+                                Style="{StaticResource GaugeCount}"
+                                Text="{x:Bind ViewModel.RankedOperatorCountText, Mode=OneWay}" />
+                        </Grid>
+                    </RadioButton>
+                    <RadioButton
+                        x:Name="RailHistory"
+                        AutomationProperties.Name="Query Store history"
+                        Checked="OnRailItemChecked"
+                        GroupName="ViewRail"
+                        Style="{StaticResource GaugeNavItem}"
+                        Tag="History"
+                        ToolTipService.ToolTip="Plans Query Store kept for this query on the connected database">
+                        <Grid ColumnSpacing="9">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="15"
+                                Glyph="&#xE81C;" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Text="Query Store history"
+                                TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                    </RadioButton>
+                    <RadioButton
+                        x:Name="RailLibrary"
+                        AutomationProperties.Name="Anti-pattern library"
+                        Checked="OnRailItemChecked"
+                        GroupName="ViewRail"
+                        Style="{StaticResource GaugeNavItem}"
+                        Tag="Library"
+                        ToolTipService.ToolTip="Named plan anti-patterns and how to spot them">
+                        <Grid ColumnSpacing="9">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="15"
+                                Glyph="&#xE8A5;" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Text="Anti-pattern library"
+                                TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
 
             <Grid x:Name="LeftContent" Grid.Column="1">
                 <Grid.RowDefinitions>

@@ -33,6 +33,7 @@ public sealed partial class MainPage : Page
         Canvas.FocusChanged += OnFocusChanged;
         Canvas.SearchRequested += OnSearchRequested;
         SetUpEditor();
+        SetViewMode(ViewMode.Tree);
         UpdateMetricAvailability();
         RefreshConnectionProfiles();
     }
@@ -802,6 +803,20 @@ public sealed partial class MainPage : Page
     {
         ViewModel.ViewMode = mode;
 
+        // The rail's current item follows the view however it was reached.
+        _syncingRail = true;
+        try
+        {
+            RailTree.IsChecked = mode == ViewMode.Tree;
+            RailRanked.IsChecked = mode == ViewMode.Ranked;
+            RailHistory.IsChecked = mode == ViewMode.History;
+            RailLibrary.IsChecked = mode == ViewMode.Library;
+        }
+        finally
+        {
+            _syncingRail = false;
+        }
+
         var tree = mode == ViewMode.Tree;
         Canvas.Visibility = tree && !_flameMode ? Visibility.Visible : Visibility.Collapsed;
         Flame.Visibility = tree && _flameMode ? Visibility.Visible : Visibility.Collapsed;
@@ -812,6 +827,16 @@ public sealed partial class MainPage : Page
         if (mode == ViewMode.History)
         {
             _ = ViewModel.LoadQueryStoreAsync();
+        }
+    }
+
+    private bool _syncingRail;
+
+    private void OnRailItemChecked(object sender, RoutedEventArgs e)
+    {
+        if (!_syncingRail && sender is RadioButton { Tag: string tag } && Enum.TryParse<ViewMode>(tag, out var mode))
+        {
+            SetViewMode(mode);
         }
     }
 

@@ -119,7 +119,7 @@ The structural change from the mock-up: one view mode, a left rail, session plan
       buttons, `OnJumpToRankedOperator` and `OnOpenQueryStorePlan` through it.
 - [x] Restructure the content grid into three columns (184px rail / centre / inspector
       `minmax(340, 29%)`) matching the mock-up. Rail background `bg-2` with a `line` right border.
-- [ ] Add the four rail items using `GaugeNavItem` with Segoe Fluent Icons glyphs,
+- [x] Add the four rail items using `GaugeNavItem` with Segoe Fluent Icons glyphs,
       `ToolTipService.ToolTip` and `AutomationProperties.Name`; current item follows `ViewMode`.
       Show the ranked operator count with `GaugeCount`.
 - [ ] Move the session plans list from the bottom strip into the rail under a "Session plans"

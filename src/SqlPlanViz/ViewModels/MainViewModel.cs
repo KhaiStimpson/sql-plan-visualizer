@@ -96,6 +96,9 @@ public sealed partial class MainViewModel : ObservableObject
         ? "Operators ranked by cost-model divergence"
         : "Operators ranked by self time";
 
+    /// <summary>The count beside the rail's "Ranked by self time" item; empty with no plan.</summary>
+    public string RankedOperatorCountText => RankedOperators.Count > 0 ? RankedOperators.Count.ToString() : string.Empty;
+
     public ObservableCollection<SessionPlanItem> SessionPlans { get; } = [];
 
     public ObservableCollection<PlanDeltaItem> DiffDeltas { get; } = [];
@@ -740,6 +743,7 @@ public sealed partial class MainViewModel : ObservableObject
         RankedOperators.Clear();
         if (statement is null)
         {
+            OnPropertyChanged(nameof(RankedOperatorCountText));
             return;
         }
 
@@ -753,6 +757,8 @@ public sealed partial class MainViewModel : ObservableObject
         {
             RankedOperators.Add(new OperatorRankItem { Rank = rank++, Node = node, Statement = statement });
         }
+
+        OnPropertyChanged(nameof(RankedOperatorCountText));
     }
 
     partial void OnRankOperatorsByDivergenceChanged(bool value)
