@@ -148,7 +148,7 @@ The chrome around the canvas, matching `gauge-mockup-main-*.png`.
 - [x] Replace the footer with `GaugeStatusBar`: operator count, cost, elapsed, CPU and plan kind
       on the left, the canvas hint and a Theme `ComboBox` (System/Light/Dark → `ThemeService`)
       on the right.
-- [ ] Restyle the canvas focus breadcrumb, busy overlay and InfoBars to Gauge roles. Run and
+- [x] Restyle the canvas focus breadcrumb, busy overlay and InfoBars to Gauge roles. Run and
       screenshot against `gauge-mockup-main-*.png`.
 
 ## Phase 5 — Plan canvas and flame view

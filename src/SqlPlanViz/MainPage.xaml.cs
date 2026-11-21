@@ -994,7 +994,7 @@ public sealed partial class MainPage : Page
         Canvas.FitToView();
     }
 
-    private void OnDismissError(InfoBar sender, object args) => ViewModel.ErrorMessage = null;
+    private void OnDismissError(object sender, RoutedEventArgs e) => ViewModel.ErrorMessage = null;
 
     #endregion
 

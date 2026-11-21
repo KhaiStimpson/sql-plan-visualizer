@@ -644,13 +644,18 @@
                     SelectedNode="{x:Bind ViewModel.SelectedNode, Mode=TwoWay}"
                     Statement="{x:Bind ViewModel.SelectedStatement, Mode=OneWay}" />
 
+                <!--  Focus breadcrumb: a secondary button on the canvas, back out of a focused subtree.  -->
                 <Button
                     x:Name="FocusBreadcrumbButton"
                     Grid.Row="1"
-                    Margin="14"
+                    Margin="12"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
+                    AutomationProperties.Name="Leave the focused subtree"
+                    Background="{ThemeResource GaugeBg2Brush}"
                     Click="OnExitFocus"
+                    FontSize="12.5"
+                    Style="{StaticResource GaugeGhostButton}"
                     Visibility="Collapsed" />
 
                 <Border
@@ -879,34 +884,68 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!--  Error  -->
-                <InfoBar
+                <!--  Error: a crit callout carrying the problem, with a dismiss button.  -->
+                <Border
                     Grid.Row="1"
-                    Margin="16"
+                    MaxWidth="640"
+                    Margin="14"
+                    HorizontalAlignment="Left"
                     VerticalAlignment="Top"
-                    CloseButtonClick="OnDismissError"
-                    IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
-                    Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                    Severity="Error"
-                    Title="Could not load that plan" />
+                    Padding="16,10,8,12"
+                    Style="{StaticResource GaugeCalloutCrit}"
+                    Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource GaugeSevCrit}" Text="Could not load that plan" />
+                            <TextBlock
+                                IsTextSelectionEnabled="True"
+                                Style="{StaticResource GaugeCalloutText}"
+                                Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="1"
+                            VerticalAlignment="Top"
+                            AutomationProperties.Name="Dismiss"
+                            Click="OnDismissError"
+                            Style="{StaticResource GaugeIconButton}"
+                            ToolTipService.ToolTip="Dismiss">
+                            <FontIcon
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="12"
+                                Glyph="&#xE711;" />
+                        </Button>
+                    </Grid>
+                </Border>
 
                 <!--  Busy  -->
                 <Grid
                     Grid.Row="1"
-                    Background="{ThemeResource SmokeFillColorDefaultBrush}"
+                    Background="{ThemeResource GaugeScrimBrush}"
                     Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                    <StackPanel
+                    <Border
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="16">
-                        <ProgressRing
-                            Width="44"
-                            Height="44"
-                            IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            Text="{x:Bind ViewModel.BusyMessage, Mode=OneWay}" />
-                    </StackPanel>
+                        Padding="18,14"
+                        Background="{ThemeResource GaugeBg2Brush}"
+                        BorderBrush="{ThemeResource GaugeLine2Brush}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource GaugeRDialog}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <ProgressRing
+                                Width="20"
+                                Height="20"
+                                Foreground="{ThemeResource GaugeAccentBrush}"
+                                IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource GaugeFg0Brush}"
+                                Text="{x:Bind ViewModel.BusyMessage, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
                 </Grid>
 
                 <!--
