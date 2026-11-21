@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml.Media;
 using SqlPlanViz.Capture;
 using SqlPlanViz.Controls;
@@ -37,6 +38,9 @@ public sealed partial class MainPage : Page
         SetViewMode(ViewMode.Tree);
         ThemePicker.SelectedIndex = (int)ThemeService.Preference;
         UpdateMetricAvailability();
+
+        // Code-built text (the narrative) takes literal Gauge colours, so it follows the theme.
+        ActualThemeChanged += (_, _) => RenderNarrative();
 
         // Start on the canvas rather than letting the first title-bar control take focus.
         Loaded += (_, _) => Canvas.Focus(FocusState.Pointer);
@@ -412,6 +416,11 @@ public sealed partial class MainPage : Page
             UpdateMetricAvailability();
             UpdateTabLabels();
             UpdateSqlMapping();
+        }
+
+        if (e.PropertyName is nameof(MainViewModel.Narrative))
+        {
+            RenderNarrative();
         }
 
         if (e.PropertyName is nameof(MainViewModel.Metric))
@@ -1123,6 +1132,69 @@ public sealed partial class MainPage : Page
         {
             ThemeService.SetPreference((ThemePreference)picker.SelectedIndex);
         }
+    }
+
+    /// <summary>Renders the structured narrative: entity links, bold metrics, mono object names.</summary>
+    private void RenderNarrative()
+    {
+        NarrativeText.Blocks.Clear();
+        var tokens = GaugeTokens.For(ActualTheme);
+        var paragraphs = NarrativeBuilder.Build(ViewModel.SelectedStatement, ViewModel.ExplanationVerbosity);
+        for (var i = 0; i < paragraphs.Count; i++)
+        {
+            var paragraph = new Microsoft.UI.Xaml.Documents.Paragraph
+            {
+                Margin = new Thickness(0, 0, 0, i == paragraphs.Count - 1 ? 0 : 6),
+            };
+
+            foreach (var run in paragraphs[i].Runs)
+            {
+                switch (run.Kind)
+                {
+                    case NarrativeRunKind.Entity when run.Node is { } node:
+                        var link = new Microsoft.UI.Xaml.Documents.Hyperlink
+                        {
+                            Foreground = new SolidColorBrush(tokens.Fg0),
+                            UnderlineStyle = Microsoft.UI.Xaml.Documents.UnderlineStyle.Single,
+                        };
+                        link.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = run.Text });
+                        link.Click += (_, _) => ShowNodeInPlan(node);
+                        ToolTipService.SetToolTip(link, $"Show {node.PhysicalOp} (node {node.NodeId}) in the plan");
+                        paragraph.Inlines.Add(link);
+                        break;
+                    case NarrativeRunKind.Bold:
+                        paragraph.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run
+                        {
+                            Text = run.Text,
+                            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                            Foreground = new SolidColorBrush(tokens.Fg0),
+                        });
+                        break;
+                    case NarrativeRunKind.Mono:
+                        paragraph.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run
+                        {
+                            Text = run.Text,
+                            FontFamily = GaugeFonts.Mono,
+                            FontSize = 12,
+                            Foreground = new SolidColorBrush(tokens.Fg0),
+                        });
+                        break;
+                    default:
+                        paragraph.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = run.Text });
+                        break;
+                }
+            }
+
+            NarrativeText.Blocks.Add(paragraph);
+        }
+    }
+
+    /// <summary>Selects an operator and brings it into view on the canvas.</summary>
+    private void ShowNodeInPlan(PlanNode node)
+    {
+        SetViewMode(ViewMode.Tree);
+        ViewModel.SelectedNode = node;
+        Canvas.BringIntoView(node);
     }
 
     /// <summary>A Gauge brush resolved against this page's current theme (code-built UI).</summary>

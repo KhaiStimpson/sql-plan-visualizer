@@ -205,7 +205,7 @@ because every task shares the inspector's header and list templates.
 
 - [x] Diagnosis `GaugePaneHeader`: title, `GaugeSevCrit` / `GaugeSevWarn` counts, Terse/Detailed
       `GaugeSegmented` (replaces `VerbosityButton`), copy-as-Markdown icon button.
-- [ ] Narrative as a `GaugeCallout` with entity links for operator names, bold metrics and a bold
+- [x] Narrative as a `GaugeCallout` with entity links for operator names, bold metrics and a bold
       "Next step:" lead.
 - [ ] Replace the inspector `SelectorBar` with a `GaugeSegmented` (Findings N / Operator /
       Indexes N / Warnings N / Delta) driving the same panes.

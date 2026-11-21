@@ -1225,33 +1225,22 @@
                         </Grid>
                     </Border>
 
+                    <!--
+                        Narrative: a callout with the operators as entity links back to the
+                        canvas, bold metrics, and a bold "Next step:" lead.
+                    -->
                     <Border
                         Grid.Row="1"
-                        Margin="12,12,12,0"
-                        Padding="12,10"
-                        Background="{ThemeResource LayerFillColorAltBrush}"
-                        CornerRadius="8">
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock
-                                FontSize="12"
-                                IsTextSelectionEnabled="True"
-                                Text="{x:Bind ViewModel.Narrative, Mode=OneWay}"
-                                TextWrapping="Wrap" />
-                            <Button
-                                Grid.Column="1"
-                                VerticalAlignment="Top"
-                                Click="OnCopyDiagnosis"
-                                ToolTipService.ToolTip="Copy diagnosis as Markdown">
-                                <FontIcon
-                                    FontFamily="Segoe Fluent Icons"
-                                    FontSize="13"
-                                    Glyph="&#xE8C8;" />
-                            </Button>
-                        </Grid>
+                        Margin="14,10,14,0"
+                        Padding="16,10"
+                        Style="{StaticResource GaugeCallout}">
+                        <RichTextBlock
+                            x:Name="NarrativeText"
+                            FontSize="12.5"
+                            Foreground="{ThemeResource GaugeFg1Brush}"
+                            IsTextSelectionEnabled="True"
+                            LineHeight="18"
+                            TextWrapping="Wrap" />
                     </Border>
 
                     <SelectorBar
