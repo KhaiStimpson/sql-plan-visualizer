@@ -218,7 +218,7 @@ because every task shares the inspector's header and list templates.
 - [x] Operator pane: `GaugePaneHeader` per section with key-value grids (labels `fg-2`, values
       `fg-0` right-aligned tabular), estimated vs actual rows, the CPU/IO bar in accent, mono
       predicates, Annotation and Live object context as plain collapsible sections.
-- [ ] Indexes, Warnings and Delta panes: `GaugeTable` rows with severity words, mono DDL in a
+- [x] Indexes, Warnings and Delta panes: `GaugeTable` rows with severity words, mono DDL in a
       `bg-0` block with a Copy ghost button, and the Delta sort `ComboBox` in a pane header. Run
       and screenshot every tab in both themes.
 

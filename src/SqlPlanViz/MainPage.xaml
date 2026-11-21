@@ -2027,83 +2027,82 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!--  Missing indexes  -->
+                    <!--
+                        Indexes: GaugeTable rows - the target and impact, its columns, whether it
+                        already exists, and the DDL as mono in a bg-0 block with a Copy button.
+                    -->
                     <ScrollViewer
                         x:Name="IndexesPane"
                         Grid.Row="3"
-                        Padding="12,8,12,16"
                         Visibility="Collapsed">
-                        <StackPanel Spacing="10">
+                        <StackPanel>
                             <TextBlock
-                                Margin="4,24,4,0"
-                                HorizontalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                TextAlignment="Center"
+                                Margin="14,16,14,0"
+                                Foreground="{ThemeResource GaugeFg2Brush}"
                                 TextWrapping="Wrap"
                                 Text="This plan carries no missing-index suggestions."
                                 Visibility="{x:Bind ViewModel.HasMissingIndexes, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
 
-                            <ItemsControl ItemsSource="{x:Bind ViewModel.MissingIndexes, Mode=OneWay}">
+                            <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.MissingIndexes, Mode=OneWay}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:IndexSuggestionItem">
-                                        <Border Margin="0,0,0,10" Style="{StaticResource CardBorder}">
-                                            <StackPanel Spacing="8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock
-                                                        FontSize="14"
-                                                        FontWeight="SemiBold"
-                                                        Text="{x:Bind DisplayTarget}"
-                                                        TextWrapping="Wrap" />
-                                                    <Border
-                                                        Grid.Column="1"
-                                                        Padding="8,2"
-                                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                                        CornerRadius="10">
-                                                        <TextBlock
-                                                            FontSize="11"
-                                                            FontWeight="SemiBold"
-                                                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                                            Text="{x:Bind ImpactText}" />
-                                                    </Border>
-                                                </Grid>
-
+                                        <StackPanel
+                                            Padding="14,9,14,12"
+                                            BorderBrush="{ThemeResource GaugeLineBrush}"
+                                            BorderThickness="0,0,0,1"
+                                            Spacing="4">
+                                            <Grid ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
                                                 <TextBlock
+                                                    FontFamily="{StaticResource GaugeMono}"
                                                     FontSize="12"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Text="{x:Bind ColumnSummary}"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{ThemeResource GaugeFg0Brush}"
+                                                    Text="{x:Bind DisplayTarget}"
                                                     TextWrapping="Wrap" />
-
                                                 <TextBlock
-                                                    FontSize="11"
-                                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                    Text="{x:Bind VerificationText, Mode=OneWay}"
-                                                    TextWrapping="Wrap" />
+                                                    Grid.Column="1"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{ThemeResource GaugeFg0Brush}"
+                                                    Text="{x:Bind ImpactText}" />
+                                            </Grid>
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="{ThemeResource GaugeFg2Brush}"
+                                                Text="{x:Bind ColumnSummary}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="{ThemeResource GaugeFg1Brush}"
+                                                Text="{x:Bind VerificationText, Mode=OneWay}"
+                                                TextWrapping="Wrap" />
 
-                                                <Border
-                                                    Padding="10,8"
-                                                    Background="{ThemeResource LayerFillColorAltBrush}"
-                                                    CornerRadius="6"
-                                                    Visibility="{x:Bind CanShowScript, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                                    <TextBlock Style="{StaticResource CodeText}" Text="{x:Bind SuggestedCreateStatement}" />
-                                                </Border>
-
-                                                <TextBlock
-                                                    FontSize="11"
-                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                    Text="{x:Bind Caveat}"
-                                                    TextWrapping="Wrap"
-                                                    Visibility="{x:Bind CanShowScript, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
-
+                                            <Grid
+                                                Margin="0,4,0,0"
+                                                Padding="10,8,6,8"
+                                                Background="{ThemeResource GaugeBg0Brush}"
+                                                BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                BorderThickness="1"
+                                                ColumnSpacing="8"
+                                                CornerRadius="{StaticResource GaugeR3}"
+                                                Visibility="{x:Bind CanShowScript, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Style="{StaticResource CodeText}" Text="{x:Bind SuggestedCreateStatement}" />
                                                 <Button
-                                                    HorizontalAlignment="Right"
+                                                    Grid.Column="1"
+                                                    VerticalAlignment="Top"
+                                                    AutomationProperties.Name="Copy the CREATE INDEX statement"
                                                     Click="OnCopyIndexScript"
-                                                    Tag="{x:Bind SuggestedCreateStatement}"
-                                                    Visibility="{x:Bind CanShowScript, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    FontSize="12.5"
+                                                    Style="{StaticResource GaugeGhostButton}"
+                                                    Tag="{x:Bind SuggestedCreateStatement}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
                                                         <FontIcon
                                                             FontFamily="Segoe Fluent Icons"
                                                             FontSize="13"
@@ -2111,68 +2110,71 @@
                                                         <TextBlock Text="Copy" />
                                                     </StackPanel>
                                                 </Button>
-                                            </StackPanel>
-                                        </Border>
+                                            </Grid>
+
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="{ThemeResource GaugeFg2Brush}"
+                                                Text="{x:Bind Caveat}"
+                                                TextWrapping="Wrap"
+                                                Visibility="{x:Bind CanShowScript, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                        </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!--  Warnings  -->
+                    <!--  Warnings: rows with a severity word, the warning, its operator and the detail.  -->
                     <ScrollViewer
                         x:Name="WarningsPane"
                         Grid.Row="3"
-                        Padding="12,8,12,16"
                         Visibility="Collapsed">
-                        <StackPanel Spacing="8">
+                        <StackPanel>
                             <TextBlock
-                                Margin="4,24,4,0"
-                                HorizontalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                TextAlignment="Center"
+                                Margin="14,16,14,0"
+                                Foreground="{ThemeResource GaugeFg2Brush}"
                                 TextWrapping="Wrap"
                                 Text="No warnings in this plan."
                                 Visibility="{x:Bind ViewModel.HasWarnings, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
 
-                            <ItemsControl ItemsSource="{x:Bind ViewModel.Warnings, Mode=OneWay}">
+                            <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.Warnings, Mode=OneWay}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:WarningItem">
                                         <Button
-                                            Margin="0,0,0,8"
-                                            HorizontalAlignment="Stretch"
-                                            HorizontalContentAlignment="Stretch"
-                                            Background="Transparent"
-                                            BorderThickness="0"
+                                            AutomationProperties.Name="{x:Bind Title}"
                                             Click="OnJumpToWarning"
-                                            Tag="{x:Bind Node}">
-                                            <Border Style="{StaticResource CardBorder}">
+                                            Style="{StaticResource GaugeRowButton}"
+                                            Tag="{x:Bind Node}"
+                                            ToolTipService.ToolTip="Show this operator in the plan">
+                                            <StackPanel
+                                                Padding="14,8,14,9"
+                                                BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                BorderThickness="0,0,0,1"
+                                                Spacing="2">
                                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                                    <FontIcon
-                                                        VerticalAlignment="Top"
-                                                        FontFamily="Segoe Fluent Icons"
-                                                        FontSize="15"
-                                                        Foreground="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
-                                                        Glyph="{x:Bind SeverityGlyph}" />
-                                                    <StackPanel Spacing="2">
-                                                        <TextBlock
-                                                            FontSize="13"
-                                                            FontWeight="SemiBold"
-                                                            Text="{x:Bind Title}"
-                                                            TextWrapping="Wrap" />
-                                                        <TextBlock
-                                                            FontSize="12"
-                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                            Text="{x:Bind Location}" />
-                                                        <TextBlock
-                                                            FontSize="12"
-                                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                            Text="{x:Bind Detail}"
-                                                            TextWrapping="Wrap"
-                                                            Visibility="{x:Bind HasDetail, Converter={StaticResource BoolToVisibility}}" />
-                                                    </StackPanel>
+                                                    <TextBlock
+                                                        FontSize="13"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{x:Bind themes:GaugeBrushes.Warning(Severity)}"
+                                                        Text="{x:Bind SeverityWord}" />
+                                                    <TextBlock
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{ThemeResource GaugeFg0Brush}"
+                                                        Text="{x:Bind Title}"
+                                                        TextWrapping="Wrap" />
                                                 </StackPanel>
-                                            </Border>
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource GaugeFg2Brush}"
+                                                    Text="{x:Bind Location}" />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource GaugeFg1Brush}"
+                                                    Text="{x:Bind Detail}"
+                                                    TextWrapping="Wrap"
+                                                    Visibility="{x:Bind HasDetail, Converter={StaticResource BoolToVisibility}}" />
+                                            </StackPanel>
                                         </Button>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -2180,69 +2182,134 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!--  Plan comparison metric deltas  -->
-                    <ScrollViewer
+                    <!--  Delta: a pane header with the sort, then a GaugeTable of per-operator changes.  -->
+                    <Grid
                         x:Name="DeltaPane"
                         Grid.Row="3"
-                        Padding="12,8,12,16"
                         Visibility="Collapsed">
-                        <StackPanel Spacing="8">
-                            <ComboBox
-                                HorizontalAlignment="Stretch"
-                                Header="Sort by"
-                                SelectedIndex="0"
-                                SelectionChanged="OnDeltaSortChanged">
-                                <ComboBoxItem Content="Largest cost regression" />
-                                <ComboBoxItem Content="Largest row change" />
-                                <ComboBoxItem Content="Change type" />
-                                <ComboBoxItem Content="Operator name" />
-                            </ComboBox>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border Style="{StaticResource GaugePaneHeader}">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    FontSize="13"
+                                    Style="{StaticResource GaugePaneTitle}"
+                                    Text="Plan comparison" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Right"
+                                    Style="{StaticResource GaugeInlineLabel}"
+                                    Text="Sort by" />
+                                <ComboBox
+                                    Grid.Column="2"
+                                    MinWidth="170"
+                                    AutomationProperties.Name="Sort deltas by"
+                                    FontSize="12.5"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnDeltaSortChanged">
+                                    <ComboBoxItem Content="Largest cost regression" />
+                                    <ComboBoxItem Content="Largest row change" />
+                                    <ComboBoxItem Content="Change type" />
+                                    <ComboBoxItem Content="Operator name" />
+                                </ComboBox>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock
+                            Grid.Row="2"
+                            Margin="14,16,14,0"
+                            Foreground="{ThemeResource GaugeFg2Brush}"
+                            Text="Compare the two latest session plans to see metric deltas."
+                            TextWrapping="Wrap"
+                            Visibility="{x:Bind ViewModel.HasDiff, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+
+                        <Grid
+                            Grid.Row="1"
+                            Padding="14,6"
+                            Background="{ThemeResource GaugeBg2Brush}"
+                            ColumnSpacing="10"
+                            Visibility="{x:Bind ViewModel.HasDiff, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="72" />
+                                <ColumnDefinition Width="72" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource GaugeTableHeaderText}" Text="Operator" />
                             <TextBlock
-                                Margin="4,24,4,0"
-                                HorizontalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                Text="Compare the two latest session plans to see metric deltas."
-                                TextAlignment="Center"
-                                TextWrapping="Wrap"
-                                Visibility="{x:Bind ViewModel.HasDiff, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
-                            <ListView ItemsSource="{x:Bind ViewModel.DiffDeltas, Mode=OneWay}">
-                                <ListView.ItemTemplate>
+                                Grid.Column="1"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource GaugeTableHeaderText}"
+                                Text="Cost Δ" />
+                            <TextBlock
+                                Grid.Column="2"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource GaugeTableHeaderText}"
+                                Text="Rows Δ" />
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="2">
+                            <ItemsControl IsTabStop="False" ItemsSource="{x:Bind ViewModel.DiffDeltas, Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:PlanDeltaItem">
                                         <Button
-                                            Padding="8"
-                                            HorizontalAlignment="Stretch"
-                                            HorizontalContentAlignment="Stretch"
-                                            Background="Transparent"
-                                            BorderThickness="0"
+                                            AutomationProperties.Name="{x:Bind Operator}"
                                             Click="OnJumpToDelta"
+                                            Style="{StaticResource GaugeRowButton}"
                                             Tag="{x:Bind TargetNode}">
-                                            <Grid ColumnSpacing="8">
+                                            <Grid
+                                                Padding="14,6"
+                                                BorderBrush="{ThemeResource GaugeLineBrush}"
+                                                BorderThickness="0,0,0,1"
+                                                ColumnSpacing="10">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="64" />
-                                                    <ColumnDefinition Width="70" />
+                                                    <ColumnDefinition Width="72" />
+                                                    <ColumnDefinition Width="72" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel>
-                                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind Operator}" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{ThemeResource GaugeFg0Brush}"
+                                                            Text="{x:Bind Operator}" />
+                                                        <TextBlock
+                                                            VerticalAlignment="Center"
+                                                            FontSize="12"
+                                                            Foreground="{ThemeResource GaugeFg2Brush}"
+                                                            Text="{x:Bind Change}" />
+                                                    </StackPanel>
                                                     <TextBlock
-                                                        FontSize="10"
-                                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                        FontFamily="{StaticResource GaugeMono}"
+                                                        FontSize="11.5"
+                                                        Foreground="{ThemeResource GaugeFg2Brush}"
                                                         Text="{x:Bind ObjectName}"
                                                         TextTrimming="CharacterEllipsis" />
-                                                    <TextBlock
-                                                        FontSize="10"
-                                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                        Text="{x:Bind Change}" />
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="1" HorizontalAlignment="Right" Text="{x:Bind CostDeltaText}" />
-                                                <TextBlock Grid.Column="2" HorizontalAlignment="Right" Text="{x:Bind RowsDeltaText}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    HorizontalAlignment="Right"
+                                                    Foreground="{ThemeResource GaugeFg0Brush}"
+                                                    Text="{x:Bind CostDeltaText}" />
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    HorizontalAlignment="Right"
+                                                    Foreground="{ThemeResource GaugeFg0Brush}"
+                                                    Text="{x:Bind RowsDeltaText}" />
                                             </Grid>
                                         </Button>
                                     </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </StackPanel>
-                    </ScrollViewer>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>
